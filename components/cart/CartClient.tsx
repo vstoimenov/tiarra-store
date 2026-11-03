@@ -77,7 +77,7 @@ export function CartClient() {
         <h2>Общо</h2>
         <p><span>Продукти</span><strong>{formatPrice(total)}</strong></p>
         <p className={styles.delivery}>Доставката се изчислява при потвърждение на поръчката.</p>
-        <Link href="/promo/kontakti" className={styles.primary}>Продължи към поръчка</Link>
+        <Link href="/store/checkout" className={styles.primary}>Продължи към поръчка</Link>
         <p className={styles.note}>Ще потвърдим наличността и доставката с теб.</p>
       </aside>
     </div>
