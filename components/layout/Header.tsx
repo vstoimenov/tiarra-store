@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { imageSrcSet, imageUrl } from '@/lib/images'
+import { CartLink } from '@/components/cart/CartLink'
 import type { Navigation } from '@/lib/site/schema'
 import styles from './Header.module.css'
-import { BagIcon } from './icons'
 import { MobileMenu } from './MobileMenu'
 import { SearchForm } from './SearchForm'
 
@@ -41,10 +41,7 @@ export function Header({ menu, topbar }: { menu: Navigation['menu']; topbar: Rea
           <div className={styles.search}>
             <SearchForm />
           </div>
-          <Link href="/store/cart" className={styles.cart}>
-            <BagIcon />
-            <span className={styles.cartText}>Количка</span>
-          </Link>
+          <CartLink className={styles.cart} textClassName={styles.cartText} badgeClassName={styles.cartBadge} />
         </div>
       </header>
       {topbar}

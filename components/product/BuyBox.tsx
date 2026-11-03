@@ -17,7 +17,7 @@ interface Props {
   /** The selected variant; `null` for a product without variants. */
   variantId: string | null
   onVariantChange: (variantId: string) => void
-  /** Called with what to add. Stage 1 has no cart, so the default does nothing; stage 2 wires it. */
+  /** Called with the selected product, variant and quantity. */
   onAdd?: (item: AddToCart) => void
 }
 

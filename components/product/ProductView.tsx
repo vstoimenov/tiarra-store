@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, type ReactNode } from 'react'
+import { addCartItem } from '@/lib/cart'
 import { initialVariantId, resolveVariantState } from '@/lib/catalog/variant'
 import type { Product } from '@/lib/catalog/types'
 import { BuyBox } from './BuyBox'
@@ -21,15 +22,39 @@ interface Props {
  */
 export function ProductView({ product, breadcrumbs, description }: Props) {
   const [variantId, setVariantId] = useState(() => initialVariantId(product))
-  const { imagePath } = resolveVariantState(product, variantId)
+  const [added, setAdded] = useState(false)
+  const state = resolveVariantState(product, variantId)
+
+  function add(quantity: number) {
+    const variant = product.variants.find((entry) => entry.id === variantId) ?? null
+    addCartItem({
+      key: `${product.id}:${variantId ?? 'default'}`,
+      productId: product.id,
+      slug: product.slug,
+      title: product.title,
+      imagePath: state.imagePath,
+      variantId,
+      variantName: variant?.name ?? null,
+      unitPrice: state.price,
+      quantity,
+    })
+    setAdded(true)
+    window.setTimeout(() => setAdded(false), 2500)
+  }
 
   return (
     <div className={styles.view}>
-      <Gallery images={product.images} selectedPath={imagePath} title={product.title} />
+      <Gallery images={product.images} selectedPath={state.imagePath} title={product.title} />
       <div className={styles.panel}>
         {breadcrumbs}
         <h1 className={styles.title}>{product.title}</h1>
-        <BuyBox product={product} variantId={variantId} onVariantChange={setVariantId} />
+        <BuyBox
+          product={product}
+          variantId={variantId}
+          onVariantChange={setVariantId}
+          onAdd={({ quantity }) => add(quantity)}
+        />
+        {added && <p role="status" className={styles.added}>Продуктът е добавен в количката.</p>}
         {description}
       </div>
     </div>

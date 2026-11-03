@@ -165,3 +165,4 @@
     width: 220px;
   }
 }
+.cartBadge{display:grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#c7a254;color:#111;font-size:11px;font-weight:800;line-height:1;box-sizing:border-box}
