@@ -1,0 +1,66 @@
+.nav {
+  margin-top: 20px;
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: block;
+  padding: 12px 18px;
+  border: 1px solid #d9dbe3;
+  border-radius: 999px;
+  color: #3e3e3e;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.link:hover {
+  border-color: #212121;
+}
+
+.link[aria-current='page'] {
+  border-color: #212121;
+  background: #212121;
+  color: #fff;
+}
+
+/* A phone gets one row to swipe along, so the cards start higher up the screen. */
+@media (max-width: 640px) {
+  .nav {
+    margin-top: 16px;
+  }
+
+  .list {
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin: 0 -16px;
+    padding: 2px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .list li {
+    flex: none;
+  }
+
+  .link {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "date": "2026-10-30",
+  "label": "local",
+  "base": "http://localhost:3101",
+  "lighthouse": "12.8.2",
+  "chrome": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+  "thresholds": {
+    "minScore": 90,
+    "maxLcpMs": 2500
+  },
+  "lcpAdvisory": true,
+  "runsPerPage": 3,
+  "pass": true,
+  "pages": [
+    {
+      "path": "/",
+      "url": "http://localhost:3101/",
+      "score": 93,
+      "lcpMs": 3242,
+      "cls": 0,
+      "tbtMs": 11,
+      "runs": [
+        {
+          "score": 93,
+          "lcpMs": 3242,
+          "cls": 0,
+          "tbtMs": 11
+        },
+        {
+          "score": 93,
+          "lcpMs": 3240,
+          "cls": 0,
+          "tbtMs": 13
+        },
+        {
+          "score": 93,
+          "lcpMs": 3243,
+          "cls": 0,
+          "tbtMs": 11
+        }
+      ],
+      "scorePass": true,
+      "lcpPass": false,
+      "pass": true
+    },
+    {
+      "path": "/store/category/women",
+      "url": "http://localhost:3101/store/category/women",
+      "score": 92,
+      "lcpMs": 3381,
+      "cls": 0,
+      "tbtMs": 11,
+      "runs": [
+        {
+          "score": 91,
+          "lcpMs": 3455,
+          "cls": 0,
+          "tbtMs": 10
+        },
+        {
+          "score": 94,
+          "lcpMs": 3078,
+          "cls": 0,
+          "tbtMs": 11
+        },
+        {
+          "score": 92,
+          "lcpMs": 3381,
+          "cls": 0,
+          "tbtMs": 11
+        }
+      ],
+      "scorePass": true,
+      "lcpPass": false,
+      "pass": true
+    },
+    {
+      "path": "/store/yodeyma-paris-edp-eau-de-parfum-100-mlher",
+      "url": "http://localhost:3101/store/yodeyma-paris-edp-eau-de-parfum-100-mlher",
+      "score": 95,
+      "lcpMs": 2934,
+      "cls": 0,
+      "tbtMs": 13,
+      "runs": [
+        {
+          "score": 94,
+          "lcpMs": 3013,
+          "cls": 0,
+          "tbtMs": 13
+        },
+        {
+          "score": 95,
+          "lcpMs": 2933,
+          "cls": 0,
+          "tbtMs": 13
+        },
+        {
+          "score": 95,
+          "lcpMs": 2934,
+          "cls": 0,
+          "tbtMs": 13
+        }
+      ],
+      "scorePass": true,
+      "lcpPass": false,
+      "pass": true
+    }
+  ]
+}

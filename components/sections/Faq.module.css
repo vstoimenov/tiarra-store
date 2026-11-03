@@ -1,0 +1,166 @@
+/* Port of tiarra-sections/09-faq.html. */
+.faq {
+  padding: 84px 24px;
+  background: #fff;
+}
+
+.inner {
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+.inner > header {
+  margin-bottom: 40px;
+}
+
+.item {
+  border-bottom: 1px solid rgba(10, 10, 11, 0.12);
+}
+
+.item:first-child {
+  border-top: 1px solid rgba(10, 10, 11, 0.12);
+}
+
+.question {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 4px;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  list-style: none;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.question::-webkit-details-marker {
+  display: none;
+}
+
+.question:hover {
+  color: var(--gold-text);
+}
+
+.question:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.plus {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  color: var(--gold-deep);
+  transition:
+    transform 0.25s ease,
+    background 0.2s,
+    color 0.2s;
+}
+
+.plus svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.item[open] .plus {
+  background: var(--gold);
+  color: #fff;
+  transform: rotate(45deg);
+}
+
+.answer {
+  max-width: 70ch;
+  padding: 0 4px 22px;
+}
+
+.answer p {
+  margin: 0 0 8px;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.answer b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.answer a {
+  border-bottom: 1px solid rgba(184, 134, 11, 0.4);
+  color: var(--gold-text);
+}
+
+.help {
+  margin-top: 36px;
+  padding: 24px 20px;
+  border: 1px solid rgba(10, 10, 11, 0.1);
+  border-radius: 10px;
+  background: #fbfaf7;
+  text-align: center;
+}
+
+.help p {
+  margin: 0 0 12px;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.help b {
+  color: var(--ink);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 22px;
+}
+
+.links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.links a:hover {
+  color: var(--gold-text);
+}
+
+.links svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--gold-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .question,
+  .plus {
+    transition: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .faq {
+    padding: 60px 18px;
+  }
+
+  .question {
+    padding: 17px 2px;
+    font-size: 15px;
+  }
+}

@@ -1,0 +1,109 @@
+/* Port of tiarra-sections/02-why-white.html. */
+.why {
+  padding: 84px 0;
+  background: #fff;
+}
+
+/* The live cards sit inside the 1178px page column, with 32px of padding. */
+.inner {
+  max-width: 1178px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  padding: 28px 24px;
+  border: 1px solid rgba(10, 10, 11, 0.1);
+  border-radius: 8px;
+  background: #fbfaf7;
+  transition:
+    border-color 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.item:hover {
+  border-color: rgba(229, 167, 46, 0.6);
+  box-shadow: 0 16px 36px rgba(10, 10, 11, 0.08);
+  transform: translateY(-4px);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 16px;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  background: #fff;
+  color: #d29a26;
+}
+
+.icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.itemTitle {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 16.5px;
+  font-style: italic;
+  font-weight: 800;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.text {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item {
+    transition: none;
+  }
+
+  .item:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .why {
+    padding: 60px 0;
+  }
+
+  .inner {
+    padding: 0 19px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .item {
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

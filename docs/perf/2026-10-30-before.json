@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-30",
+  "label": "before",
+  "base": "http://localhost:3101",
+  "lighthouse": "12.8.2",
+  "chrome": "auto-detected by Lighthouse",
+  "thresholds": {
+    "minScore": 90,
+    "maxLcpMs": 2500
+  },
+  "runsPerPage": 3,
+  "pass": false,
+  "pages": [
+    {
+      "path": "/",
+      "url": "http://localhost:3101/",
+      "score": 87,
+      "lcpMs": 4000,
+      "cls": 0,
+      "tbtMs": 14,
+      "runs": [
+        {
+          "score": 83,
+          "lcpMs": 4530,
+          "cls": 0,
+          "tbtMs": 26
+        },
+        {
+          "score": 87,
+          "lcpMs": 4000,
+          "cls": 0,
+          "tbtMs": 14
+        },
+        {
+          "score": 88,
+          "lcpMs": 3990,
+          "cls": 0,
+          "tbtMs": 11
+        }
+      ],
+      "pass": false
+    },
+    {
+      "path": "/store/category/women",
+      "url": "http://localhost:3101/store/category/women",
+      "score": 95,
+      "lcpMs": 3009,
+      "cls": 0,
+      "tbtMs": 12,
+      "runs": [
+        {
+          "score": 95,
+          "lcpMs": 3006,
+          "cls": 0,
+          "tbtMs": 12
+        },
+        {
+          "score": 95,
+          "lcpMs": 3009,
+          "cls": 0,
+          "tbtMs": 13
+        },
+        {
+          "score": 91,
+          "lcpMs": 3459,
+          "cls": 0,
+          "tbtMs": 12
+        }
+      ],
+      "pass": false
+    },
+    {
+      "path": "/store/yodeyma-paris-edp-eau-de-parfum-100-mlher",
+      "url": "http://localhost:3101/store/yodeyma-paris-edp-eau-de-parfum-100-mlher",
+      "score": 95,
+      "lcpMs": 2940,
+      "cls": 0,
+      "tbtMs": 16,
+      "runs": [
+        {
+          "score": 90,
+          "lcpMs": 3544,
+          "cls": 0,
+          "tbtMs": 14
+        },
+        {
+          "score": 95,
+          "lcpMs": 2940,
+          "cls": 0,
+          "tbtMs": 16
+        },
+        {
+          "score": 96,
+          "lcpMs": 2720,
+          "cls": 0,
+          "tbtMs": 16
+        }
+      ],
+      "pass": false
+    }
+  ]
+}

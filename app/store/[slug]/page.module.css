@@ -1,0 +1,5 @@
+/* Share, trust and the perfume pyramid: one centred column under the product. */
+.details {
+  width: min(760px, calc(100% - 32px));
+  margin: 0 auto 72px;
+}

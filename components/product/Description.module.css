@@ -1,0 +1,66 @@
+/* The page's body line-height is 1, so the text needs its own; and the global reset takes the underline off links. */
+.prose {
+  color: #4a4a52;
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.prose p {
+  margin: 0 0 8px;
+}
+
+/* The shop's editor made a blank line with an empty paragraph: keep the line, drop the margin on top of it. */
+.prose p:has(> br:only-child) {
+  margin: 0;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.prose h2,
+.prose h3,
+.prose h4 {
+  margin: 22px 0 10px;
+  color: #1c1c28;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.prose h2 {
+  font-size: 20px;
+}
+
+.prose h3 {
+  font-size: 18px;
+}
+
+.prose h4 {
+  font-size: 16px;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.prose li {
+  margin: 0 0 6px;
+}
+
+.prose a {
+  color: var(--gold-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose a:hover {
+  color: var(--gold-deep);
+}
+
+.prose strong,
+.prose b {
+  color: #1c1c28;
+}

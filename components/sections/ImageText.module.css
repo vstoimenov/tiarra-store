@@ -1,0 +1,86 @@
+.about {
+  padding: 26px 0 53px;
+}
+
+.inner {
+  display: grid;
+  grid-template-columns: 48% 1fr;
+  gap: 4%;
+  width: min(1178px, calc(100% - 38px));
+  margin: 0 auto;
+  align-items: start;
+}
+
+/* The live photo is cropped to a tall frame with the face in it. */
+.image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 565 / 1118;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.title {
+  margin: 0;
+  padding-bottom: 28px;
+  border-bottom: 1px solid #111;
+  color: #1c1c28;
+  font-size: clamp(30px, 3.6vw, 46px);
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.body {
+  margin-top: 28px;
+  color: #1c1c28;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.body p {
+  margin: 0 0 12px;
+}
+
+.action {
+  margin: 28px 0 0;
+}
+
+.button {
+  display: inline-block;
+  padding: 17px 34px;
+  border-radius: 2px;
+  background: var(--gold);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.button:hover {
+  background: var(--gold-hover);
+}
+
+@media (max-width: 899px) {
+  .inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .title {
+    padding-bottom: 20px;
+  }
+
+  .body {
+    margin-top: 20px;
+    font-size: 16px;
+  }
+}

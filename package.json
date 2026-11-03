@@ -1,0 +1,49 @@
+{
+  "name": "tiarra-store",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@12.8.1",
+  "engines": {
+    "node": "22.x"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3100",
+    "build": "next build",
+    "start": "next start --port 3100",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "db:start": "DOCKER_CONFIG=/tmp/dockercfg supabase start",
+    "db:reset": "DOCKER_CONFIG=/tmp/dockercfg supabase db reset",
+    "import:live": "node --env-file=${ENV_FILE:-.env.local} --import tsx scripts/import/run.ts",
+    "import:verify": "node --env-file=${ENV_FILE:-.env.local} --import tsx scripts/import/verify.ts",
+    "seed:site": "node --env-file=${ENV_FILE:-.env.local} --import tsx scripts/seed-site.ts",
+    "check:urls": "tsx scripts/check-urls.ts",
+    "perf": "node scripts/perf.mjs",
+    "perf:local": "node scripts/perf.mjs http://localhost:3101 local --lcp-advisory"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "gsap": "3.14.2",
+    "next": "15.5.25",
+    "postgres": "^3.4.9",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "sanitize-html": "^2.18.1",
+    "sharp": "^0.34.5",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/sanitize-html": "^2.16.2",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "15.5.25",
+    "supabase": "^2.122.0",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  }
+}

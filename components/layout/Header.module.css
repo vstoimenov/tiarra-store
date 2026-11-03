@@ -1,0 +1,167 @@
+/* Measured on the live header: black bar, logo 100 x 50, search pill 220 x 41, cart 24px icon + 14px label. */
+.top {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background: var(--black);
+  color: #f6f7f9;
+}
+
+/* Mobile: 70px bar, burger left, logo centred, cart right. */
+.inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 70px;
+}
+
+.logo {
+  display: block;
+  flex: none;
+  width: 100px;
+  height: 50px;
+}
+
+.logo img {
+  display: block;
+  width: 100px;
+  height: 50px;
+}
+
+.cart {
+  position: absolute;
+  top: 14px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 42px;
+  height: 42px;
+  color: #f6f7f9;
+  font-size: 14px;
+  line-height: 14px;
+}
+
+.cart svg {
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+
+.cart:hover {
+  color: var(--gold);
+}
+
+/* Icon only on mobile; the label stays for screen readers. */
+.cartText {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.nav,
+.search {
+  display: none;
+}
+
+/* Desktop breakpoint: keep in sync with DESKTOP_QUERY in MobileMenu.tsx. Compact spacing first ... */
+@media (min-width: 1180px) {
+  /* The topbar goes above the header. */
+  .header {
+    order: 1;
+  }
+
+  .inner {
+    justify-content: flex-start;
+    gap: 16px;
+    width: 92%;
+    max-width: 1240px;
+    height: 54px;
+    margin: 0 auto;
+    padding-bottom: 4px;
+  }
+
+  .logo {
+    margin-left: 20px;
+  }
+
+  .nav {
+    display: block;
+    flex: 1;
+  }
+
+  .list {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .link {
+    display: block;
+    padding: 8px 0;
+    color: #f2f3f7;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: color 0.15s;
+  }
+
+  .link:hover {
+    color: var(--gold);
+  }
+
+  .search {
+    display: block;
+    flex: none;
+    width: 190px;
+  }
+
+  .cart {
+    position: static;
+    flex: none;
+    width: auto;
+    height: auto;
+    padding: 4px 0;
+  }
+
+  .cartText {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+  }
+}
+
+/* ... and the live header's measurements once there is room for them. */
+@media (min-width: 1280px) {
+  .inner {
+    gap: 24px;
+  }
+
+  .logo {
+    margin-left: 46px;
+  }
+
+  .list {
+    gap: 26px;
+  }
+
+  .search {
+    width: 220px;
+  }
+}

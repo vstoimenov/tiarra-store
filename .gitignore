@@ -1,0 +1,22 @@
+# dependencies
+node_modules
+
+# next.js
+.next
+next-env.d.ts
+*.tsbuildinfo
+
+# local env (only .env.example is committed)
+.env*.local
+
+# test output
+test-results
+playwright-report
+coverage
+
+# agent workspace
+.superpowers/
+
+# misc
+.DS_Store
+.vercel

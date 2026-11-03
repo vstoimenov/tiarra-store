@@ -1,0 +1,39 @@
+/*
+ * Live layout at 1280: the gallery takes the left ~60% (thumbnails beside a ~500px picture) and a
+ * pale panel of ~470px the right, with 45px inside. On a phone everything stacks.
+ */
+.view {
+  display: grid;
+  gap: 28px;
+  width: min(1178px, calc(100% - 32px));
+  margin: 24px auto 56px;
+}
+
+.panel {
+  min-width: 0;
+  padding: 28px 20px 32px;
+  border-radius: 12px;
+  background: #f4f5f9;
+}
+
+.title {
+  margin: 0 0 18px;
+  color: #1c1c28;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+@media (min-width: 900px) {
+  .view {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 40px;
+    margin-top: 40px;
+  }
+
+  .panel {
+    padding: 45px;
+  }
+}

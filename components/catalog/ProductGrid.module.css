@@ -1,0 +1,164 @@
+/*
+ * The live /store look: a pale rounded box with the heading, the count and the sort, then a
+ * two-column grid on a phone. The live grid is two columns at every width; here there are three
+ * from 900px, because a wider card only adds white around the picture.
+ */
+.wrap {
+  width: min(1178px, calc(100% - 32px));
+  margin: 40px auto 88px;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px 32px;
+  padding: 28px 30px;
+  border-radius: 12px;
+  background: #f4f5f9;
+}
+
+.title {
+  margin: 0;
+  color: #1c1c28;
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 700;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.count,
+.term {
+  margin: 8px 0 0;
+  color: #6b6b75;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.term {
+  margin-top: 4px;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #3e3e3e;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.select {
+  min-height: 48px;
+  max-width: 220px;
+  padding: 0 14px;
+  border: 1px solid #e0e2ea;
+  border-radius: 6px;
+  background: #fff;
+  color: #4a4a52;
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px 12px;
+  margin: 36px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.more {
+  margin: 48px 0 0;
+  text-align: center;
+}
+
+.empty {
+  padding: 72px 0 24px;
+  text-align: center;
+}
+
+.emptyText {
+  margin: 0 0 28px;
+  color: #3e3e3e;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* The same outlined button as „Виж всички продукти“ on the homepage. */
+.button {
+  padding: 15px 30px;
+  border: 1.5px solid #212121;
+  border-radius: 2px;
+  background: transparent;
+  color: #212121;
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.button:hover {
+  background: #212121;
+  color: #fff;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 56px 28px;
+    margin-top: 44px;
+  }
+}
+
+@media (max-width: 640px) {
+  .wrap {
+    margin-top: 24px;
+    margin-bottom: 56px;
+  }
+
+  .head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 20px 16px;
+    text-align: center;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .field {
+    justify-content: space-between;
+  }
+
+  .select {
+    flex: 1;
+    max-width: 200px;
+  }
+
+  .empty {
+    padding-top: 48px;
+  }
+}

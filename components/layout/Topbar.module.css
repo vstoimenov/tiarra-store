@@ -1,0 +1,98 @@
+/* Ported from tiarra-sections/06-topbar.html (the embed's width:100vw trick is not needed: the bar is already full width). */
+.bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  margin: 0;
+  padding: 0 50px;
+  width: 100%;
+  overflow: hidden;
+  background: var(--gold);
+  font-family: var(--font-body), 'Helvetica Neue', Arial, sans-serif;
+}
+
+.msg {
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  /* The component shrinks this variable (down to 10px) until the message fits on one line. */
+  font-size: var(--topbar-fs, 13.5px);
+  font-weight: 700;
+  color: #0a0a0b;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity 0.3s ease;
+}
+
+.fade {
+  opacity: 0;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(10, 10, 11, 0.55);
+  cursor: pointer;
+}
+
+.arrow:hover {
+  color: #0a0a0b;
+}
+
+.arrow:focus-visible {
+  outline-color: #0a0a0b;
+  outline-offset: -2px;
+}
+
+.arrow svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.prev {
+  left: 10px;
+}
+
+.next {
+  right: 10px;
+}
+
+@media (max-width: 600px) {
+  .bar {
+    height: 34px;
+    padding: 0 34px;
+  }
+
+  .msg {
+    font-size: var(--topbar-fs, 12.5px);
+  }
+
+  .prev {
+    left: 2px;
+  }
+
+  .next {
+    right: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .msg {
+    transition: none;
+  }
+}

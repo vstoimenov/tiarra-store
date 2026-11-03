@@ -1,0 +1,27 @@
+{
+  "footerText": "Tiarra Cosmetics — онлайн магазин за професионална козметика за коса, лице и тяло в България. Beauty is a Statement, for confident you.",
+  "topbarMessages": [
+    "Подарък: мостри при поръчка над 20 €",
+    "Безплатна доставка над 39 €",
+    "Доставка 1–2 работни дни + преглед",
+    "14 дни право на връщане"
+  ],
+  "freeShippingThreshold": 39,
+  "giftThreshold": 20,
+  "shipping": {
+    "econtOffice": 4.5,
+    "speedyOffice": 3.5
+  },
+  "company": {
+    "legalName": "„СТИЛИСТ ЛЪКИ\" ЕООД",
+    "eik": "204275889",
+    "city": "гр. Плевен",
+    "email": "info@tiarracosmetics.com",
+    "phone": "+359 897 774 441"
+  },
+  "social": {
+    "instagram": "https://www.instagram.com/tiarra.cosmetics",
+    "facebook": "https://www.facebook.com/share/14mjVyEWq8j/?mibextid=wwXIfr",
+    "tiktok": "https://www.tiktok.com/@lachezar_aleksandrov"
+  }
+}

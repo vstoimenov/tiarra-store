@@ -1,0 +1,27 @@
+/* The offer and the products next to it: stacked on a phone, side by side from 900px. */
+.campaign {
+  display: grid;
+  gap: 40px;
+  width: min(1178px, calc(100% - 38px));
+  margin: 0 auto 40px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .campaign {
+    grid-template-columns: 38% 60%;
+    column-gap: 2%;
+    margin-bottom: 60px;
+  }
+}
+
+/*
+ * The hero and the rating strip are the first screen; every section after them is skipped by the
+ * browser until it is near the viewport. Without this a phone fetches (and lays out) the pictures
+ * of every carousel at once, and they compete for the connection with the hero, which is the LCP.
+ * `auto` in the size remembers a section's real height once it has been drawn.
+ */
+.sections > :nth-child(n + 3) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 640px;
+}

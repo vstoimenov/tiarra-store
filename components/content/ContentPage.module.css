@@ -1,0 +1,35 @@
+/* The same pale heading box as the product pages, over a reading-width column of text. */
+.wrap {
+  width: min(780px, calc(100% - 32px));
+  margin: 40px auto 88px;
+}
+
+.head {
+  padding: 28px 30px;
+  border-radius: 12px;
+  background: #f4f5f9;
+}
+
+.title {
+  margin: 0;
+  color: #1c1c28;
+  font-size: clamp(28px, 3.4vw, 40px);
+  font-weight: 700;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.body {
+  padding: 28px 4px 0;
+}
+
+/* Legal text is read, not scanned: a step larger than a product description. */
+.body > div {
+  font-size: 16px;
+}
+
+@media (max-width: 600px) {
+  .head {
+    padding: 22px 20px;
+  }
+}

@@ -1,0 +1,93 @@
+.carousel {
+  position: relative;
+}
+
+.track {
+  display: flex;
+  gap: 24px;
+  margin: 0;
+  padding: 0 0 4px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+/* Three cards across on a wide screen, a card and a bit of the next one on a phone. */
+.track > * {
+  flex: 0 0 calc((100% - 48px) / 3);
+  scroll-snap-align: start;
+}
+
+.arrow {
+  position: absolute;
+  top: 38%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(10, 10, 11, 0.82);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.arrow svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.prev {
+  left: -8px;
+}
+
+.next {
+  right: -8px;
+}
+
+.carousel:hover .arrow:not(:disabled),
+.arrow:focus-visible {
+  opacity: 1;
+}
+
+.arrow:not(:disabled):hover {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+.arrow:disabled {
+  cursor: default;
+}
+
+@media (max-width: 899px) {
+  .track {
+    gap: 16px;
+  }
+
+  .track > * {
+    flex-basis: min(78%, 320px);
+  }
+}
+
+/* A finger has no hover: the arrows are for a mouse. */
+@media (hover: none) {
+  .arrow {
+    display: none;
+  }
+}

@@ -1,0 +1,41 @@
+.nav {
+  margin: 0 0 14px;
+}
+
+.list {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  color: #6b6b75;
+  font-size: 13px;
+  line-height: 1.5;
+  list-style: none;
+}
+
+.item + .item::before {
+  content: '›';
+  margin: 0 8px;
+  color: #9a9aa3;
+}
+
+.item a {
+  color: #3e3e3e;
+}
+
+.item a:hover {
+  color: var(--gold-text);
+  text-decoration: underline;
+}
+
+.item {
+  flex: none;
+}
+
+/* The product's own title is long: it stays on the line and ends in an ellipsis (the full title is the heading just below). */
+.item:last-child {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

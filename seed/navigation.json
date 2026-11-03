@@ -1,0 +1,97 @@
+{
+  "menu": [
+    {
+      "label": "ЗА НЕЯ",
+      "href": "/store/category/women"
+    },
+    {
+      "label": "ЗА НЕГО",
+      "href": "/store/category/men"
+    },
+    {
+      "label": "ПАРФЮМИ",
+      "href": "/store/category/parfimes"
+    },
+    {
+      "label": "КОМПЛЕКТИ",
+      "href": "/store/category/komplekt"
+    },
+    {
+      "label": "ПРОМОЦИИ",
+      "href": "/promo"
+    },
+    {
+      "label": "ЗА НАС",
+      "href": "/promo/za-nas"
+    },
+    {
+      "label": "КОНТАКТИ",
+      "href": "/promo/kontakti"
+    }
+  ],
+  "footer": [
+    {
+      "title": "Магазин",
+      "links": [
+        {
+          "label": "За Нея",
+          "href": "/store/category/women"
+        },
+        {
+          "label": "За Него",
+          "href": "/store/category/men"
+        },
+        {
+          "label": "Грижа за коса",
+          "href": "/store/category/грижа-за-коса"
+        },
+        {
+          "label": "Тяло & Аромати",
+          "href": "/store/category/тяло-и-аромати"
+        },
+        {
+          "label": "Промоции",
+          "href": "/promo"
+        }
+      ]
+    },
+    {
+      "title": "Информация",
+      "links": [
+        {
+          "label": "За нас",
+          "href": "/promo/za-nas"
+        },
+        {
+          "label": "Доставка и плащане",
+          "href": "/dostavka-plashtane"
+        },
+        {
+          "label": "Връщане и замяна",
+          "href": "/vrashtane-zamyana"
+        },
+        {
+          "label": "Контакти",
+          "href": "/promo/kontakti"
+        }
+      ]
+    },
+    {
+      "title": "Правна информация",
+      "links": [
+        {
+          "label": "Общи условия",
+          "href": "/obshti-usloviya"
+        },
+        {
+          "label": "Политика за поверителност",
+          "href": "/poveritelnost"
+        },
+        {
+          "label": "Политика за бисквитки",
+          "href": "/biskvitki"
+        }
+      ]
+    }
+  ]
+}

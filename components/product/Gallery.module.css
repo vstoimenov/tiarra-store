@@ -1,0 +1,166 @@
+/*
+ * On a wide screen the thumbnails stand in a column left of the picture, as on the live page
+ * (80px squares beside a ~500px picture); on a phone they run in a row under it.
+ */
+.gallery {
+  min-width: 0;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stage {
+  /* A fixed square: the page does not jump when pictures of other shapes are swapped in. */
+  position: relative;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+}
+
+.zoom {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.main {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.thumbs {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 2px;
+  overflow-x: auto;
+  list-style: none;
+}
+
+.thumbs li {
+  flex: none;
+}
+
+.thumb {
+  display: block;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.thumb:hover,
+.thumb[aria-current='true'] {
+  border-bottom-color: var(--ink);
+  opacity: 1;
+}
+
+.thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* No picture at all: a quiet box of the same size, not a broken image. */
+.frame {
+  width: 100%;
+}
+
+.empty {
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  background: #f4f5f9;
+}
+
+/* The zoom */
+.dialog {
+  width: min(94vw, 1200px);
+  max-width: none;
+  height: min(94vh, 1200px);
+  max-height: none;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.dialog::backdrop {
+  background: rgba(10, 10, 11, 0.78);
+}
+
+.large {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+}
+
+.close svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (min-width: 900px) {
+  /* As tall as the panel beside it, so the pictures can stay in view while a long description scrolls. */
+  .gallery {
+    align-self: stretch;
+  }
+
+  .inner {
+    position: sticky;
+    top: 24px;
+    flex-direction: row-reverse;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .stage {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .thumbs {
+    flex-direction: column;
+    gap: 12px;
+    max-height: 640px;
+    padding: 0;
+    overflow: auto;
+  }
+
+  .thumb {
+    width: 80px;
+    height: 80px;
+  }
+}

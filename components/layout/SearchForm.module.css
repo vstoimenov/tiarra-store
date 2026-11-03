@@ -1,0 +1,53 @@
+.form {
+  position: relative;
+  width: 100%;
+}
+
+.input {
+  display: block;
+  width: 100%;
+  height: 41px;
+  margin: 0;
+  padding: 0 44px 0 14px;
+  border: 0;
+  border-radius: 21px;
+  background: #fff;
+  color: #000;
+  font-family: var(--body);
+  font-size: 12px;
+  font-weight: 400;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.input::placeholder {
+  color: #757575;
+  opacity: 1;
+}
+
+/* iOS zooms into any field under 16px, so the drawer's field is full size. */
+.large .input {
+  font-size: 16px;
+}
+
+.submit {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #000;
+  cursor: pointer;
+}
+
+.submit svg {
+  width: 20px;
+  height: 20px;
+}
