@@ -8,6 +8,9 @@ export type ImageWidth = (typeof IMAGE_WIDTHS)[number]
 
 /** Public URL of one resized copy. `path` is the storage key without width or extension. */
 export function imageUrl(path: string, width: ImageWidth): string {
+  // The first catalog bootstrap may retain the original public CDN URL. This keeps the
+  // storefront usable before the background Storage copy has completed.
+  if (/^https?:\/\//.test(path)) return path
   // Read at call time (not module load) so tests can set it, and so Next can inline it in the browser bundle.
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/+$/, '')
   return `${base}/storage/v1/object/public/products/${path}-${width}.webp`
@@ -15,6 +18,7 @@ export function imageUrl(path: string, width: ImageWidth): string {
 
 /** `srcset` value listing every width of one image. */
 export function imageSrcSet(path: string): string {
+  if (/^https?:\/\//.test(path)) return path
   return IMAGE_WIDTHS.map((width) => `${imageUrl(path, width)} ${width}w`).join(', ')
 }
 

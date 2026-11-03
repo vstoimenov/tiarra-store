@@ -22,5 +22,13 @@ Server components render headings, images, price, stock and links. Only SceneMot
 ## Remaining
 Visual QA on real desktop/mobile screens and keyboard navigation; screenshots; dynamic reduced-motion verification; integration/E2E using an isolated configured database; Lighthouse and CWV; category image art direction; more seamless cross-section product continuity; editorial offer redesign based on verified current campaign data. Existing offer handling is retained and needs a separate live data audit before release. Original Instagram video was not analyzed frame by frame.
 
+## Cloud bootstrap — 2026-11-03
+
+- GitHub `vstoimenov/tiarra-store` now contains the project on `main`.
+- Supabase project `tiarra` has the store schema, 3 site documents, 7 content pages, 89 products, 7 categories, 161 variants and 235 product images.
+- Bootstrap catalog images retain their public source CDN URLs. `imageUrl()` supports those URLs; the regular importer remains the path for later WebP copies in Supabase Storage.
+- A least-privilege `tiarra_app` database role has read-only access to the `store` schema.
+- Vercel project `tiarra-store` exists and uses Node 22. Environment-variable creation is blocked by the current connector permission, so no deployment has been claimed.
+
 ## Running
 Restore the project's environment configuration locally (do not upload secrets to chat), with DATABASE_URL, NEXT_PUBLIC_SUPABASE_URL and SITE_URL, and add CINEMATIC_HOME=1. Use the repository's Node/pnpm versions, pnpm install, pnpm dev. Expected local URL: http://localhost:3100. This URL is an instruction for local startup, not a running hosted preview.

@@ -56,6 +56,12 @@ describe('image urls', () => {
     expect(srcSet).toContain('abc-1200.webp 1200w')
   })
 
+  it('keeps a public bootstrap image URL unchanged', () => {
+    const url = 'https://cdn.example/products/item.png'
+    expect(imageUrl(url, 800)).toBe(url)
+    expect(imageSrcSet(url)).toBe(url)
+  })
+
   it('imageOrigin is the scheme, host and port the pictures come from, without a path or a slash', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://abc.supabase.co/'
     expect(imageOrigin()).toBe('https://abc.supabase.co')
