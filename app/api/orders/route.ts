@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const rows = await sql<{ order_number: string; total: number }[]>`
       select order_number, total::float8 as total from store.create_order(
         ${data.customerName}, ${data.phone}, ${data.email}, ${data.courier},
-        ${data.deliveryAddress}, ${data.notes}, ${JSON.stringify(data.items)}::jsonb)`
+        ${data.deliveryAddress}, ${data.notes}, ${sql.json(data.items)})`
     return NextResponse.json({ orderNumber: rows[0].order_number, total: rows[0].total }, { status: 201 })
   } catch (error) {
     const code = error instanceof Error ? error.message : ''
