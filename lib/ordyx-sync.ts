@@ -7,13 +7,17 @@ type Item = { title: string; variant_name: string | null; unit_price: number; qu
 export async function syncOrder(orderNumber: string): Promise<boolean> {
   const key = process.env.ORDYX_API_KEY
   if (!key) return false
-  const orders = await sql<Order[]>`select id, order_number, customer_name, phone, email, courier, delivery_type, office_id, city, post_code, delivery_address, total::float8 as total from store.orders where order_number = ${orderNumber} and ordyx_sync_status != 'synced'`
+  return sql.begin(async (tx) => {
+  const [lock] = await tx<{ acquired: boolean }[]>`select pg_try_advisory_xact_lock(hashtextextended(${'ordyx:' + orderNumber}, 0)) as acquired`
+  if (!lock.acquired) return false
+  const orders = await tx<Order[]>`select id, order_number, customer_name, phone, email, courier, delivery_type, office_id, city, post_code, delivery_address, total::float8 as total from store.orders where order_number = ${orderNumber} and ordyx_sync_status != 'synced' and status in ('new', 'confirmed') for update`
   const order = orders[0]
   if (!order) return true
   if (!order.delivery_type) return false
+  try {
   const office = order.office_id ? (await getCourierOffices(order.courier)).find(entry => entry.id === order.office_id) : null
   if (order.delivery_type !== 'address' && !office) return false
-  const items = await sql<Item[]>`select title, variant_name, unit_price::float8 as unit_price, quantity from store.order_items where order_id = ${order.id}`
+  const items = await tx<Item[]>`select title, variant_name, unit_price::float8 as unit_price, quantity from store.order_items where order_id = ${order.id}`
   const payload = {
     source: 'api', external_id: `tiarra-${order.order_number}`,
     name: order.customer_name, phone: order.phone, email: order.email || '',
@@ -23,7 +27,6 @@ export async function syncOrder(orderNumber: string): Promise<boolean> {
     items: items.map(item => ({ name: item.variant_name ? `${item.title} — ${item.variant_name}` : item.title, qty: item.quantity, price: item.unit_price, sku: '' })),
     total: order.total, currency: 'EUR', paid: false, payment_method: 'cod', page_url: 'https://tiarra-store.vercel.app',
   }
-  try {
     const response = await fetch('https://app.ordyx.eu/api/orders', {
       method: 'POST', headers: {
         Authorization: `Bearer ${key}`, 'Content-Type': 'application/json',
@@ -32,14 +35,15 @@ export async function syncOrder(orderNumber: string): Promise<boolean> {
     })
     if (!response.ok) {
       const message = `Ordyx HTTP ${response.status}`
-      await sql`update store.orders set ordyx_sync_status = 'failed', ordyx_sync_error = ${message} where id = ${order.id}`
+      await tx`update store.orders set ordyx_sync_status = 'failed', ordyx_sync_error = ${message} where id = ${order.id}`
       return false
     }
-    await sql`update store.orders set ordyx_sync_status = 'synced', ordyx_sync_error = null, ordyx_synced_at = now() where id = ${order.id}`
+    await tx`update store.orders set ordyx_sync_status = 'synced', ordyx_sync_error = null, ordyx_synced_at = now() where id = ${order.id}`
     return true
   } catch (error) {
     const message = error instanceof Error ? error.message.slice(0, 250) : 'Ordyx connection failed'
-    await sql`update store.orders set ordyx_sync_status = 'failed', ordyx_sync_error = ${message} where id = ${order.id}`
+    await tx`update store.orders set ordyx_sync_status = 'failed', ordyx_sync_error = ${message} where id = ${order.id}`
     return false
   }
+  })
 }
