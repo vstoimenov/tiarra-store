@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { type CartItem, readCart, writeCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import styles from './CheckoutForm.module.css'
+import { CourierPicker } from './CourierPicker'
 
 export function CheckoutForm() {
   const [items, setItems] = useState<CartItem[]>([])
@@ -27,7 +28,7 @@ export function CheckoutForm() {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           customerName: data.get('customerName'), phone: data.get('phone'), email: data.get('email'),
-          courier: data.get('courier'), deliveryAddress: data.get('deliveryAddress'), notes: data.get('notes'),
+          courier: data.get('courier'), officeId: data.get('officeId'), deliveryAddress: data.get('deliveryAddress'), notes: data.get('notes'),
           items: items.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
         }),
       })
@@ -51,8 +52,7 @@ export function CheckoutForm() {
         <label>Име и фамилия<input name="customerName" autoComplete="name" required minLength={2} /></label>
         <label>Телефон<input name="phone" type="tel" autoComplete="tel" required minLength={7} /></label>
         <label>Имейл <span>(по желание)</span><input name="email" type="email" autoComplete="email" /></label>
-        <fieldset><legend>Куриер</legend><label><input type="radio" name="courier" value="econt" defaultChecked /> Еконт</label><label><input type="radio" name="courier" value="speedy" /> Спиди</label></fieldset>
-        <label>Адрес или офис на куриера<textarea name="deliveryAddress" required minLength={5} rows={3} /></label>
+        <CourierPicker />
         <label>Бележка <span>(по желание)</span><textarea name="notes" rows={3} /></label>
         <label className={styles.consent}><input type="checkbox" required /> Съгласен/на съм данните ми да бъдат използвани за изпълнение на поръчката.</label>
       </div>
