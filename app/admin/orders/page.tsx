@@ -10,7 +10,7 @@ export default async function OrdersAdminPage() {
   const orders = await getAdminOrders()
   return <main className={styles.page}>
     <header className={styles.header}>
-      <nav className={styles.nav}><Link href="/admin/orders">Поръчки</Link><Link href="/admin/bumps">Препоръки</Link></nav>
+      <nav className={styles.nav}><Link href="/admin/orders">Поръчки</Link><Link href="/admin/inventory">Наличности</Link><Link href="/admin/bumps">Препоръки</Link></nav>
       <p>TIARRA ADMIN</p><h1>Поръчки</h1>
       <span>Потвърждаване, изпращане и безопасно анулиране с автоматично връщане на наличността.</span>
     </header>
