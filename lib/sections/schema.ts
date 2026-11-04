@@ -42,7 +42,7 @@ const RatingData = z.object({
   avatars: z.array(filled).max(8).optional(),
 })
 
-const PRODUCT_SOURCES = ['all', 'category', 'newest', 'onSale', 'manual'] as const
+const PRODUCT_SOURCES = ['all', 'mixed', 'category', 'newest', 'onSale', 'manual'] as const
 
 const ProductsData = z
   .object({

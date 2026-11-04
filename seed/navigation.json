@@ -6,7 +6,15 @@
     },
     {
       "label": "ЗА НЕГО",
-      "href": "/store/category/men"
+      "href": "/store/category/men",
+      "children": [
+        { "label": "Всички за него", "href": "/store/category/men" },
+        { "label": "Парфюми", "href": "/store/category/parfimes?gender=male" },
+        { "label": "Грижа за коса", "href": "/store/category/%D0%B3%D1%80%D0%B8%D0%B6%D0%B0-%D0%B7%D0%B0-%D0%BA%D0%BE%D1%81%D0%B0?gender=male" },
+        { "label": "Брада и мустаци", "href": "/store/category/%D0%B1%D1%80%D0%B0%D0%B4%D0%B0-%D0%B8-%D0%BC%D1%83%D1%81%D1%82%D0%B0%D1%86%D0%B8?gender=male" },
+        { "label": "Тяло и аромати", "href": "/store/category/%D1%82%D1%8F%D0%BB%D0%BE-%D0%B8-%D0%B0%D1%80%D0%BE%D0%BC%D0%B0%D1%82%D0%B8?gender=male" },
+        { "label": "Комплекти", "href": "/store/category/komplekt?gender=male" }
+      ]
     },
     {
       "label": "ПАРФЮМИ",

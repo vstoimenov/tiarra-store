@@ -13,6 +13,7 @@ const DESKTOP_QUERY = '(min-width: 1180px)'
 /** Burger button and the slide-in drawer with the menu and search. Only shown below the desktop breakpoint. */
 export function MobileMenu({ menu }: { menu: Navigation['menu'] }) {
   const [open, setOpen] = useState(false)
+  const [expanded, setExpanded] = useState<string | null>(null)
   const burger = useRef<HTMLButtonElement>(null)
   const closeButton = useRef<HTMLButtonElement>(null)
 
@@ -55,13 +56,37 @@ export function MobileMenu({ menu }: { menu: Navigation['menu'] }) {
         <div id="mobile-menu" className={styles.drawer}>
           <nav aria-label="Мобилно меню">
             <ul className={styles.list}>
-              {menu.map((item) => (
-                <li key={item.href}>
-                  <Link href={item.href} className={styles.link} onClick={() => setOpen(false)}>
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
+              {menu.map((item) => {
+                const hasChildren = (item.children?.length ?? 0) > 0
+                const isExpanded = expanded === item.href
+                return (
+                  <li key={item.href}>
+                    {hasChildren ? (
+                      <button
+                        type="button"
+                        className={`${styles.link} ${styles.parent}`}
+                        aria-expanded={isExpanded}
+                        onClick={() => setExpanded(isExpanded ? null : item.href)}
+                      >
+                        {item.label}<span aria-hidden="true">{isExpanded ? '−' : '+'}</span>
+                      </button>
+                    ) : (
+                      <Link href={item.href} className={styles.link} onClick={() => setOpen(false)}>
+                        {item.label}
+                      </Link>
+                    )}
+                    {hasChildren && isExpanded ? (
+                      <ul className={styles.sublist}>
+                        {item.children!.map((child) => (
+                          <li key={child.href}>
+                            <Link href={child.href} className={styles.sublink} onClick={() => setOpen(false)}>{child.label}</Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </li>
+                )
+              })}
             </ul>
           </nav>
           <SearchForm large />

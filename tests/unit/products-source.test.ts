@@ -44,6 +44,19 @@ describe('cardsForSection', () => {
     expect(slugs(cardsForSection(data({ source: 'newest' }), cards))).toEqual(['d-newest', 'c-new', 'b-mid', 'a-old'])
   })
 
+  it('mixed alternates catalog groups instead of filling the first screen with one category', () => {
+    const mixed = [
+      card('women-new', { createdAt: '2026-10-05T00:00:00.000Z', categorySlugs: ['women'] }),
+      card('women-old', { createdAt: '2026-10-01T00:00:00.000Z', categorySlugs: ['women'] }),
+      card('men-new', { createdAt: '2026-10-04T00:00:00.000Z', categorySlugs: ['men'] }),
+      card('perfume-new', { createdAt: '2026-10-03T00:00:00.000Z', categorySlugs: ['parfimes'] }),
+      card('kit-new', { createdAt: '2026-10-02T00:00:00.000Z', categorySlugs: ['komplekt'] }),
+    ]
+    expect(slugs(cardsForSection(data({ source: 'mixed' }), mixed))).toEqual([
+      'women-new', 'men-new', 'perfume-new', 'kit-new', 'women-old',
+    ])
+  })
+
   it('does not reorder the array it was given', () => {
     const before = slugs(cards)
     cardsForSection(data({ source: 'all' }), cards)

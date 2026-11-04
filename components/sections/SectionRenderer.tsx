@@ -22,8 +22,6 @@ interface Props {
   /** Every visible product card: loaded once per page, each products section picks from it. */
   cards: ProductCard[]
   settings: Settings
-  /** Optional page-level utility placed directly after the first (hero) section. */
-  afterFirst?: ReactNode
 }
 
 function renderSection(section: Section, { cards, settings }: Pick<Props, 'cards' | 'settings'>, layout?: 'panel' | 'grid'): ReactNode {
@@ -67,7 +65,7 @@ function renderSection(section: Section, { cards, settings }: Pick<Props, 'cards
  * products section is laid out side by side on a wide screen (the live "campaign row"):
  * the offer on the left, the products as a grid on the right.
  */
-export function SectionRenderer({ sections, cards, settings, afterFirst }: Props) {
+export function SectionRenderer({ sections, cards, settings }: Props) {
   const context = { cards, settings }
   const rendered: ReactNode[] = []
 
@@ -87,7 +85,6 @@ export function SectionRenderer({ sections, cards, settings, afterFirst }: Props
       rendered.push(<Fragment key={section.id}>{renderSection(section, context)}</Fragment>)
     }
 
-    if (i === 0 && afterFirst) rendered.push(<Fragment key="after-first">{afterFirst}</Fragment>)
   }
 
   return <div className={styles.sections}>{rendered}</div>

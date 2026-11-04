@@ -74,10 +74,12 @@ test('rating strip shows the score and the trust line', async ({ page }) => {
   await expect(rating).toContainText('С доверието на 290+ доволни клиенти')
 })
 
-test('the first products section has 12 cards', async ({ page }) => {
+test('the first products section carries the full mixed catalog', async ({ page }) => {
   await page.goto('/')
 
-  await expect(section(page, 'bestsellers').locator('article[data-gender]')).toHaveCount(12)
+  const cards = section(page, 'bestsellers').locator('article[data-gender]')
+  expect(await cards.count()).toBeGreaterThan(12)
+  expect(new Set(await cards.evaluateAll((elements) => elements.map((element) => element.getAttribute('data-gender')))).size).toBeGreaterThan(1)
 })
 
 test('the perfumes section has 12 cards and the kits section at most its limit of 9', async ({ page }) => {

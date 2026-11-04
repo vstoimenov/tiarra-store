@@ -4,6 +4,7 @@ import { Suspense, useCallback, useMemo, useState, type ChangeEvent, type ReactN
 import { FIRST_ROW_CARDS, ProductCard } from '@/components/product/ProductCard'
 import { brandsOf, filterProducts, type SortKey } from '@/lib/catalog/filter'
 import type { ProductCard as Card } from '@/lib/catalog/types'
+import type { Gender } from '@/lib/catalog/types'
 import styles from './ProductGrid.module.css'
 import { UrlQuery } from './UrlQuery'
 import { SearchIcon } from '@/components/layout/icons'
@@ -17,6 +18,7 @@ interface Props {
   readQuery?: boolean
   /** Shown between the heading and the grid (the category links). */
   children?: ReactNode
+  initialGender?: Gender
 }
 
 const PAGE_SIZE = 24
@@ -41,14 +43,14 @@ function countText(shown: number, total: number): string {
  * A page of products: heading, brand filter, sort, the cards 24 at a time and „Покажи още“.
  * Rendered on the server like the rest of the page, so the first 24 cards are in the HTML.
  */
-export function ProductGrid({ title, cards, readQuery = false, children }: Props) {
+export function ProductGrid({ title, cards, readQuery = false, children, initialGender }: Props) {
   const [text, setText] = useState('')
   const [brand, setBrand] = useState('')
   const [sort, setSort] = useState<SortKey>('newest')
   const [visible, setVisible] = useState(PAGE_SIZE)
 
   const brands = useMemo(() => brandsOf(cards), [cards])
-  const matching = useMemo(() => filterProducts(cards, { text, brand, sort }), [cards, text, brand, sort])
+  const matching = useMemo(() => filterProducts(cards, { text, brand, sort, gender: initialGender }), [cards, text, brand, sort, initialGender])
   const shown = matching.slice(0, visible)
   const filtered = text !== '' || brand !== ''
 

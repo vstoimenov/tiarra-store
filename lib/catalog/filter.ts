@@ -10,6 +10,7 @@ export interface ListingQuery {
   brand?: string
   /** Newest first when left out. */
   sort?: SortKey
+  gender?: ProductCard['gender']
 }
 
 // `bg` keeps Cyrillic (and Latin) case folding right whatever the browser's own language is.
@@ -38,6 +39,7 @@ export function filterProducts(cards: ProductCard[], q: ListingQuery): ProductCa
   const words = fold(q.text ?? '').split(/\s+/).filter(Boolean)
 
   const matching = cards.filter((card) => {
+    if (q.gender && card.gender !== q.gender && card.gender !== 'unisex') return false
     if (q.brand && card.brand !== q.brand) return false
     if (words.length === 0) return true
     const haystack = fold(`${card.title} ${card.brand ?? ''}`)

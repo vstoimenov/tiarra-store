@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 const link = z.object({ label: z.string().min(1), href: z.string().min(1) })
+const menuItem = link.extend({ children: z.array(link).optional() })
 const price = z.number().nonnegative()
 
 export const SettingsSchema = z.object({
@@ -29,7 +30,7 @@ export const SettingsSchema = z.object({
 })
 
 export const NavigationSchema = z.object({
-  menu: z.array(link),
+  menu: z.array(menuItem),
   footer: z.array(z.object({ title: z.string().min(1), links: z.array(link) })),
 })
 
