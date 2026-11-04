@@ -5,6 +5,15 @@
   background: #fff;
 }
 
+.veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(to bottom, transparent 30%, #111 100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 .inner {
   position: relative;
   display: flex;

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { imageSrcSet, imageUrl } from '@/lib/images'
 import type { SectionOf } from '@/lib/sections/schema'
 import styles from './Hero.module.css'
+import { HeroMotion } from './HeroMotion'
 
 const CHECK = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -18,13 +19,15 @@ export function Hero({ section }: { section: SectionOf<'hero'> }) {
   const { imagePath, imageHref, imageAlt, subtitleHtml, buttons, trust } = section.data
 
   return (
-    <section className={styles.hero} data-section={section.id}>
-      <div className={styles.arc} aria-hidden="true" />
+    <HeroMotion className={styles.hero} sectionId={section.id}>
+      <div className={styles.arc} data-hero-arc aria-hidden="true" />
       <div className={styles.glow} aria-hidden="true" />
+      <div className={styles.veil} data-hero-veil aria-hidden="true" />
       <div className={styles.inner}>
         <Link href={imageHref} className={styles.imageLink} aria-label="Към магазина">
           <img
             className={styles.image}
+            data-hero-image
             src={imageUrl(imagePath, 800)}
             srcSet={imageSrcSet(imagePath)}
             sizes="(min-width: 900px) 640px, min(440px, 100vw)"
@@ -37,7 +40,7 @@ export function Hero({ section }: { section: SectionOf<'hero'> }) {
           />
         </Link>
         {/* Our own seed text, trusted until the stage 3 admin sanitizes it on save. */}
-        <h1 className={styles.sub} dangerouslySetInnerHTML={{ __html: subtitleHtml }} />
+        <div data-hero-copy><h1 className={styles.sub} dangerouslySetInnerHTML={{ __html: subtitleHtml }} />
         <div className={styles.buttons}>
           {buttons.map((button) => (
             <Link key={button.href + button.label} href={button.href} className={`${styles.button} ${styles[button.style]}`}>
@@ -53,7 +56,8 @@ export function Hero({ section }: { section: SectionOf<'hero'> }) {
             </li>
           ))}
         </ul>
+        </div>
       </div>
-    </section>
+    </HeroMotion>
   )
 }
