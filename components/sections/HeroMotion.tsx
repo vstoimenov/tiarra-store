@@ -2,30 +2,46 @@
 
 import { useEffect, useRef, type ReactNode } from 'react'
 
-/** Keeps the original hero visible while adding the scroll transition on larger screens. */
+/** Pointer-driven depth without pinning, scroll interception or an animation library. */
 export function HeroMotion({ children, className, sectionId }: { children: ReactNode; className: string; sectionId: string }) {
   const root = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    let disposed = false
-    let cleanup: (() => void) | undefined
-    void Promise.all([import('gsap'), import('gsap/ScrollTrigger')]).then(([{ gsap }, { ScrollTrigger }]) => {
-      if (disposed || !root.current) return
-      gsap.registerPlugin(ScrollTrigger)
-      const media = gsap.matchMedia()
-      media.add('(min-width: 1000px) and (min-height: 700px) and (prefers-reduced-motion: no-preference)', () => {
-        const context = gsap.context(() => {
-          gsap.timeline({ scrollTrigger: { trigger: root.current, start: 'top top', end: '+=500', scrub: 1, pin: true, anticipatePin: 1 } })
-            .to('[data-hero-image]', { scale: 1.16, y: -34, ease: 'none' }, 0)
-            .to('[data-hero-arc]', { scale: 1.15, rotation: 24, opacity: .7, ease: 'none' }, 0)
-            .to('[data-hero-copy]', { y: -48, opacity: .12, ease: 'none' }, .22)
-            .to('[data-hero-veil]', { opacity: 1, ease: 'none' }, .6)
-        }, root)
-        return () => context.revert()
+    const stage = root.current?.querySelector<HTMLElement>('[data-hero-image]')?.parentElement
+    if (!stage) return
+    const media = window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)')
+    let frame = 0
+    function reset() {
+      cancelAnimationFrame(frame)
+      stage!.style.removeProperty('--tilt-x')
+      stage!.style.removeProperty('--tilt-y')
+      stage!.style.removeProperty('--lift')
+    }
+    function move(event: PointerEvent) {
+      if (!media.matches || event.pointerType === 'touch') return
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        const box = stage!.getBoundingClientRect()
+        const x = Math.max(-1, Math.min(1, (event.clientX - box.left) / box.width * 2 - 1))
+        const y = Math.max(-1, Math.min(1, (event.clientY - box.top) / box.height * 2 - 1))
+        stage!.style.setProperty('--tilt-x', `${-y * 6}deg`)
+        stage!.style.setProperty('--tilt-y', `${x * 9}deg`)
+        stage!.style.setProperty('--lift', '-8px')
       })
-      cleanup = () => media.revert()
-    }).catch(() => { /* The original hero stays usable without animation. */ })
-    return () => { disposed = true; cleanup?.() }
+    }
+    stage.addEventListener('pointermove', move, { passive: true })
+    stage.addEventListener('pointerleave', reset)
+    stage.addEventListener('pointercancel', reset)
+    media.addEventListener('change', reset)
+    window.addEventListener('blur', reset)
+    return () => {
+      reset()
+      stage.removeEventListener('pointermove', move)
+      stage.removeEventListener('pointerleave', reset)
+      stage.removeEventListener('pointercancel', reset)
+      media.removeEventListener('change', reset)
+      window.removeEventListener('blur', reset)
+    }
   }, [])
 
   return <section ref={root} className={className} data-section={sectionId}>{children}</section>

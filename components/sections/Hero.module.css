@@ -56,6 +56,9 @@
 }
 
 .imageLink {
+  position: relative;
+  perspective: 1000px;
+  isolation: isolate;
   display: block;
   width: min(100%, 640px);
   margin: 0 auto 30px;
@@ -71,11 +74,22 @@
   display: block;
   width: 100%;
   height: auto;
-  transition: transform 0.5s cubic-bezier(0.2, 0.6, 0.2, 1);
+  transform: translateY(var(--lift, 0px)) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform 0.45s cubic-bezier(0.2, 0.6, 0.2, 1);
+  backface-visibility: hidden;
 }
 
-.imageLink:hover .image {
-  transform: translateY(-10px) scale(1.025);
+.imageLink::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  bottom: 2%;
+  left: 18%;
+  width: 64%;
+  height: 9%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #ad8c5333, transparent 70%);
+  pointer-events: none;
 }
 
 .sub {
@@ -171,6 +185,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .image { transform: none; }
   .image,
   .button {
     transition: none;
