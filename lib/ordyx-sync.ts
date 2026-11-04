@@ -13,10 +13,16 @@ export async function syncOrder(orderNumber: string): Promise<boolean> {
   const orders = await tx<Order[]>`select id, order_number, customer_name, phone, email, courier, delivery_type, office_id, city, post_code, delivery_address, total::float8 as total from store.orders where order_number = ${orderNumber} and ordyx_sync_status != 'synced' and status in ('new', 'confirmed') for update`
   const order = orders[0]
   if (!order) return true
-  if (!order.delivery_type) return false
+  if (!order.delivery_type) {
+    await tx`update store.orders set ordyx_sync_status = 'failed', ordyx_sync_error = 'Missing delivery type; manual review required' where id = ${order.id}`
+    return false
+  }
   try {
   const office = order.office_id ? (await getCourierOffices(order.courier)).find(entry => entry.id === order.office_id) : null
-  if (order.delivery_type !== 'address' && !office) return false
+  if (order.delivery_type !== 'address' && !office) {
+    await tx`update store.orders set ordyx_sync_status = 'failed', ordyx_sync_error = 'Courier office not found; manual review required' where id = ${order.id}`
+    return false
+  }
   const items = await tx<Item[]>`select title, variant_name, unit_price::float8 as unit_price, quantity from store.order_items where order_id = ${order.id}`
   const payload = {
     source: 'api', external_id: `tiarra-${order.order_number}`,
