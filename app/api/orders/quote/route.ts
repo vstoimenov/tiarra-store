@@ -1,0 +1,76 @@
+import { NextResponse } from 'next/server'
+import { z } from 'zod'
+import { sql } from '@/lib/db'
+
+export const runtime = 'nodejs'
+
+const schema = z.object({
+  courier: z.enum(['econt', 'speedy']),
+  items: z.array(z.object({
+    productId: z.string().uuid(),
+    variantId: z.string().uuid().nullable(),
+    quantity: z.number().int().min(1).max(99),
+  })).min(1).max(50),
+})
+
+interface QuoteRow {
+  product_id: string
+  variant_id: string | null
+  quantity: number
+  unit_price: number
+  stock: number | null
+}
+
+export async function POST(request: Request) {
+  const parsed = schema.safeParse(await request.json().catch(() => null))
+  if (!parsed.success) return NextResponse.json({ error: 'Невалидна количка.' }, { status: 400 })
+  const { courier, items } = parsed.data
+
+  const rows = await sql<QuoteRow[]>`
+    with requested as (
+      select
+        (entry->>'productId')::uuid as product_id,
+        nullif(entry->>'variantId', '')::uuid as variant_id,
+        sum((entry->>'quantity')::int)::int as quantity
+      from jsonb_array_elements(${sql.json(items)}::jsonb) entry
+      group by (entry->>'productId')::uuid, nullif(entry->>'variantId', '')::uuid
+    )
+    select
+      requested.product_id,
+      requested.variant_id,
+      requested.quantity,
+      (case when requested.variant_id is null then p.price else v.price end)::float8 as unit_price,
+      case when requested.variant_id is null then p.stock else v.stock end as stock
+    from requested
+    join store.products p on p.id = requested.product_id and not p.is_hidden
+    left join store.variants v on v.id = requested.variant_id and v.product_id = p.id
+    where
+      (requested.variant_id is not null and v.id is not null)
+      or (
+        requested.variant_id is null
+        and not exists (select 1 from store.variants pv where pv.product_id = p.id)
+      )`
+
+  const requestedKeys = new Set(items.map((item) => `${item.productId}:${item.variantId ?? ''}`))
+  if (rows.length !== requestedKeys.size) {
+    return NextResponse.json({ error: 'Продукт от количката вече не е наличен.' }, { status: 409 })
+  }
+  if (rows.some((row) => row.stock !== null && row.stock < row.quantity)) {
+    return NextResponse.json({ error: 'Няма достатъчна наличност за избраното количество.' }, { status: 409 })
+  }
+
+  const subtotal = rows.reduce((sum, row) => sum + row.unit_price * row.quantity, 0)
+  const shipping = subtotal >= 39 ? 0 : courier === 'econt' ? 4.5 : 3.5
+  return NextResponse.json({
+    lines: rows.map((row) => ({
+      productId: row.product_id,
+      variantId: row.variant_id,
+      quantity: row.quantity,
+      unitPrice: row.unit_price,
+    })),
+    subtotal,
+    shipping,
+    total: subtotal + shipping,
+  })
+}
+
