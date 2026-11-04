@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { BumpAdmin } from '@/components/admin/BumpAdmin'
 import { getBumpAdminData } from '@/lib/admin/bumps'
 import styles from './page.module.css'
@@ -10,6 +11,7 @@ export default async function BumpsAdminPage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
+        <nav className={styles.nav}><Link href="/admin/orders">Поръчки</Link><Link href="/admin/bumps">Препоръки</Link></nav>
         <p>TIARRA ADMIN</p>
         <h1>Препоръчани продукти</h1>
         <span>Избери кой допълващ продукт да се показва на всяка продуктова страница.</span>

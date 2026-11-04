@@ -53,3 +53,39 @@ export async function syncOrder(orderNumber: string): Promise<boolean> {
   }
   })
 }
+
+export async function cancelOrderInOrdyx(orderNumber: string): Promise<boolean> {
+  const key = process.env.ORDYX_API_KEY
+  if (!key) return false
+  return sql.begin(async (tx) => {
+    const [lock] = await tx<{ acquired: boolean }[]>`select pg_try_advisory_xact_lock(hashtextextended(${'ordyx:' + orderNumber}, 0)) as acquired`
+    if (!lock.acquired) return false
+    const [order] = await tx<{ id: string }[]>`
+      select id from store.orders
+      where order_number = ${orderNumber} and status = 'cancelled'
+        and ordyx_cancel_status in ('pending', 'failed') for update`
+    if (!order) return true
+    try {
+      const response = await fetch('https://app.ordyx.eu/api/orders', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${key}`,
+          'Content-Type': 'application/json',
+          'X-Ordyx-Site': JSON.stringify({ mode: 'checkout', version: 'tiarra-1' }),
+        },
+        body: JSON.stringify({ source: 'api', external_id: `tiarra-${orderNumber}`, status: 'cancelled' }),
+        signal: AbortSignal.timeout(8000),
+      })
+      if (!response.ok) {
+        await tx`update store.orders set ordyx_cancel_status = 'failed', ordyx_cancel_error = ${`Ordyx HTTP ${response.status}`} where id = ${order.id}`
+        return false
+      }
+      await tx`update store.orders set ordyx_cancel_status = 'cancelled', ordyx_cancel_error = null, ordyx_cancelled_at = now() where id = ${order.id}`
+      return true
+    } catch (error) {
+      const message = error instanceof Error ? error.message.slice(0, 250) : 'Ordyx cancellation failed'
+      await tx`update store.orders set ordyx_cancel_status = 'failed', ordyx_cancel_error = ${message} where id = ${order.id}`
+      return false
+    }
+  })
+}

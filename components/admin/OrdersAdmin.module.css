@@ -1,0 +1,14 @@
+.list { display: grid; gap: 18px; }
+.message { min-height: 20px; margin: 0; color: #47734a; font-size: 14px; }
+.order, .empty { padding: clamp(20px, 4vw, 34px); border: 1px solid #e2ddd2; border-radius: 22px; background: #fff; box-shadow: 0 14px 46px rgba(44,36,20,.06); }
+.empty { display: grid; gap: 7px; color: #606067; }.empty strong { color: #171717; font-size: 20px; }
+.top, .bottom { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.eyebrow { color: #9b741c; font-size: 10px; font-weight: 900; letter-spacing: .14em; }
+.top h2 { margin: 5px 0 4px; font: 700 26px/1.1 var(--display); }.top time { color: #777; font-size: 13px; }
+.status { padding: 8px 12px; border-radius: 999px; background: #eee; font-size: 12px; font-weight: 800; }
+.new { background: #fff0c8; color: #745200; }.confirmed { background: #dff0ff; color: #174f79; }.sent { background: #e6e0ff; color: #49358a; }.completed { background: #dcf3df; color: #286035; }.cancelled { background: #f5dddd; color: #842d2d; }
+.grid { display: grid; grid-template-columns: 1fr 1.5fr 2fr; gap: 24px; margin: 26px 0; padding: 22px 0; border-block: 1px solid #eeeae2; }
+.grid > div { display: flex; flex-direction: column; gap: 5px; min-width: 0; }.grid b { margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }.grid span, .grid a { overflow-wrap: anywhere; color: #58585e; font-size: 14px; line-height: 1.45; }
+.bottom { align-items: center; }.bottom > strong { font-size: 23px; }.ordyx { flex: 1; color: #777; font-size: 12px; overflow-wrap: anywhere; }
+.actions { display: flex; gap: 8px; }.actions button { min-height: 42px; padding: 0 16px; border: 0; border-radius: 999px; background: #171717; color: #fff; cursor: pointer; font-weight: 800; }.actions button:disabled { opacity: .5; cursor: wait; }.actions .danger { border: 1px solid #d5a5a5; background: #fff; color: #8b3232; }
+@media (max-width: 760px) { .grid { grid-template-columns: 1fr; gap: 18px; }.bottom { align-items: stretch; flex-direction: column; }.actions { width: 100%; }.actions button { flex: 1; } }

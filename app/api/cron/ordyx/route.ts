@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto'
 import { sql } from '@/lib/db'
-import { syncOrder } from '@/lib/ordyx-sync'
+import { cancelOrderInOrdyx, syncOrder } from '@/lib/ordyx-sync'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -28,5 +28,15 @@ export async function GET(request: Request) {
     try { if (await syncOrder(order.order_number)) synced++ }
     catch { console.error('Scheduled Ordyx sync failed', order.order_number) }
   }
-  return Response.json({ attempted: orders.length, synced }, { headers: { 'Cache-Control': 'no-store' } })
+  const cancellations = await sql<{ order_number: string }[]>`
+    select order_number from store.orders
+    where status = 'cancelled' and ordyx_cancel_status in ('pending', 'failed')
+      and cancelled_at > now() - interval '48 hours'
+    order by cancelled_at limit 3`
+  let cancelled = 0
+  for (const order of cancellations) {
+    try { if (await cancelOrderInOrdyx(order.order_number)) cancelled++ }
+    catch { console.error('Scheduled Ordyx cancellation failed', order.order_number) }
+  }
+  return Response.json({ attempted: orders.length, synced, cancellationAttempts: cancellations.length, cancelled }, { headers: { 'Cache-Control': 'no-store' } })
 }

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 const mocks = vi.hoisted(() => ({ tx: vi.fn(), begin: vi.fn(), offices: vi.fn() }))
 vi.mock('@/lib/db', () => ({ sql: { begin: mocks.begin } }))
 vi.mock('@/lib/ordyx-offices', () => ({ getCourierOffices: mocks.offices }))
-import { syncOrder } from '@/lib/ordyx-sync'
+import { cancelOrderInOrdyx, syncOrder } from '@/lib/ordyx-sync'
 
 beforeEach(() => {
   vi.stubEnv('ORDYX_API_KEY', 'test-only')
@@ -43,4 +43,19 @@ it('records a failed send for later retry', async () => {
   vi.mocked(fetch).mockRejectedValueOnce(new Error('Timeout'))
   expect(await syncOrder('42')).toBe(false)
   expect(mocks.tx.mock.calls[3][0].join('')).toContain("ordyx_sync_status = 'failed'")
+})
+
+it('cancels a previously synced order with its stable external ID', async () => {
+  mocks.tx.mockResolvedValueOnce([{ acquired: true }])
+    .mockResolvedValueOnce([{ id: 'order' }]).mockResolvedValueOnce([])
+  expect(await cancelOrderInOrdyx('42')).toBe(true)
+  const payload = JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string)
+  expect(payload).toEqual({ source: 'api', external_id: 'tiarra-42', status: 'cancelled' })
+  expect(mocks.tx.mock.calls[2][0].join('')).toContain("ordyx_cancel_status = 'cancelled'")
+})
+
+it('does not repeat an Ordyx cancellation that is already complete', async () => {
+  mocks.tx.mockResolvedValueOnce([{ acquired: true }]).mockResolvedValueOnce([])
+  expect(await cancelOrderInOrdyx('42')).toBe(true)
+  expect(fetch).not.toHaveBeenCalled()
 })
