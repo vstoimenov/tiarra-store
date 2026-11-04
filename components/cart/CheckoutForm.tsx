@@ -6,16 +6,29 @@ import { type CartItem, readCart, writeCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import styles from './CheckoutForm.module.css'
 import { CourierPicker } from './CourierPicker'
+import { imageUrl } from '@/lib/images'
 
-export function CheckoutForm() {
+type Bump = { productId: string; slug: string; title: string; imagePath: string | null; unitPrice: number }
+export function CheckoutForm({ bumps }: { bumps: Bump[] }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [ready, setReady] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [orderNumber, setOrderNumber] = useState('')
   const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [items])
+  const [courier, setCourier] = useState<'econt' | 'speedy'>('econt')
+  const shipping = subtotal >= 39 ? 0 : courier === 'econt' ? 4.5 : 3.5
 
   useEffect(() => { setItems(readCart()); setReady(true) }, [])
+
+  function toggleBump(bump: Bump) {
+    const key = `${bump.productId}:default`
+    const next = items.some(item => item.key === key)
+      ? items.filter(item => item.key !== key)
+      : [...items, { ...bump, key, variantId: null, variantName: null, quantity: 1 }]
+    setItems(next)
+    writeCart(next)
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -49,14 +62,18 @@ export function CheckoutForm() {
   return (
     <form className={styles.form} onSubmit={submit}>
       <div className={styles.fields}>
-        <label>Име и фамилия<input name="customerName" autoComplete="name" required minLength={2} /></label>
-        <label>Телефон<input name="phone" type="tel" autoComplete="tel" required minLength={7} /></label>
-        <label>Имейл <span>(по желание)</span><input name="email" type="email" autoComplete="email" /></label>
-        <CourierPicker />
-        <label>Бележка <span>(по желание)</span><textarea name="notes" rows={3} /></label>
+        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>01</span><div><h2>Контакт</h2><p>За да потвърдим поръчката ти</p></div></div><div className={styles.fieldGrid}>
+          <label className={styles.full}>Имейл <span>(по желание)</span><input name="email" type="email" autoComplete="email" placeholder="Име@пример.бг" /></label>
+          <label>Име и фамилия<input name="customerName" autoComplete="name" required minLength={2} placeholder="Твоето име" /></label>
+          <label>Телефон<input name="phone" type="tel" autoComplete="tel" required minLength={7} placeholder="+359 ..." /></label>
+        </div></section>
+        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><CourierPicker onCourierChange={setCourier} /></section>
+        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>03</span><div><h2>Плащане</h2><p>Плащаш при получаване</p></div></div><div className={styles.payment}>◉ &nbsp; Наложен платеж <span>Сигурно и удобно</span></div><label className={styles.notes}>Бележка <span>(по желание)</span><textarea name="notes" rows={2} placeholder="Нещо, което трябва да знаем?" /></label></section>
         <label className={styles.consent}><input type="checkbox" required /> Съгласен/на съм данните ми да бъдат използвани за изпълнение на поръчката.</label>
       </div>
-      <aside className={styles.summary}><h2>Твоята поръчка</h2>{items.map(item=><p key={item.key}><span>{item.title} × {item.quantity}</span><strong>{formatPrice(item.unitPrice*item.quantity)}</strong></p>)}<p className={styles.total}><span>Продукти</span><strong>{formatPrice(subtotal)}</strong></p><small>Безплатна доставка над 39 €. Под тази сума доставката се добавя според куриера.</small>{error&&<p role="alert" className={styles.error}>{error}</p>}<button type="submit" disabled={pending}>{pending?'Изпращане…':'Потвърди поръчката'}</button></aside>
+      <aside className={styles.summary}><div className={styles.summaryTop}><span>ТВОЯТА СЕЛЕКЦИЯ</span><Link href="/store/cart">Редактирай количката ↗</Link></div><h2>Твоята поръчка</h2><div className={styles.lines}>{items.map(item=><div key={item.key} className={styles.line}><div className={styles.thumb}>{item.imagePath && <img src={imageUrl(item.imagePath,400)} alt="" /> }<small>{item.quantity}</small></div><div><strong>{item.title}</strong>{item.variantName && <span>{item.variantName}</span>}</div><b>{formatPrice(item.unitPrice*item.quantity)}</b></div>)}</div>
+        {bumps.some(bump => !items.some(item => item.productId === bump.productId)) && <div className={styles.bumps}><span className={styles.eyebrow}>ДОПЪЛНИ РИТУАЛА СИ</span><h3>Малък детайл. Голямо усещане.</h3>{bumps.filter(bump => !items.some(item => item.productId === bump.productId)).slice(0,2).map(bump => <div key={bump.productId} className={styles.bump}>{bump.imagePath && <img src={imageUrl(bump.imagePath,400)} alt="" />}<div><strong>{bump.title}</strong><span>{formatPrice(bump.unitPrice)}</span></div><button type="button" onClick={() => toggleBump(bump)} aria-label={`Добави ${bump.title}`}>+ Добави</button></div>)}</div>}
+        <div className={styles.totals}><p><span>Продукти</span><b>{formatPrice(subtotal)}</b></p><p><span>Доставка</span><b>{shipping === 0 ? 'Безплатна' : formatPrice(shipping)}</b></p><div><span>Общо</span><strong>{formatPrice(subtotal+shipping)}</strong></div></div><small>Безплатна доставка при поръчка над 39 €.</small>{error&&<p role="alert" className={styles.error}>{error}</p>}<button className={styles.submit} type="submit" disabled={pending}>{pending?'Изпращане…':'Потвърди поръчката →'}</button><p className={styles.safe}>Сигурна поръчка · Преглед при доставка · 14 дни връщане</p></aside>
     </form>
   )
 }

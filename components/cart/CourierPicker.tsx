@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import type { CourierOffice } from '@/lib/ordyx-offices'
+import styles from './CheckoutForm.module.css'
 
-export function CourierPicker() {
-  const [courier, setCourier] = useState('econt')
+export function CourierPicker({ onCourierChange }: { onCourierChange?: (courier: 'econt' | 'speedy') => void }) {
+  const [courier, setCourier] = useState<'econt' | 'speedy'>('econt')
   const [offices, setOffices] = useState<CourierOffice[]>([])
   const [city, setCity] = useState('')
   const [officeId, setOfficeId] = useState('')
+  const [placeType, setPlaceType] = useState<'office' | 'automat'>('office')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [retry, setRetry] = useState(0)
@@ -23,12 +25,13 @@ export function CourierPicker() {
   }, [courier, retry])
   const cities = [...new Set(offices.map(office => office.city))].sort((a,b) => a.localeCompare(b, 'bg'))
   const selected = offices.find(office => office.id === officeId)
-  return <>
-    <fieldset><legend>Доставка до офис или автомат</legend>{[['econt','Еконт'],['speedy','Спиди']].map(([value,label]) => <label key={value}><input type="radio" name="courier" value={value} checked={courier === value} onChange={() => { setCourier(value); setOfficeId(''); setCity(''); setOffices([]) }} /> {label}</label>)}</fieldset>
+  return <div className={styles.picker}>
+    <div className={styles.couriers}>{(['econt','speedy'] as const).map(value => <label key={value} className={courier === value ? styles.selected : ''}><input type="radio" name="courier" value={value} checked={courier === value} onChange={() => { setCourier(value); onCourierChange?.(value); setOfficeId(''); setCity(''); setOffices([]) }} /><strong>{value === 'econt' ? 'Еконт' : 'Спиди'}</strong><span>1–2 работни дни</span></label>)}</div>
+    <div className={styles.placeTypes}><button type="button" className={placeType === 'office' ? styles.active : ''} onClick={() => { setPlaceType('office'); setOfficeId('') }}>▣ &nbsp; До офис</button><button type="button" className={placeType === 'automat' ? styles.active : ''} onClick={() => { setPlaceType('automat'); setOfficeId('') }}>▤ &nbsp; До автомат</button></div>
     {loading && <p role="status">Зареждане на офисите…</p>}
     {error && <p role="alert">{error} <button type="button" onClick={() => setRetry(retry + 1)}>Опитай отново</button></p>}
-    <label>Населено място<select required value={city} onChange={event => { setCity(event.target.value); setOfficeId('') }}><option value="">Избери населено място</option>{cities.map(value => <option key={value}>{value}</option>)}</select></label>
-    <label>Офис или автомат<select name="officeId" required value={officeId} onChange={event => setOfficeId(event.target.value)}><option value="">Избери офис</option>{offices.filter(office => office.city === city).map(office => <option key={office.id} value={office.id}>{office.name}{office.isAutomat ? ' (автомат)' : ''} — {office.address}</option>)}</select></label>
+    <div className={styles.pickerFields}><label>Населено място<select required value={city} onChange={event => { setCity(event.target.value); setOfficeId('') }}><option value="">Избери населено място</option>{cities.map(value => <option key={value}>{value}</option>)}</select></label>
+    <label>Избери {placeType === 'office' ? 'офис' : 'автомат'}<select name="officeId" required value={officeId} onChange={event => setOfficeId(event.target.value)}><option value="">Избери {placeType === 'office' ? 'офис' : 'автомат'}</option>{offices.filter(office => office.city === city && office.isAutomat === (placeType === 'automat')).map(office => <option key={office.id} value={office.id}>{office.name} — {office.address}</option>)}</select></label></div>
     <input type="hidden" name="deliveryAddress" value={selected ? `${selected.city}, ${selected.name}, ${selected.address} [${selected.code}]` : ''} />
-  </>
+  </div>
 }
