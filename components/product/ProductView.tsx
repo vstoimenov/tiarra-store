@@ -13,8 +13,6 @@ interface Props {
   product: Product
   /** Above the title: the breadcrumbs (rendered on the server). */
   breadcrumbs: ReactNode
-  /** Under the buy box: the product's description (rendered on the server). */
-  description: ReactNode
   bump?: { product: Product; label: string } | null
 }
 
@@ -22,7 +20,7 @@ interface Props {
  * The top of the page: gallery beside the panel with the title and the buy box. The selected
  * variant is shared between the two, because choosing a variant swaps the picture too.
  */
-export function ProductView({ product, breadcrumbs, description, bump = null }: Props) {
+export function ProductView({ product, breadcrumbs, bump = null }: Props) {
   const [variantId, setVariantId] = useState(() => initialVariantId(product))
   const [added, setAdded] = useState(false)
   const state = resolveVariantState(product, variantId)
@@ -50,6 +48,9 @@ export function ProductView({ product, breadcrumbs, description, bump = null }: 
       <div className={styles.panel}>
         {breadcrumbs}
         <h1 className={styles.title}>{product.title}</h1>
+        <ul className={styles.promises} aria-label="Предимства">
+          <li>100% оригинален</li><li>Доставка 1–2 дни</li><li>Преглед</li>
+        </ul>
         <BuyBox
           product={product}
           variantId={variantId}
@@ -58,7 +59,6 @@ export function ProductView({ product, breadcrumbs, description, bump = null }: 
         />
         {added && <p role="status" className={styles.added}>Продуктът е добавен в количката.</p>}
         {bump ? <ProductBump product={bump.product} label={bump.label} /> : null}
-        {description}
       </div>
     </div>
   )

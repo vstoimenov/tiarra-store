@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { BuyBox } from '@/components/product/BuyBox'
 import { Gallery } from '@/components/product/Gallery'
 import { PerfumePyramid, pyramidNotes } from '@/components/product/PerfumePyramid'
+import { ProductDetails } from '@/components/product/ProductDetails'
 import { TrustBlock } from '@/components/product/TrustBlock'
 import { initialVariantId } from '@/lib/catalog/variant'
 import { imageUrl } from '@/lib/images'
@@ -162,5 +163,33 @@ describe('TrustBlock', () => {
     expect(markup).toContain('aria-label="Mastercard"')
     expect(markup).toContain('НАЛОЖЕН ПЛАТЕЖ')
     expect(markup.toLowerCase()).not.toContain('тест')
+  })
+})
+
+describe('ProductDetails', () => {
+  it('keeps the description visible and places characteristics in accessible dropdowns', () => {
+    const markup = html(createElement(ProductDetails, {
+      product: yodeyma,
+      description: createElement('p', null, 'Описание на продукта'),
+      perfume: createElement('div', null, 'Ароматни нотки'),
+      delivery: createElement('div', null, 'Доставка'),
+    }))
+
+    expect(markup).toContain('<details')
+    expect(markup).toContain('<summary><span>Характеристики</span>')
+    expect(markup).toContain('<summary><span>Аромат и нотки</span>')
+    expect(markup).toContain('Описание на продукта')
+    expect(markup).toContain('В наличност')
+  })
+
+  it('does not show empty description or perfume sections', () => {
+    const markup = html(createElement(ProductDetails, {
+      product: { ...yodeyma, perfume: null },
+      delivery: createElement('div', null, 'Доставка'),
+    }))
+
+    expect(markup).not.toContain('<span>Описание</span>')
+    expect(markup).not.toContain('Аромат и нотки')
+    expect(markup).toContain('Доставка, плащане и връщане')
   })
 })

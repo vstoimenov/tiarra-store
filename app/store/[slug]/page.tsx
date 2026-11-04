@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { Breadcrumbs } from '@/components/product/Breadcrumbs'
 import { Description } from '@/components/product/Description'
-import { PerfumePyramid } from '@/components/product/PerfumePyramid'
+import { PerfumePyramid, pyramidNotes } from '@/components/product/PerfumePyramid'
+import { ProductDetails } from '@/components/product/ProductDetails'
 import { ProductView } from '@/components/product/ProductView'
 import { RelatedProducts } from '@/components/product/RelatedProducts'
 import { ShareButtons } from '@/components/product/ShareButtons'
@@ -79,12 +80,15 @@ export default async function ProductPage({ params }: Params) {
         product={product}
         bump={bump}
         breadcrumbs={<Breadcrumbs crumbs={productCrumbs(product)} />}
-        description={<Description html={product.descriptionHtml} />}
       />
       <div className={styles.details}>
+        <ProductDetails
+          product={product}
+          description={product.descriptionHtml.trim() ? <Description html={product.descriptionHtml} /> : undefined}
+          perfume={pyramidNotes(product.perfume) ? <PerfumePyramid perfume={product.perfume} /> : undefined}
+          delivery={<TrustBlock freeShippingThreshold={settings.freeShippingThreshold} giftThreshold={settings.giftThreshold} />}
+        />
         <ShareButtons />
-        <TrustBlock freeShippingThreshold={settings.freeShippingThreshold} giftThreshold={settings.giftThreshold} />
-        <PerfumePyramid perfume={product.perfume} />
       </div>
       <RelatedProducts cards={related} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd(product, url)) }} />

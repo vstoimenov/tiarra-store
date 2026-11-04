@@ -24,6 +24,9 @@
   line-height: 1.2;
   text-wrap: balance;
 }
+.promises { display: flex; flex-wrap: wrap; gap: 7px 16px; margin: -5px 0 22px; padding: 0; color: #64615b; font-size: 11px; font-weight: 700; list-style: none; }
+.promises li { position: relative; padding-left: 16px; }
+.promises li::before { position: absolute; top: .18em; left: 0; width: 9px; height: 5px; border-bottom: 1.5px solid #98721e; border-left: 1.5px solid #98721e; content: ''; transform: rotate(-45deg); }
 
 @media (min-width: 900px) {
   .view {
