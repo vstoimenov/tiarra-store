@@ -19,7 +19,6 @@ export function Discover({ cards, id }: { cards: ProductCard[]; id: string }) {
   const selection = selections.find(item => item.slug === active)!
   const products = cards.filter(card => card.inStock && card.imagePath && card.categorySlugs.includes(active)).slice(0, 3)
   return <section className={styles.root} data-section={id} aria-labelledby={`${id}-title`}>
-    <div className={styles.top}><span>01 — СВЕТЪТ НА TIARRA</span><span>BEAUTY IS A STATEMENT.</span></div>
     <div className={styles.layout}>
       <div className={styles.intro}><p className={styles.kicker}>ЛИЧНИЯТ ТИ ИЗБОР</p><h2 id={`${id}-title`}>Твоята грижа.<br /><em>Твоите правила.</em></h2><p className={styles.description}>Избери своя свят. Открий продуктите, с които ежедневието се превръща в ритуал.</p>
         <div className={styles.filters} aria-label="Избери категория">{selections.map((item,index) => <button type="button" key={item.slug} aria-pressed={active === item.slug} onClick={() => setActive(item.slug)}><span>0{index+1}</span>{item.name}<span aria-hidden="true">↗</span></button>)}</div>

@@ -14,8 +14,6 @@ export function cinematicHomeV1(home: HomeDoc): HomeDoc {
         { title: 'Парфюми', href: '/store/category/parfimes' }, { title: 'Комплекти', href: '/store/category/komplekt' },
       ] } })
   }
-  sections.push({ id: 'cinematic-final-v1', type: 'cinematicFinal', enabled: true,
-    data: { title: 'Грижата има личен почерк.', text: 'Открий своя в селекцията на Tiarra Cosmetics.', buttonLabel: 'Разгледай магазина', buttonHref: '/store', productSlug: '' } })
   return {
     sections,
   }
