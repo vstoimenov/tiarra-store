@@ -11,6 +11,7 @@ describe('cinematic document v1', () => {
   expect(HomeDocSchema.parse(transformed)).toEqual(transformed)
   expect(JSON.stringify(original)).toBe(before)
   expect(new Set(transformed.sections.map(s => s.id)).size).toBe(transformed.sections.length)
+  expect(transformed.sections[0]).toEqual(original.sections[0])
  })
  it('preserves catalog, trust, video, FAQ and campaign sections', () => {
   const result = cinematicHomeV1(original)
