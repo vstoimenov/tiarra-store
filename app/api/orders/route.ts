@@ -11,7 +11,10 @@ const requestSchema = z.object({
   phone: z.string().trim().min(7).max(30),
   email: z.union([z.literal(''), z.string().trim().email().max(160)]),
   courier: z.enum(['econt', 'speedy']),
-  officeId: z.string().min(1).max(120),
+  officeId: z.string().min(1).max(120).nullable(),
+  deliveryType: z.enum(['office','automat','address']),
+  city: z.string().trim().max(100),
+  postCode: z.string().trim().max(20),
   deliveryAddress: z.string().trim().min(5).max(500),
   notes: z.string().trim().max(1000),
   items: z.array(z.object({
@@ -30,14 +33,19 @@ export async function POST(request: Request) {
 
   try {
     const data = parsed.data
-    const office = (await getCourierOffices(data.courier)).find(entry => entry.id === data.officeId)
-    if (!office) return NextResponse.json({ error: 'Избери валиден офис на куриера.' }, { status: 400 })
-    data.deliveryAddress = `${office.city}, ${office.name}, ${office.address} [${office.code}]`
+    if (data.deliveryType === 'address') {
+      if (data.officeId || !data.city || !data.postCode) return NextResponse.json({ error: 'Попълни точен адрес за доставка.' }, { status: 400 })
+      data.deliveryAddress = `${data.city}, ${data.postCode}, ${data.deliveryAddress}`
+    } else {
+      const office = (await getCourierOffices(data.courier)).find(entry => entry.id === data.officeId)
+      if (!office || office.isAutomat !== (data.deliveryType === 'automat')) return NextResponse.json({ error: 'Избери валиден офис на куриера.' }, { status: 400 })
+      data.deliveryAddress = `${office.city}, ${office.name}, ${office.address} [${office.code}]`
+    }
     const rows = await sql<{ order_number: string; total: number }[]>`
       select order_number, total::float8 as total from store.create_order(
         ${data.customerName}, ${data.phone}, ${data.email}, ${data.courier},
         ${data.deliveryAddress}, ${data.notes}, ${sql.json(data.items)})`
-    try { await syncOrder(rows[0].order_number, data.officeId) }
+    try { await syncOrder(rows[0].order_number, data.officeId, data.deliveryType, data.city, data.postCode) }
     catch (error) { console.error('Ordyx sync failed after order creation', error) }
     return NextResponse.json({ orderNumber: rows[0].order_number, total: rows[0].total }, { status: 201 })
   } catch (error) {

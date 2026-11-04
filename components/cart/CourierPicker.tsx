@@ -9,7 +9,7 @@ export function CourierPicker({ onCourierChange }: { onCourierChange?: (courier:
   const [offices, setOffices] = useState<CourierOffice[]>([])
   const [city, setCity] = useState('')
   const [officeId, setOfficeId] = useState('')
-  const [placeType, setPlaceType] = useState<'office' | 'automat'>('office')
+  const [placeType, setPlaceType] = useState<'office' | 'automat' | 'address'>('office')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [retry, setRetry] = useState(0)
@@ -27,11 +27,12 @@ export function CourierPicker({ onCourierChange }: { onCourierChange?: (courier:
   const selected = offices.find(office => office.id === officeId)
   return <div className={styles.picker}>
     <div className={styles.couriers}>{(['econt','speedy'] as const).map(value => <label key={value} className={courier === value ? styles.selected : ''}><input type="radio" name="courier" value={value} checked={courier === value} onChange={() => { setCourier(value); onCourierChange?.(value); setOfficeId(''); setCity(''); setOffices([]) }} /><strong>{value === 'econt' ? 'Еконт' : 'Спиди'}</strong><span>1–2 работни дни</span></label>)}</div>
-    <div className={styles.placeTypes}><button type="button" className={placeType === 'office' ? styles.active : ''} onClick={() => { setPlaceType('office'); setOfficeId('') }}>▣ &nbsp; До офис</button><button type="button" className={placeType === 'automat' ? styles.active : ''} onClick={() => { setPlaceType('automat'); setOfficeId('') }}>▤ &nbsp; До автомат</button></div>
+    <div className={styles.placeTypes}><button type="button" className={placeType === 'address' ? styles.active : ''} onClick={() => { setPlaceType('address'); setOfficeId('') }}>⌂ &nbsp; До адрес</button><button type="button" className={placeType === 'office' ? styles.active : ''} onClick={() => { setPlaceType('office'); setOfficeId('') }}>▣ &nbsp; До офис</button><button type="button" className={placeType === 'automat' ? styles.active : ''} onClick={() => { setPlaceType('automat'); setOfficeId('') }}>▤ &nbsp; До автомат</button></div>
     {loading && <p role="status">Зареждане на офисите…</p>}
     {error && <p role="alert">{error} <button type="button" onClick={() => setRetry(retry + 1)}>Опитай отново</button></p>}
-    <div className={styles.pickerFields}><label>Населено място<select required value={city} onChange={event => { setCity(event.target.value); setOfficeId('') }}><option value="">Избери населено място</option>{cities.map(value => <option key={value}>{value}</option>)}</select></label>
+    <input type="hidden" name="deliveryType" value={placeType} />
+    {placeType === 'address' ? <div className={styles.pickerFields}><label>Град<input name="city" required placeholder="Например София" /></label><label>Пощенски код<input name="postCode" required placeholder="1000" /></label><label>Улица, номер и вход<input name="deliveryAddress" required minLength={5} placeholder="Точният адрес за доставка" /></label></div> : <><div className={styles.pickerFields}><label>Населено място<select required value={city} onChange={event => { setCity(event.target.value); setOfficeId('') }}><option value="">Избери населено място</option>{cities.map(value => <option key={value}>{value}</option>)}</select></label>
     <label>Избери {placeType === 'office' ? 'офис' : 'автомат'}<select name="officeId" required value={officeId} onChange={event => setOfficeId(event.target.value)}><option value="">Избери {placeType === 'office' ? 'офис' : 'автомат'}</option>{offices.filter(office => office.city === city && office.isAutomat === (placeType === 'automat')).map(office => <option key={office.id} value={office.id}>{office.name} — {office.address}</option>)}</select></label></div>
-    <input type="hidden" name="deliveryAddress" value={selected ? `${selected.city}, ${selected.name}, ${selected.address} [${selected.code}]` : ''} />
+    <input type="hidden" name="deliveryAddress" value={selected ? `${selected.city}, ${selected.name}, ${selected.address} [${selected.code}]` : ''} /></>}
   </div>
 }

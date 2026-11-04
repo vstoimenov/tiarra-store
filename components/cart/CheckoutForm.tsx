@@ -41,7 +41,7 @@ export function CheckoutForm({ bumps }: { bumps: Bump[] }) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
           customerName: data.get('customerName'), phone: data.get('phone'), email: data.get('email'),
-          courier: data.get('courier'), officeId: data.get('officeId'), deliveryAddress: data.get('deliveryAddress'), notes: data.get('notes'),
+          courier: data.get('courier'), officeId: data.get('officeId') || null, deliveryType: data.get('deliveryType'), city: data.get('city') || '', postCode: data.get('postCode') || '', deliveryAddress: data.get('deliveryAddress'), notes: data.get('notes'),
           items: items.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
         }),
       })
