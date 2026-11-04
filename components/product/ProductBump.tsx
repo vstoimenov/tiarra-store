@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { trackCommerce } from '@/lib/analytics'
 import { addCartItem } from '@/lib/cart'
 import type { Product } from '@/lib/catalog/types'
 import { formatPrice } from '@/lib/format'
@@ -26,6 +27,7 @@ export function ProductBump({ product, label }: { product: Product; label: strin
       unitPrice: product.price,
       quantity: 1,
     })
+    trackCommerce('add_to_cart', { currency: 'EUR', value: product.price, items: [{ item_id: product.id, item_name: product.title, price: product.price, quantity: 1 }] })
     setAdded(true)
     window.setTimeout(() => setAdded(false), 2200)
   }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
+import { checkoutRateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
@@ -22,6 +23,7 @@ interface QuoteRow {
 }
 
 export async function POST(request: Request) {
+  if (!(await checkoutRateLimit(request, 'quote'))) return NextResponse.json({ error: 'Твърде много опити. Изчакай няколко минути.' }, { status: 429 })
   const parsed = schema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Невалидна количка.' }, { status: 400 })
   const { courier, items } = parsed.data

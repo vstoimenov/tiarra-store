@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { trackCommerce } from '@/lib/analytics'
 import { addCartItem } from '@/lib/cart'
 import { initialVariantId, resolveVariantState } from '@/lib/catalog/variant'
 import type { Product } from '@/lib/catalog/types'
@@ -25,6 +26,12 @@ export function ProductView({ product, breadcrumbs, bump = null }: Props) {
   const [added, setAdded] = useState(false)
   const state = resolveVariantState(product, variantId)
 
+  useEffect(() => {
+    trackCommerce('view_item', { currency: 'EUR', value: state.price, items: [{ item_id: product.id, item_name: product.title, price: state.price, quantity: 1 }] })
+  // The product view is counted once; variant changes must not duplicate it.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id])
+
   function add(quantity: number) {
     const variant = product.variants.find((entry) => entry.id === variantId) ?? null
     addCartItem({
@@ -38,6 +45,7 @@ export function ProductView({ product, breadcrumbs, bump = null }: Props) {
       unitPrice: state.price,
       quantity,
     })
+    trackCommerce('add_to_cart', { currency: 'EUR', value: state.price * quantity, items: [{ item_id: variantId ?? product.id, item_name: product.title, item_variant: variant?.name, price: state.price, quantity }] })
     setAdded(true)
     window.setTimeout(() => setAdded(false), 2500)
   }

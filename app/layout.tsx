@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Archivo, Manrope } from 'next/font/google'
 import type { ReactNode } from 'react'
+import { Analytics } from '@/components/analytics/Analytics'
 import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
 import { Topbar } from '@/components/layout/Topbar'
@@ -48,6 +49,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <Header menu={navigation.menu} topbar={<Topbar messages={settings.topbarMessages} />} />
         <main>{children}</main>
         <Footer settings={settings} groups={navigation.footer} />
+        <Analytics />
       </body>
     </html>
   )

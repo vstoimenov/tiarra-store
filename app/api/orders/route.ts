@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { sql } from '@/lib/db'
 import { getCourierOffices } from '@/lib/ordyx-offices'
 import { syncOrder } from '@/lib/ordyx-sync'
+import { checkoutRateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
@@ -26,6 +27,7 @@ const requestSchema = z.object({
 })
 
 export async function POST(request: Request) {
+  if (!(await checkoutRateLimit(request, 'order'))) return NextResponse.json({ error: 'Твърде много опити. Изчакай няколко минути.' }, { status: 429 })
   let body: unknown
   try { body = await request.json() } catch { return NextResponse.json({ error: 'Невалидна заявка.' }, { status: 400 }) }
 

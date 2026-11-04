@@ -17,6 +17,7 @@ export function CartClient() {
   }, [])
 
   const total = useMemo(() => items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [items])
+  const freeShippingRemaining = Math.max(0, 39 - total)
 
   function update(next: CartItem[]) {
     setItems(next)
@@ -76,7 +77,7 @@ export function CartClient() {
       <aside className={styles.summary}>
         <h2>Общо</h2>
         <p><span>Продукти</span><strong>{formatPrice(total)}</strong></p>
-        <p className={styles.delivery}>Доставката се изчислява при потвърждение на поръчката.</p>
+        <p className={styles.delivery}>{freeShippingRemaining > 0 ? `Добави още ${formatPrice(freeShippingRemaining)} за безплатна доставка.` : 'Имаш безплатна доставка.'}</p>
         <Link href="/store/checkout" className={styles.primary}>Продължи към поръчка</Link>
         <p className={styles.note}>Ще потвърдим наличността и доставката с теб.</p>
       </aside>

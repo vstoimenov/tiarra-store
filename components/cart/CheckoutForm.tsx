@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { analyticsAllowed, trackCommerce } from '@/lib/analytics'
 import { type CartItem, readCart, writeCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import styles from './CheckoutForm.module.css'
@@ -26,6 +27,7 @@ export function CheckoutForm() {
   const [quotePending, setQuotePending] = useState(false)
   const [bumps, setBumps] = useState<Bump[]>([])
   const requestId = useRef('')
+  const checkoutTracked = useRef(false)
   const [courier, setCourier] = useState<'econt' | 'speedy'>('econt')
   const localSubtotal = useMemo(() => items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [items])
   const subtotal = quote?.subtotal ?? localSubtotal
@@ -78,6 +80,16 @@ export function CheckoutForm() {
     return () => controller.abort()
   }, [items, ready])
 
+  useEffect(() => {
+    function trackCheckout() {
+      if (checkoutTracked.current || !quote || !analyticsAllowed()) return
+      trackCommerce('begin_checkout', { currency: 'EUR', value: quote.total, items: items.map((item) => ({ item_id: item.variantId ?? item.productId, item_name: item.title, item_variant: item.variantName ?? undefined, price: quotedPrices.get(`${item.productId}:${item.variantId ?? ''}`) ?? item.unitPrice, quantity: item.quantity })) })
+      checkoutTracked.current = true
+    }
+    trackCheckout(); window.addEventListener('tiarra-consent-updated', trackCheckout)
+    return () => window.removeEventListener('tiarra-consent-updated', trackCheckout)
+  }, [items, quote, quotedPrices])
+
   function toggleBump(bump: Bump) {
     const key = `${bump.productId}:default`
     const next = items.some(item => item.key === key)
@@ -104,8 +116,13 @@ export function CheckoutForm() {
           items: items.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
         }),
       })
-      const result = await response.json() as { error?: string; orderNumber?: string }
+      const result = await response.json() as { error?: string; orderNumber?: string; total?: number }
       if (!response.ok || !result.orderNumber) throw new Error(result.error || 'Поръчката не беше записана.')
+      const purchaseKey = `tiarra-purchase-${result.orderNumber}`
+      if (!window.localStorage.getItem(purchaseKey)) {
+        trackCommerce('purchase', { currency: 'EUR', value: result.total ?? quote?.total ?? subtotal + shipping, transaction_id: result.orderNumber, items: items.map((item) => ({ item_id: item.variantId ?? item.productId, item_name: item.title, item_variant: item.variantName ?? undefined, price: quotedPrices.get(`${item.productId}:${item.variantId ?? ''}`) ?? item.unitPrice, quantity: item.quantity })) })
+        window.localStorage.setItem(purchaseKey, '1')
+      }
       writeCart([])
       setItems([])
       setOrderNumber(result.orderNumber)
@@ -133,7 +150,7 @@ export function CheckoutForm() {
       </div>
       <aside className={styles.summary}><div className={styles.summaryTop}><span>ТВОЯТА СЕЛЕКЦИЯ</span><Link href="/store/cart">Редактирай количката ↗</Link></div><h2>Твоята поръчка</h2><div className={styles.lines}>{items.map(item=>{ const price = quotedPrices.get(`${item.productId}:${item.variantId ?? ''}`) ?? item.unitPrice; return <div key={item.key} className={styles.line}><div className={styles.thumb}>{item.imagePath && <img src={imageUrl(item.imagePath,400)} alt="" /> }<small>{item.quantity}</small></div><div><strong>{item.title}</strong>{item.variantName && <span>{item.variantName}</span>}</div><b>{formatPrice(price*item.quantity)}</b></div>})}</div>
         {bumps.some(bump => !items.some(item => item.productId === bump.productId)) && <div className={styles.bumps}><span className={styles.eyebrow}>ДОПЪЛНИ РИТУАЛА СИ</span><h3>Малък детайл. Голямо усещане.</h3>{bumps.filter(bump => !items.some(item => item.productId === bump.productId)).slice(0,2).map(bump => <div key={bump.productId} className={styles.bump}>{bump.imagePath && <img src={imageUrl(bump.imagePath,400)} alt="" />}<div><strong>{bump.title}</strong><span>{formatPrice(bump.unitPrice)}</span></div><button type="button" onClick={() => toggleBump(bump)} aria-label={`Добави ${bump.title}`}>+ Добави</button></div>)}</div>}
-        <div className={styles.totals}><p><span>Продукти</span><b>{formatPrice(subtotal)}</b></p><p><span>Доставка</span><b>{shipping === 0 ? 'Безплатна' : formatPrice(shipping)}</b></p><div><span>Общо</span><strong>{formatPrice(quote?.total ?? subtotal+shipping)}</strong></div></div><small>{quotePending ? 'Проверяваме актуалните цени и наличности…' : priceChanged ? 'Цените в количката са актуализирани. Потвърди поръчката с показаната обща сума.' : 'Цените и наличностите са потвърдени от магазина.'}</small>{quoteError&&<p role="alert" className={styles.error}>{quoteError}</p>}{error&&<p role="alert" className={styles.error}>{error}</p>}<button className={styles.submit} type="submit" disabled={pending || quotePending || !quote}>{pending?'Изпращане…':'Потвърди поръчката →'}</button><p className={styles.safe}>Сигурна поръчка · Преглед при доставка · 14 дни връщане</p></aside>
+        <div className={styles.totals}><p><span>Продукти</span><b>{formatPrice(subtotal)}</b></p><p><span>Доставка</span><b>{shipping === 0 ? 'Безплатна' : formatPrice(shipping)}</b></p><div><span>Общо</span><strong>{formatPrice(quote?.total ?? subtotal+shipping)}</strong></div></div><small>{subtotal < 39 ? `Добави още ${formatPrice(39 - subtotal)} за безплатна доставка. ` : 'Безплатната доставка е активна. '}{quotePending ? 'Проверяваме актуалните цени и наличности…' : priceChanged ? 'Цените в количката са актуализирани.' : 'Цените и наличностите са потвърдени.'}</small>{quoteError&&<p role="alert" className={styles.error}>{quoteError}</p>}{error&&<p role="alert" className={styles.error}>{error}</p>}<button className={styles.submit} type="submit" disabled={pending || quotePending || !quote}>{pending?'Изпращане…':'Потвърди поръчката →'}</button><p className={styles.safe}>Сигурна поръчка · Преглед при доставка · 14 дни връщане</p></aside>
     </form>
   )
 }
