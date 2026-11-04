@@ -6,6 +6,7 @@ import { initialVariantId, resolveVariantState } from '@/lib/catalog/variant'
 import type { Product } from '@/lib/catalog/types'
 import { BuyBox } from './BuyBox'
 import { Gallery } from './Gallery'
+import { ProductBump } from './ProductBump'
 import styles from './ProductView.module.css'
 
 interface Props {
@@ -14,13 +15,14 @@ interface Props {
   breadcrumbs: ReactNode
   /** Under the buy box: the product's description (rendered on the server). */
   description: ReactNode
+  bump?: { product: Product; label: string } | null
 }
 
 /**
  * The top of the page: gallery beside the panel with the title and the buy box. The selected
  * variant is shared between the two, because choosing a variant swaps the picture too.
  */
-export function ProductView({ product, breadcrumbs, description }: Props) {
+export function ProductView({ product, breadcrumbs, description, bump = null }: Props) {
   const [variantId, setVariantId] = useState(() => initialVariantId(product))
   const [added, setAdded] = useState(false)
   const state = resolveVariantState(product, variantId)
@@ -55,6 +57,7 @@ export function ProductView({ product, breadcrumbs, description }: Props) {
           onAdd={({ quantity }) => add(quantity)}
         />
         {added && <p role="status" className={styles.added}>Продуктът е добавен в количката.</p>}
+        {bump ? <ProductBump product={bump.product} label={bump.label} /> : null}
         {description}
       </div>
     </div>

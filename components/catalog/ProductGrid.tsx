@@ -6,6 +6,7 @@ import { brandsOf, filterProducts, type SortKey } from '@/lib/catalog/filter'
 import type { ProductCard as Card } from '@/lib/catalog/types'
 import styles from './ProductGrid.module.css'
 import { UrlQuery } from './UrlQuery'
+import { SearchIcon } from '@/components/layout/icons'
 
 interface Props {
   /** The page's `<h1>`. */
@@ -94,6 +95,21 @@ export function ProductGrid({ title, cards, readQuery = false, children }: Props
         </div>
 
         <div className={styles.controls}>
+          <label className={`${styles.field} ${styles.searchField}`}>
+            <span className="visually-hidden">Търсене в категорията</span>
+            <input
+              type="search"
+              className={styles.searchInput}
+              value={text}
+              onChange={(event) => {
+                setText(event.target.value)
+                setVisible(PAGE_SIZE)
+              }}
+              placeholder="Търси продукт..."
+              autoComplete="off"
+            />
+            <SearchIcon className={styles.searchIcon} />
+          </label>
           {brands.length > 1 && (
             <label className={styles.field}>
               Марка

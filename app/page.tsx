@@ -4,6 +4,7 @@ import { getProductCards } from '@/lib/catalog/queries'
 import { pageMetadata } from '@/lib/seo/page-metadata'
 import { visibleSections } from '@/lib/sections/visible'
 import { getSiteDocument } from '@/lib/site/documents'
+import { HomeSearch } from '@/components/catalog/HomeSearch'
 
 export const metadata = pageMetadata({
   title: 'Tiarra Cosmetics | Професионална козметика за коса, лице и тяло',
@@ -24,5 +25,10 @@ export default async function HomePage() {
     getProductCards(),
   ])
 
-  return <SectionRenderer sections={visibleSections(process.env.CINEMATIC_HOME === '1' ? cinematicHomeV1(home) : home, new Date())} cards={cards} settings={settings} />
+  return <SectionRenderer
+    sections={visibleSections(process.env.CINEMATIC_HOME === '1' ? cinematicHomeV1(home) : home, new Date())}
+    cards={cards}
+    settings={settings}
+    afterFirst={<HomeSearch />}
+  />
 }

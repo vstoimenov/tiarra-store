@@ -1,0 +1,43 @@
+.section {
+  display: grid;
+  width: min(1178px, calc(100% - 32px));
+  min-height: 142px;
+  align-items: center;
+  gap: 24px;
+  margin: 30px auto;
+  padding: 26px clamp(20px, 5vw, 58px);
+  border: 1px solid rgba(229, 167, 46, 0.2);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 12% 30%, rgba(229, 167, 46, 0.16), transparent 35%),
+    #0b0b0c;
+  color: #fff;
+}
+
+.copy h2 {
+  margin: 5px 0 0;
+  font: 700 clamp(24px, 3vw, 36px)/1.08 var(--display);
+}
+
+.kicker {
+  margin: 0;
+  color: #e5bd67;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.form { width: 100%; }
+
+.form :global(input) {
+  height: 54px;
+  padding-left: 20px;
+  border-radius: 999px;
+}
+
+@media (min-width: 760px) {
+  .section { grid-template-columns: minmax(260px, 0.8fr) minmax(320px, 1.2fr); }
+}
+

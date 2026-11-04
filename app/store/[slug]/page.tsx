@@ -9,6 +9,7 @@ import { RelatedProducts } from '@/components/product/RelatedProducts'
 import { ShareButtons } from '@/components/product/ShareButtons'
 import { TrustBlock } from '@/components/product/TrustBlock'
 import { productCrumbs } from '@/lib/catalog/crumbs'
+import { getProductBump } from '@/lib/catalog/bumps'
 import { getAllProductSlugs, getProductBySlug, getRelatedProducts } from '@/lib/catalog/queries'
 import { imageUrl } from '@/lib/images'
 import { metaDescription } from '@/lib/seo/meta-description'
@@ -65,13 +66,18 @@ export default async function ProductPage({ params }: Params) {
   const product = await getProduct((await params).slug)
   if (!product) notFound()
 
-  const [related, settings] = await Promise.all([getRelatedProducts(product, 8), getSiteDocument('settings')])
+  const [related, settings, bump] = await Promise.all([
+    getRelatedProducts(product, 8),
+    getSiteDocument('settings'),
+    getProductBump(product),
+  ])
   const url = `${siteUrl()}/store/${encodeURIComponent(product.slug)}`
 
   return (
     <>
       <ProductView
         product={product}
+        bump={bump}
         breadcrumbs={<Breadcrumbs crumbs={productCrumbs(product)} />}
         description={<Description html={product.descriptionHtml} />}
       />
