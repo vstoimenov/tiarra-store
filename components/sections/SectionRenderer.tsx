@@ -1,4 +1,5 @@
-import { CinematicHero, ProductStory, CategoryShowcase, CinematicFinal } from '@/components/cinematic/Scenes'
+import { CinematicHero, ProductStory, CinematicFinal } from '@/components/cinematic/Scenes'
+import { Discover } from '@/components/cinematic/Discover'
 import { Fragment, type ReactNode } from 'react'
 import type { ProductCard } from '@/lib/catalog/types'
 import { cardsForSection } from '@/lib/sections/products-source'
@@ -32,7 +33,7 @@ function renderSection(section: Section, { cards, settings }: Pick<Props, 'cards
     case 'productStory':
       return <ProductStory section={section} cards={cards} />
     case 'categoryShowcase':
-      return <CategoryShowcase section={section} />
+      return <Discover cards={cards} id={section.id} />
     case 'hero':
       return <Hero section={section} />
     case 'rating':
