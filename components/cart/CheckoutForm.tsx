@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { type CartItem, readCart, writeCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import styles from './CheckoutForm.module.css'
@@ -15,6 +15,7 @@ export function CheckoutForm({ bumps }: { bumps: Bump[] }) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [orderNumber, setOrderNumber] = useState('')
+  const requestId = useRef('')
   const subtotal = useMemo(() => items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [items])
   const [courier, setCourier] = useState<'econt' | 'speedy'>('econt')
   const shipping = subtotal >= 39 ? 0 : courier === 'econt' ? 4.5 : 3.5
@@ -35,11 +36,13 @@ export function CheckoutForm({ bumps }: { bumps: Bump[] }) {
     setPending(true)
     setError('')
     const data = new FormData(event.currentTarget)
+    if (!requestId.current) requestId.current = crypto.randomUUID()
     try {
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
+          requestId: requestId.current,
           customerName: data.get('customerName'), phone: data.get('phone'), email: data.get('email'),
           courier: data.get('courier'), officeId: data.get('officeId') || null, deliveryType: data.get('deliveryType'), city: data.get('city') || '', postCode: data.get('postCode') || '', deliveryAddress: data.get('deliveryAddress'), notes: data.get('notes'),
           items: items.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
@@ -50,6 +53,7 @@ export function CheckoutForm({ bumps }: { bumps: Bump[] }) {
       writeCart([])
       setItems([])
       setOrderNumber(result.orderNumber)
+      requestId.current = ''
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Поръчката не беше записана.')
     } finally { setPending(false) }

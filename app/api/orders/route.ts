@@ -7,6 +7,7 @@ import { syncOrder } from '@/lib/ordyx-sync'
 export const runtime = 'nodejs'
 
 const requestSchema = z.object({
+  requestId: z.string().uuid(),
   customerName: z.string().trim().min(2).max(120),
   phone: z.string().trim().min(7).max(30),
   email: z.union([z.literal(''), z.string().trim().email().max(160)]),
@@ -41,13 +42,17 @@ export async function POST(request: Request) {
       if (!office || office.isAutomat !== (data.deliveryType === 'automat')) return NextResponse.json({ error: 'Избери валиден офис на куриера.' }, { status: 400 })
       data.deliveryAddress = `${office.city}, ${office.name}, ${office.address} [${office.code}]`
     }
-    const rows = await sql<{ order_number: string; total: number }[]>`
-      select order_number, total::float8 as total from store.create_order(
-        ${data.customerName}, ${data.phone}, ${data.email}, ${data.courier},
+    const rows = await sql<{ order_number: string; total: number; is_new: boolean }[]>`
+      select order_number, total::float8 as total, is_new from store.create_order(
+        ${data.requestId}, ${data.customerName}, ${data.phone}, ${data.email}, ${data.courier},
+        ${data.deliveryType}, ${data.officeId}, ${data.city}, ${data.postCode},
         ${data.deliveryAddress}, ${data.notes}, ${sql.json(data.items)})`
-    try { await syncOrder(rows[0].order_number, data.officeId, data.deliveryType, data.city, data.postCode) }
+    try { await syncOrder(rows[0].order_number) }
     catch (error) { console.error('Ordyx sync failed after order creation', error) }
-    return NextResponse.json({ orderNumber: rows[0].order_number, total: rows[0].total }, { status: 201 })
+    return NextResponse.json(
+      { orderNumber: rows[0].order_number, total: rows[0].total },
+      { status: rows[0].is_new ? 201 : 200 },
+    )
   } catch (error) {
     const code = error instanceof Error ? error.message : ''
     if (code.includes('PRODUCT_NOT_FOUND')) return NextResponse.json({ error: 'Продукт от количката вече не е наличен.' }, { status: 409 })
