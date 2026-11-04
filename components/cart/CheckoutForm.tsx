@@ -15,7 +15,7 @@ type Quote = {
   shipping: number
   total: number
 }
-export function CheckoutForm({ bumps }: { bumps: Bump[] }) {
+export function CheckoutForm() {
   const [items, setItems] = useState<CartItem[]>([])
   const [ready, setReady] = useState(false)
   const [pending, setPending] = useState(false)
@@ -24,6 +24,7 @@ export function CheckoutForm({ bumps }: { bumps: Bump[] }) {
   const [quote, setQuote] = useState<Quote | null>(null)
   const [quoteError, setQuoteError] = useState('')
   const [quotePending, setQuotePending] = useState(false)
+  const [bumps, setBumps] = useState<Bump[]>([])
   const requestId = useRef('')
   const [courier, setCourier] = useState<'econt' | 'speedy'>('econt')
   const localSubtotal = useMemo(() => items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [items])
@@ -60,6 +61,22 @@ export function CheckoutForm({ bumps }: { bumps: Bump[] }) {
     })
     return () => controller.abort()
   }, [courier, items, ready])
+
+  useEffect(() => {
+    if (!ready || items.length === 0) return
+    const controller = new AbortController()
+    fetch('/api/orders/bumps', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ productIds: items.map((item) => item.productId) }), signal: controller.signal,
+    }).then(async (response) => {
+      if (!response.ok) throw new Error('Bumps unavailable')
+      const result = await response.json() as { bumps: Bump[] }
+      setBumps(result.bumps)
+    }).catch((reason: unknown) => {
+      if (!(reason instanceof DOMException && reason.name === 'AbortError')) setBumps([])
+    })
+    return () => controller.abort()
+  }, [items, ready])
 
   function toggleBump(bump: Bump) {
     const key = `${bump.productId}:default`
@@ -112,7 +129,7 @@ export function CheckoutForm({ bumps }: { bumps: Bump[] }) {
         </div></section>
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><CourierPicker onCourierChange={setCourier} /></section>
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>03</span><div><h2>Плащане</h2><p>Плащаш при получаване</p></div></div><div className={styles.payment}>◉ &nbsp; Наложен платеж <span>Сигурно и удобно</span></div><label className={styles.notes}>Бележка <span>(по желание)</span><textarea name="notes" rows={2} placeholder="Нещо, което трябва да знаем?" /></label></section>
-        <label className={styles.consent}><input type="checkbox" required /> Съгласен/на съм данните ми да бъдат използвани за изпълнение на поръчката.</label>
+        <label className={styles.consent}><input type="checkbox" required /> <span>Съгласен/на съм с <Link href="/obshti-usloviya" target="_blank">общите условия</Link> и данните ми да бъдат използвани според <Link href="/poveritelnost" target="_blank">политиката за поверителност</Link>.</span></label>
       </div>
       <aside className={styles.summary}><div className={styles.summaryTop}><span>ТВОЯТА СЕЛЕКЦИЯ</span><Link href="/store/cart">Редактирай количката ↗</Link></div><h2>Твоята поръчка</h2><div className={styles.lines}>{items.map(item=>{ const price = quotedPrices.get(`${item.productId}:${item.variantId ?? ''}`) ?? item.unitPrice; return <div key={item.key} className={styles.line}><div className={styles.thumb}>{item.imagePath && <img src={imageUrl(item.imagePath,400)} alt="" /> }<small>{item.quantity}</small></div><div><strong>{item.title}</strong>{item.variantName && <span>{item.variantName}</span>}</div><b>{formatPrice(price*item.quantity)}</b></div>})}</div>
         {bumps.some(bump => !items.some(item => item.productId === bump.productId)) && <div className={styles.bumps}><span className={styles.eyebrow}>ДОПЪЛНИ РИТУАЛА СИ</span><h3>Малък детайл. Голямо усещане.</h3>{bumps.filter(bump => !items.some(item => item.productId === bump.productId)).slice(0,2).map(bump => <div key={bump.productId} className={styles.bump}>{bump.imagePath && <img src={imageUrl(bump.imagePath,400)} alt="" />}<div><strong>{bump.title}</strong><span>{formatPrice(bump.unitPrice)}</span></div><button type="button" onClick={() => toggleBump(bump)} aria-label={`Добави ${bump.title}`}>+ Добави</button></div>)}</div>}

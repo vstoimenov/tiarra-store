@@ -14,6 +14,10 @@ export function CourierPicker({ onCourierChange }: { onCourierChange?: (courier:
   const [loading, setLoading] = useState(true)
   const [retry, setRetry] = useState(0)
   useEffect(() => {
+    if (placeType === 'address') {
+      setLoading(false); setError(''); setOffices([]); setCity(''); setOfficeId('')
+      return
+    }
     const controller = new AbortController()
     setLoading(true); setOffices([]); setCity(''); setOfficeId(''); setError('')
     fetch(`/api/shipping/offices?courier=${courier}`, { signal: controller.signal })
@@ -22,7 +26,7 @@ export function CourierPicker({ onCourierChange }: { onCourierChange?: (courier:
       .catch(() => { if (!controller.signal.aborted) setError('Не успяхме да заредим офисите. Опитай отново.') })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
-  }, [courier, retry])
+  }, [courier, placeType, retry])
   const cities = [...new Set(offices.map(office => office.city))].sort((a,b) => a.localeCompare(b, 'bg'))
   const selected = offices.find(office => office.id === officeId)
   return <div className={styles.picker}>
