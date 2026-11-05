@@ -22,13 +22,19 @@ export function ProductsCarousel({
   const track = useRef<HTMLUListElement>(null)
   const [atStart, setAtStart] = useState(false)
   const [atEnd, setAtEnd] = useState(false)
+  const loadedWidth = useRef(0)
 
   const update = useCallback(() => {
     const el = track.current
     if (!el) return
     setAtStart(el.scrollLeft <= 2)
     setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 2)
-  }, [])
+    // Touch users have no arrow buttons. Append the next batch before the swipe reaches the end.
+    if (hasMore && el.scrollLeft > 0 && el.scrollLeft + el.clientWidth * 2 >= el.scrollWidth && loadedWidth.current !== el.scrollWidth) {
+      loadedWidth.current = el.scrollWidth
+      onLoadMore?.()
+    }
+  }, [hasMore, onLoadMore])
 
   useEffect(() => {
     const el = track.current
