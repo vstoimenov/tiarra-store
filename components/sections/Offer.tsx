@@ -1,3 +1,4 @@
+import { Savings } from '@/components/product/Savings'
 import Link from 'next/link'
 import { formatPrice, isDiscounted } from '@/lib/format'
 import { imageSrcSet, imageUrl } from '@/lib/images'
@@ -40,6 +41,7 @@ export function Offer({ section }: { section: SectionOf<'offer'> }) {
           </p>
         )}
         <p className={styles.now}>СЕГА: {formatPrice(newPrice)}</p>
+        <Savings price={newPrice} compareAtPrice={oldPrice} />
       </div>
       {running && <Countdown endsAt={endsAt} />}
       <p className={styles.action}>

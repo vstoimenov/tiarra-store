@@ -7,6 +7,7 @@ import { addCartItem } from '@/lib/cart'
 import type { Product } from '@/lib/catalog/types'
 import { formatPrice } from '@/lib/format'
 import { imageUrl } from '@/lib/images'
+import { Savings } from './Savings'
 import styles from './ProductBump.module.css'
 
 export function ProductBump({ product, label }: { product: Product; label: string }) {
@@ -43,6 +44,7 @@ export function ProductBump({ product, label }: { product: Product; label: strin
           <span className={styles.copy}>
             <strong id="product-bump-title">{product.title}</strong>
             <span>{formatPrice(product.price)}</span>
+            <Savings price={product.price} compareAtPrice={product.compareAtPrice} />
           </span>
         </Link>
         {canQuickAdd ? (

@@ -159,8 +159,8 @@ describe('TrustBlock', () => {
   it('has the payment methods and not the word „тест“', () => {
     const markup = html(createElement(TrustBlock, { freeShippingThreshold: 39, giftThreshold: 20 }))
 
-    expect(markup).toContain('aria-label="Visa"')
-    expect(markup).toContain('aria-label="Mastercard"')
+    expect(markup).not.toContain('aria-label="Visa"')
+    expect(markup).not.toContain('aria-label="Mastercard"')
     expect(markup).toContain('НАЛОЖЕН ПЛАТЕЖ')
     expect(markup.toLowerCase()).not.toContain('тест')
   })

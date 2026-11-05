@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Product } from '@/lib/catalog/types'
 import { resolveVariantState } from '@/lib/catalog/variant'
 import { formatPrice } from '@/lib/format'
+import { Savings } from './Savings'
 import styles from './BuyBox.module.css'
 
 export interface AddToCart {
@@ -85,6 +86,8 @@ export function BuyBox({ product, variantId, onVariantChange, onAdd = noop }: Pr
           </>
         )}
       </p>
+
+      <div aria-live="polite"><Savings price={state.price} compareAtPrice={state.compareAtPrice} /></div>
 
       {variants.length > 0 && (
         <fieldset className={styles.options} role="radiogroup">

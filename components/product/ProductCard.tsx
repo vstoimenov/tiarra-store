@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ProductCard as Card } from '@/lib/catalog/types'
 import { discountPercent, formatPrice, isDiscounted } from '@/lib/format'
 import { imageSrcSet, imageUrl } from '@/lib/images'
+import { Savings } from './Savings'
 import styles from './ProductCard.module.css'
 
 interface Props {
@@ -51,6 +52,7 @@ export function ProductCard({ card, sizes = DEFAULT_SIZES, priority = false }: P
           {formatPrice(card.price)}
           {oldPrice !== null && <s className={styles.old}>{formatPrice(oldPrice)}</s>}
         </p>
+        <Savings price={card.price} compareAtPrice={oldPrice} />
         <span className={styles.cta}>Виж продукта</span>
       </Link>
     </article>
