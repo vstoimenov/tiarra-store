@@ -82,6 +82,16 @@
 
   .track > * {
     flex-basis: min(78%, 320px);
+    scroll-snap-align: center;
+  }
+
+  /* Equal edge space lets the first and last card snap to the viewport centre too. */
+  .track > :first-child {
+    margin-inline-start: max(11%, calc((100% - 320px) / 2));
+  }
+
+  .track > :last-child {
+    margin-inline-end: max(11%, calc((100% - 320px) / 2));
   }
 }
 
