@@ -44,6 +44,8 @@ function countText(shown: number, total: number): string {
  * Rendered on the server like the rest of the page, so the first 24 cards are in the HTML.
  */
 export function ProductGrid({ title, cards, readQuery = false, children, initialGender }: Props) {
+  const [onlyStock, setOnlyStock] = useState(false)
+  const [maxPrice, setMaxPrice] = useState('')
   const [text, setText] = useState('')
   const [brand, setBrand] = useState('')
   const [sort, setSort] = useState<SortKey>('newest')
@@ -51,9 +53,9 @@ export function ProductGrid({ title, cards, readQuery = false, children, initial
   const [gender, setGender] = useState<Gender | undefined>(initialGender)
 
   const brands = useMemo(() => brandsOf(cards), [cards])
-  const matching = useMemo(() => filterProducts(cards, { text, brand, sort, gender }), [cards, text, brand, sort, gender])
+  const matching = useMemo(() => filterProducts(cards, { text, brand, sort, gender }).filter(card => (!onlyStock || card.inStock) && (!maxPrice || card.price <= Number(maxPrice))), [cards, text, brand, sort, gender, onlyStock, maxPrice])
   const shown = matching.slice(0, visible)
-  const filtered = text !== '' || brand !== ''
+  const filtered = text !== '' || brand !== '' || onlyStock || maxPrice !== ''
 
   // A new search or filter starts again from the first 24.
   const onUrlQuery = useCallback((q: string, nextGender: 'male' | undefined) => {
@@ -74,9 +76,11 @@ export function ProductGrid({ title, cards, readQuery = false, children, initial
 
   function clearFilters() {
     // The search lives in the address: drop it there too, or a reload would bring it back.
-    if (text !== '') window.history.replaceState(null, '', window.location.pathname)
+    if (text !== '') { const url = new URL(window.location.href); url.searchParams.delete('q'); window.history.replaceState(null, '', url.pathname + url.search) }
     setText('')
     setBrand('')
+    setOnlyStock(false)
+    setMaxPrice('')
     setSort('newest')
     setVisible(PAGE_SIZE)
   }
@@ -140,6 +144,8 @@ export function ProductGrid({ title, cards, readQuery = false, children, initial
         </div>
       </header>
 
+      <details className={styles.extraFilters}><summary>Филтри{filtered ? ' · активни' : ''}</summary><div><label><input type="checkbox" checked={onlyStock} onChange={e => {setOnlyStock(e.target.checked);setVisible(PAGE_SIZE)}} /> Само налични</label><label>Цена до (€)<input type="number" min="0" inputMode="decimal" value={maxPrice} onChange={e => {setMaxPrice(e.target.value);setVisible(PAGE_SIZE)}} placeholder="Без ограничение" /></label>{filtered && <button type="button" onClick={clearFilters}>Изчисти филтрите</button>}</div></details>
+      {filtered && <p className={styles.term}>Активни: {[text && `Търсене: ${text}`, brand, onlyStock && 'В наличност', maxPrice && `До ${maxPrice} €`].filter(Boolean).join(' · ')} <button type="button" onClick={clearFilters}>Изчисти</button></p>}
       {children}
 
       {matching.length === 0 ? (

@@ -7,6 +7,8 @@ import styles from './CheckoutForm.module.css'
 export function CourierPicker({ onCourierChange }: { onCourierChange?: (courier: 'econt' | 'speedy') => void }) {
   const [courier, setCourier] = useState<'econt' | 'speedy'>('econt')
   const [offices, setOffices] = useState<CourierOffice[]>([])
+  const [citySearch, setCitySearch] = useState('')
+  const [officeSearch, setOfficeSearch] = useState('')
   const [city, setCity] = useState('')
   const [officeId, setOfficeId] = useState('')
   const [placeType, setPlaceType] = useState<'office' | 'automat' | 'address'>('office')
@@ -35,8 +37,8 @@ export function CourierPicker({ onCourierChange }: { onCourierChange?: (courier:
     {loading && <p role="status">Зареждане на офисите…</p>}
     {error && <p role="alert">{error} <button type="button" onClick={() => setRetry(retry + 1)}>Опитай отново</button></p>}
     <input type="hidden" name="deliveryType" value={placeType} />
-    {placeType === 'address' ? <div className={styles.pickerFields}><label>Град<input name="city" required placeholder="Например София" /></label><label>Пощенски код<input name="postCode" required placeholder="1000" /></label><label>Улица, номер и вход<input name="deliveryAddress" required minLength={5} placeholder="Точният адрес за доставка" /></label></div> : <><div className={styles.pickerFields}><label>Населено място<select required value={city} onChange={event => { setCity(event.target.value); setOfficeId('') }}><option value="">Избери населено място</option>{cities.map(value => <option key={value}>{value}</option>)}</select></label>
-    <label>Избери {placeType === 'office' ? 'офис' : 'автомат'}<select name="officeId" required value={officeId} onChange={event => setOfficeId(event.target.value)}><option value="">Избери {placeType === 'office' ? 'офис' : 'автомат'}</option>{offices.filter(office => office.city === city && office.isAutomat === (placeType === 'automat')).map(office => <option key={office.id} value={office.id}>{office.name} — {office.address}</option>)}</select></label></div>
+    {placeType === 'address' ? <div className={styles.pickerFields}><label>Град<input name="city" required placeholder="Например София" /></label><label>Пощенски код<input name="postCode" required placeholder="1000" /></label><label>Улица, номер и вход<input name="deliveryAddress" required minLength={5} placeholder="Точният адрес за доставка" /></label></div> : <><div className={styles.pickerFields}><label>Търси населено място<input type="search" value={citySearch} onChange={e => setCitySearch(e.target.value)} placeholder="Например София" /></label><label>Населено място<select required value={city} onChange={event => { setCity(event.target.value); setOfficeId('') }}><option value="">Избери населено място</option>{cities.filter(value => value.toLocaleLowerCase('bg').includes(citySearch.toLocaleLowerCase('bg')) || value === city).map(value => <option key={value}>{value}</option>)}</select></label>
+    <label>Търси офис или автомат<input type="search" value={officeSearch} onChange={e => setOfficeSearch(e.target.value)} placeholder="Име или адрес" /></label><label>Избери {placeType === 'office' ? 'офис' : 'автомат'}<select name="officeId" required value={officeId} onChange={event => setOfficeId(event.target.value)}><option value="">Избери {placeType === 'office' ? 'офис' : 'автомат'}</option>{offices.filter(office => office.city === city && office.isAutomat === (placeType === 'automat') && (office.id === officeId || `${office.name} ${office.address}`.toLocaleLowerCase('bg').includes(officeSearch.toLocaleLowerCase('bg')))).map(office => <option key={office.id} value={office.id}>{office.name} — {office.address}</option>)}</select></label></div>
     <input type="hidden" name="deliveryAddress" value={selected ? `${selected.city}, ${selected.name}, ${selected.address} [${selected.code}]` : ''} /></>}
   </div>
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Product } from '@/lib/catalog/types'
 import { resolveVariantState } from '@/lib/catalog/variant'
 import { formatPrice } from '@/lib/format'
@@ -38,6 +38,21 @@ const maxFor = (stock: number | null) => (stock === null ? UNTRACKED_MAX : Math.
  * disables the button; the other variants stay as they were.
  */
 export function BuyBox({ product, variantId, onVariantChange, onAdd = noop }: Props) {
+  const [dockAdded, setDockAdded] = useState(false)
+  useEffect(() => {
+    if (!dockAdded) return
+    const timer = setTimeout(() => setDockAdded(false), 2500)
+    return () => clearTimeout(timer)
+  }, [dockAdded])
+  const buyArea = useRef<HTMLDivElement>(null)
+  const [showDock, setShowDock] = useState(false)
+  useEffect(() => {
+    const node = buyArea.current
+    if (!node) return
+    const observer = new IntersectionObserver(([entry]) => setShowDock(!entry.isIntersecting && entry.boundingClientRect.top < 0))
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
   const state = resolveVariantState(product, variantId)
   const max = maxFor(state.stock)
   const [text, setText] = useState('1')
@@ -97,7 +112,7 @@ export function BuyBox({ product, variantId, onVariantChange, onAdd = noop }: Pr
         </fieldset>
       )}
 
-      <div className={styles.buy}>
+      <div className={styles.buy} ref={buyArea}>
         <div className={styles.qty}>
           <button
             type="button"
@@ -140,6 +155,7 @@ export function BuyBox({ product, variantId, onVariantChange, onAdd = noop }: Pr
           {state.inStock ? 'Добави в количката' : 'Изчерпан'}
         </button>
       </div>
+      {showDock && <div className={styles.dock}><span><strong>{formatPrice(state.price)}</strong><small>{quantity} бр. · {state.inStock ? 'В наличност' : 'Изчерпан'}</small></span><button type="button" disabled={!state.inStock} onClick={() => {onAdd({ productId: product.id, variantId, quantity });setDockAdded(true)}}>{dockAdded ? 'Добавено ✓' : 'Добави в количката'}</button></div>}
     </div>
   )
 }

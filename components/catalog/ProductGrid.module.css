@@ -190,3 +190,5 @@
     padding-top: 48px;
   }
 }
+
+.extraFilters{margin:0 0 24px;border:1px solid #dfd9ce;border-radius:12px;padding:12px 16px}.extraFilters summary{cursor:pointer;min-height:30px;font-weight:700}.extraFilters>div{display:flex;flex-wrap:wrap;gap:18px;align-items:center;padding-top:16px}.extraFilters label{display:flex;align-items:center;gap:10px}.extraFilters input[type=number]{width:150px;min-height:44px;border:1px solid #ccc;border-radius:7px;padding:8px}.extraFilters button,.term button{min-height:44px;background:transparent;border:0;text-decoration:underline;cursor:pointer}

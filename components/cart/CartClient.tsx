@@ -5,9 +5,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { type CartItem, readCart, writeCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import { imageUrl } from '@/lib/images'
+import { CartRecommendations } from './CartRecommendations'
 import styles from './CartClient.module.css'
 
-export function CartClient() {
+export function CartClient({ compact = false }: { compact?: boolean }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [ready, setReady] = useState(false)
 
@@ -45,7 +46,7 @@ export function CartClient() {
   }
 
   return (
-    <div className={styles.layout}>
+    <div className={`${styles.layout} ${compact ? styles.compact : ''}`}>
       <ul className={styles.items} aria-label="Продукти в количката">
         {items.map((item) => (
           <li key={item.key} className={styles.item}>
@@ -78,6 +79,8 @@ export function CartClient() {
         <h2>Общо</h2>
         <p><span>Продукти</span><strong>{formatPrice(total)}</strong></p>
         <p className={styles.delivery}>{freeShippingRemaining > 0 ? `Добави още ${formatPrice(freeShippingRemaining)} за безплатна доставка.` : 'Имаш безплатна доставка.'}</p>
+        <progress className={styles.progress} max={39} value={Math.min(total,39)} aria-label="Напредък към безплатна доставка" />
+        <CartRecommendations items={items} onAdded={() => setItems(readCart())} />
         <Link href="/store/checkout" className={styles.primary}>Продължи към поръчка</Link>
         <p className={styles.note}>Ще потвърдим наличността и доставката с теб.</p>
       </aside>
