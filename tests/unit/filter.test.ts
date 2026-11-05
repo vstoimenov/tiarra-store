@@ -141,3 +141,27 @@ describe('brandsOf', () => {
     expect(brandsOf([card('a'), card('b')])).toEqual([])
   })
 })
+
+
+describe('shopping filters', () => {
+  it('combines an inclusive price range with brand and promotion', () => {
+    expect(slugs(filterProducts(all, { minPrice: 20, maxPrice: 29.9, onlyDiscounted: true, brand: 'YODEYMA' }))).toEqual(['yodeyma-her'])
+    expect(slugs(filterProducts(all, { minPrice: 12, maxPrice: 20 }))).toEqual(['crew-pomada', 'reuzel-pomade'])
+    expect(filterProducts(all, { minPrice: 30, maxPrice: 10 })).toEqual([])
+    expect(filterProducts(all, { maxPrice: 0 })).toEqual([])
+  })
+
+  it('promotions exclude missing, equal and lower old prices', () => {
+    expect(slugs(filterProducts([
+      card('missing'), card('equal', { compareAtPrice: 10 }),
+      card('lower', { compareAtPrice: 9 }), nish,
+    ], { onlyDiscounted: true }))).toEqual(['nish-man'])
+  })
+
+  it('includes unisex for him/her and shows only unisex when requested', () => {
+    const products = [card('him', { gender: 'male' }), card('her', { gender: 'female' }), card('both')]
+    expect(slugs(filterProducts(products, { gender: 'male' }))).toEqual(['him', 'both'])
+    expect(slugs(filterProducts(products, { gender: 'female' }))).toEqual(['her', 'both'])
+    expect(slugs(filterProducts(products, { gender: 'unisex' }))).toEqual(['both'])
+  })
+})

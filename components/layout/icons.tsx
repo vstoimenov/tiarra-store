@@ -75,3 +75,12 @@ export const TiktokIcon = (props: IconProps) => (
     <path d="M14 6.5c1 1.8 2.6 3 4.5 3.2" />
   </Icon>
 )
+
+/** Sliders distinguish product filters from the navigation menu. */
+export const FilterIcon = (props: IconProps) => (
+  <Icon strokeWidth="1.7" {...props}>
+    <path d="M4 7h3m4 0h9M4 17h9m4 0h3" />
+    <circle cx="9" cy="7" r="2" />
+    <circle cx="15" cy="17" r="2" />
+  </Icon>
+)

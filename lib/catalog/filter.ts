@@ -11,6 +11,9 @@ export interface ListingQuery {
   /** Newest first when left out. */
   sort?: SortKey
   gender?: ProductCard['gender']
+  minPrice?: number
+  maxPrice?: number
+  onlyDiscounted?: boolean
 }
 
 // `bg` keeps Cyrillic (and Latin) case folding right whatever the browser's own language is.
@@ -41,6 +44,9 @@ export function filterProducts(cards: ProductCard[], q: ListingQuery): ProductCa
   const matching = cards.filter((card) => {
     if (q.gender && card.gender !== q.gender && card.gender !== 'unisex') return false
     if (q.brand && card.brand !== q.brand) return false
+    if (q.minPrice !== undefined && card.price < q.minPrice) return false
+    if (q.maxPrice !== undefined && card.price > q.maxPrice) return false
+    if (q.onlyDiscounted && !isDiscounted(card.price, card.compareAtPrice)) return false
     if (words.length === 0) return true
     const haystack = fold(`${card.title} ${card.brand ?? ''}`)
     return words.every((word) => haystack.includes(word))

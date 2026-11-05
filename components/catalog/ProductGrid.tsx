@@ -7,7 +7,8 @@ import type { ProductCard as Card } from '@/lib/catalog/types'
 import type { Gender } from '@/lib/catalog/types'
 import styles from './ProductGrid.module.css'
 import { UrlQuery } from './UrlQuery'
-import { SearchIcon } from '@/components/layout/icons'
+import { isDiscounted } from '@/lib/format'
+import { SearchIcon, FilterIcon } from '@/components/layout/icons'
 
 interface Props {
   /** The page's `<h1>`. */
@@ -20,6 +21,12 @@ interface Props {
   children?: ReactNode
   initialGender?: Gender
 }
+
+const GENDERS: { value: Gender; label: string }[] = [
+  { value: 'female', label: 'За нея' },
+  { value: 'male', label: 'За него' },
+  { value: 'unisex', label: 'Унисекс' },
+]
 
 const PAGE_SIZE = 24
 const SIZES = '(min-width: 900px) 374px, 46vw'
@@ -44,7 +51,8 @@ function countText(shown: number, total: number): string {
  * Rendered on the server like the rest of the page, so the first 24 cards are in the HTML.
  */
 export function ProductGrid({ title, cards, readQuery = false, children, initialGender }: Props) {
-  const [onlyStock, setOnlyStock] = useState(false)
+  const [onlyDiscounted, setOnlyDiscounted] = useState(false)
+  const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [text, setText] = useState('')
   const [brand, setBrand] = useState('')
@@ -53,12 +61,20 @@ export function ProductGrid({ title, cards, readQuery = false, children, initial
   const [gender, setGender] = useState<Gender | undefined>(initialGender)
 
   const brands = useMemo(() => brandsOf(cards), [cards])
-  const matching = useMemo(() => filterProducts(cards, { text, brand, sort, gender }).filter(card => (!onlyStock || card.inStock) && (!maxPrice || card.price <= Number(maxPrice))), [cards, text, brand, sort, gender, onlyStock, maxPrice])
+  const genders = useMemo(() => GENDERS.filter(option => cards.some(card => card.gender === option.value)), [cards])
+  const hasDiscounts = useMemo(() => cards.some(card => isDiscounted(card.price, card.compareAtPrice)), [cards])
+  const matching = useMemo(() => filterProducts(cards, {
+    text, brand, sort, gender, onlyDiscounted,
+    minPrice: minPrice === '' ? undefined : Number(minPrice),
+    maxPrice: maxPrice === '' ? undefined : Number(maxPrice),
+  }), [cards, text, brand, sort, gender, onlyDiscounted, minPrice, maxPrice])
   const shown = matching.slice(0, visible)
-  const filtered = text !== '' || brand !== '' || onlyStock || maxPrice !== ''
+  const activeCount = [text !== '', brand !== '', Boolean(gender), onlyDiscounted, minPrice !== '' || maxPrice !== ''].filter(Boolean).length
+  const filtered = activeCount > 0
+  const invalidRange = minPrice !== '' && maxPrice !== '' && Number(minPrice) > Number(maxPrice)
 
   // A new search or filter starts again from the first 24.
-  const onUrlQuery = useCallback((q: string, nextGender: 'male' | undefined) => {
+  const onUrlQuery = useCallback((q: string, nextGender: Gender | undefined) => {
     setText(q)
     setGender(nextGender ?? initialGender)
     setVisible(PAGE_SIZE)
@@ -69,6 +85,18 @@ export function ProductGrid({ title, cards, readQuery = false, children, initial
     setVisible(PAGE_SIZE)
   }
 
+  function onGender(value: string) {
+    const next = GENDERS.find(option => option.value === value)?.value
+    setGender(next)
+    setVisible(PAGE_SIZE)
+    const url = new URL(window.location.href)
+    if (next) url.searchParams.set('gender', next)
+    else url.searchParams.delete('gender')
+    if (text) url.searchParams.set('q', text)
+    else url.searchParams.delete('q')
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+  }
+
   function onSort(event: ChangeEvent<HTMLSelectElement>) {
     if (isSortKey(event.target.value)) setSort(event.target.value)
     setVisible(PAGE_SIZE)
@@ -76,10 +104,15 @@ export function ProductGrid({ title, cards, readQuery = false, children, initial
 
   function clearFilters() {
     // The search lives in the address: drop it there too, or a reload would bring it back.
-    if (text !== '') { const url = new URL(window.location.href); url.searchParams.delete('q'); window.history.replaceState(null, '', url.pathname + url.search) }
+    const url = new URL(window.location.href)
+    url.searchParams.delete('q')
+    url.searchParams.delete('gender')
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash)
     setText('')
     setBrand('')
-    setOnlyStock(false)
+    setGender(initialGender)
+    setOnlyDiscounted(false)
+    setMinPrice('')
     setMaxPrice('')
     setSort('newest')
     setVisible(PAGE_SIZE)
@@ -144,8 +177,28 @@ export function ProductGrid({ title, cards, readQuery = false, children, initial
         </div>
       </header>
 
-      <details className={styles.extraFilters}><summary>Филтри{filtered ? ' · активни' : ''}</summary><div><label><input type="checkbox" checked={onlyStock} onChange={e => {setOnlyStock(e.target.checked);setVisible(PAGE_SIZE)}} /> Само налични</label><label>Цена до (€)<input type="number" min="0" inputMode="decimal" value={maxPrice} onChange={e => {setMaxPrice(e.target.value);setVisible(PAGE_SIZE)}} placeholder="Без ограничение" /></label>{filtered && <button type="button" onClick={clearFilters}>Изчисти филтрите</button>}</div></details>
-      {filtered && <p className={styles.term}>Активни: {[text && `Търсене: ${text}`, brand, onlyStock && 'В наличност', maxPrice && `До ${maxPrice} €`].filter(Boolean).join(' · ')} <button type="button" onClick={clearFilters}>Изчисти</button></p>}
+      <details className={styles.extraFilters}>
+        <summary><FilterIcon className={styles.filterIcon} /><span>Филтри</span>{filtered && <span className={styles.filterCount}>{activeCount}</span>}<span className={styles.chevron} aria-hidden="true" /></summary>
+        <div className={styles.filterPanel}>
+          {genders.length > 1 && <fieldset className={styles.filterGroup}>
+            <legend>За кого</legend>
+            <div className={styles.genderOptions}>
+              {[{ value: '', label: 'Всички' }, ...genders].map(option => <button type="button" key={option.value} aria-pressed={(gender ?? '') === option.value} onClick={() => onGender(option.value)}>{option.label}</button>)}
+            </div>
+          </fieldset>}
+          <fieldset className={styles.filterGroup}>
+            <legend>Ценови диапазон</legend>
+            <div className={styles.priceRange}>
+              <label>От (€)<input type="number" min="0" step="0.01" inputMode="decimal" value={minPrice} onChange={e => {setMinPrice(e.target.value);setVisible(PAGE_SIZE)}} placeholder="0" aria-invalid={invalidRange || undefined} aria-describedby={invalidRange ? 'price-range-error' : undefined} /></label>
+              <span aria-hidden="true">—</span>
+              <label>До (€)<input type="number" min="0" step="0.01" inputMode="decimal" value={maxPrice} onChange={e => {setMaxPrice(e.target.value);setVisible(PAGE_SIZE)}} placeholder="Без лимит" aria-invalid={invalidRange || undefined} aria-describedby={invalidRange ? 'price-range-error' : undefined} /></label>
+            </div>
+            {invalidRange && <p id="price-range-error" className={styles.rangeError} role="status">Цената „От“ трябва да е по-ниска или равна на „До“.</p>}
+          </fieldset>
+          {hasDiscounts && <label className={styles.promotionFilter}><input type="checkbox" checked={onlyDiscounted} onChange={e => {setOnlyDiscounted(e.target.checked);setVisible(PAGE_SIZE)}} /><span>Само промоции<small>Продукти с намалена цена</small></span></label>}
+        </div>
+      </details>
+      {filtered && <p className={styles.activeFilters}>Активни: {[text && `Търсене: ${text}`, brand, GENDERS.find(option => option.value === gender)?.label, onlyDiscounted && 'Промоции', minPrice && `От ${minPrice} €`, maxPrice && `До ${maxPrice} €`].filter(Boolean).join(' · ')} <button type="button" onClick={clearFilters}>Изчисти</button></p>}
       {children}
 
       {matching.length === 0 ? (
