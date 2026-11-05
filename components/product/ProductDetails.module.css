@@ -18,3 +18,5 @@
 .perfume > :first-child, .delivery > :first-child { margin-top: 0; }
 @media (prefers-reduced-motion: reduce) { .plus::before, .plus::after { transition: none; } }
 @media (max-width: 560px) { .heading { margin-bottom: 18px; }.item summary { padding-block: 18px; }.facts div { grid-template-columns: 1fr 1.4fr; }.content { padding-bottom: 20px; } }
+
+.deliveryHeading { margin: 0; padding: 21px 2px; color: var(--ink); font-size: 15px; font-weight: 800; }

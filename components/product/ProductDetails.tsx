@@ -51,10 +51,10 @@ export function ProductDetails({
         </details>
       ) : null}
 
-      <details className={styles.item}>
-        <summary><span>Доставка, плащане и връщане</span><span className={styles.plus} aria-hidden="true" /></summary>
+      <section className={styles.item} aria-labelledby="delivery-heading">
+        <h3 id="delivery-heading" className={styles.deliveryHeading}>Доставка, плащане и връщане</h3>
         <div className={`${styles.content} ${styles.delivery}`}>{delivery}</div>
-      </details>
+      </section>
     </section>
   )
 }

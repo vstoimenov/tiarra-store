@@ -103,30 +103,6 @@ export function TrustBlock({ freeShippingThreshold, giftThreshold }: Props) {
 
       <div className={styles.pay}>
         <small className={styles.payLabel}>Плащане:</small>
-        <span className={styles.card} role="img" aria-label="Visa">
-          <svg viewBox="0 0 52 16" aria-hidden="true">
-            <text
-              x="26"
-              y="14"
-              textAnchor="middle"
-              fontFamily="Arial Black, Arial, Helvetica, sans-serif"
-              fontWeight="900"
-              fontStyle="italic"
-              fontSize="16"
-              fill="#1A1F71"
-              letterSpacing=".5"
-            >
-              VISA
-            </text>
-          </svg>
-        </span>
-        <span className={`${styles.card} ${styles.mastercard}`} role="img" aria-label="Mastercard">
-          <svg viewBox="0 0 42 26" aria-hidden="true">
-            <circle cx="15" cy="13" r="9" fill="#EB001B" />
-            <circle cx="27" cy="13" r="9" fill="#F79E1B" />
-            <path d="M21 6.29A9 9 0 0 1 21 19.71A9 9 0 0 1 21 6.29Z" fill="#FF5F00" />
-          </svg>
-        </span>
         <span className={`${styles.card} ${styles.cod}`}>НАЛОЖЕН ПЛАТЕЖ</span>
       </div>
     </section>
