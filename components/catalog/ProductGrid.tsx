@@ -48,17 +48,19 @@ export function ProductGrid({ title, cards, readQuery = false, children, initial
   const [brand, setBrand] = useState('')
   const [sort, setSort] = useState<SortKey>('newest')
   const [visible, setVisible] = useState(PAGE_SIZE)
+  const [gender, setGender] = useState<Gender | undefined>(initialGender)
 
   const brands = useMemo(() => brandsOf(cards), [cards])
-  const matching = useMemo(() => filterProducts(cards, { text, brand, sort, gender: initialGender }), [cards, text, brand, sort, initialGender])
+  const matching = useMemo(() => filterProducts(cards, { text, brand, sort, gender }), [cards, text, brand, sort, gender])
   const shown = matching.slice(0, visible)
   const filtered = text !== '' || brand !== ''
 
   // A new search or filter starts again from the first 24.
-  const onUrlQuery = useCallback((q: string) => {
+  const onUrlQuery = useCallback((q: string, nextGender: 'male' | undefined) => {
     setText(q)
+    setGender(nextGender ?? initialGender)
     setVisible(PAGE_SIZE)
-  }, [])
+  }, [initialGender])
 
   function onBrand(event: ChangeEvent<HTMLSelectElement>) {
     setBrand(event.target.value)

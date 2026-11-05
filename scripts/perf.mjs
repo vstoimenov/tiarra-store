@@ -23,7 +23,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 const MIN_SCORE = 90
 const MAX_LCP_MS = 2500
 const RUNS = Number(process.env.PERF_RUNS ?? 3)
-const PATHS = ['/', '/store/category/women', '/store/yodeyma-paris-edp-eau-de-parfum-100-mlher']
+const PATHS = ['/', '/store/category/women', '/store/nishman-aft-rsheiv-odekolon-za-sled-br-snene-400-ml-04-lemon-a6401a97']
 
 const args = process.argv.slice(2)
 const lcpAdvisory = args.includes('--lcp-advisory')

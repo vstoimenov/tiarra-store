@@ -8,12 +8,14 @@ import { useEffect } from 'react'
  * Reading the address is what makes the page wait for the browser, so only this piece does it
  * (inside a <Suspense>) and the cards around it stay in the static HTML.
  */
-export function UrlQuery({ onChange }: { onChange: (q: string) => void }) {
-  const q = useSearchParams().get('q') ?? ''
+export function UrlQuery({ onChange }: { onChange: (q: string, gender: 'male' | undefined) => void }) {
+  const params = useSearchParams()
+  const q = params.get('q') ?? ''
+  const gender = params.get('gender') === 'male' ? 'male' as const : undefined
 
   useEffect(() => {
-    onChange(q)
-  }, [q, onChange])
+    onChange(q, gender)
+  }, [q, gender, onChange])
 
   return null
 }

@@ -50,7 +50,7 @@ export function productJsonLd(p: Product, url: string): JsonLd[] {
       '@type': 'Product',
       name: p.title,
       ...(description && { description }),
-      ...(p.images.length > 0 && { image: p.images.map((i) => imageUrl(i.path, 1200)) }),
+      ...(p.images.length > 0 && { image: p.images.map((i) => new URL(imageUrl(i.path, 1200), origin).toString()) }),
       ...(p.brand && { brand: { '@type': 'Brand', name: p.brand } }),
       url,
       offers: offersOf(p, url),

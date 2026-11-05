@@ -33,16 +33,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   })
 }
 
-export default async function CategoryPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ gender?: string }> }) {
+export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const slug = slugOf((await params).slug)
   const category = await getCategoryBySlug(slug)
   if (!category) notFound()
 
   const [cards, categories] = await Promise.all([getProductCards({ categorySlug: slug }), getCategories()])
-  const gender = (await searchParams).gender === 'male' ? 'male' as const : undefined
-
   return (
-    <ProductGrid title={category.name} cards={cards} initialGender={gender}>
+    <ProductGrid title={category.name} cards={cards} readQuery>
       <CategoryNav categories={categories} current={slug} />
     </ProductGrid>
   )

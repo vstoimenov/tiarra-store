@@ -62,6 +62,11 @@ describe('image urls', () => {
     expect(imageSrcSet(url)).toBe(url)
   })
 
+  it('serves critical site images as responsive local WebP files', () => {
+    expect(imageUrl('site/hero', 800)).toBe('/site/hero-800.webp')
+    expect(imageSrcSet('site/logo')).toContain('/site/logo-400.webp 400w')
+  })
+
   it('imageOrigin is the scheme, host and port the pictures come from, without a path or a slash', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://abc.supabase.co/'
     expect(imageOrigin()).toBe('https://abc.supabase.co')

@@ -3,6 +3,7 @@ import { ProductCard } from '@/components/product/ProductCard'
 import type { ProductCard as Card } from '@/lib/catalog/types'
 import type { SectionOf } from '@/lib/sections/schema'
 import { ProductsCarousel } from './ProductsCarousel'
+import { ProgressiveProductsCarousel } from './ProgressiveProductsCarousel'
 import styles from './ProductsSection.module.css'
 
 interface Props {
@@ -42,6 +43,8 @@ export function ProductsSection({ section, cards, layout = 'panel' }: Props) {
             </li>
           ))}
         </ul>
+      ) : cards.length > 24 ? (
+        <ProgressiveProductsCarousel cards={cards} label={label} sizes={PANEL_SIZES} />
       ) : (
         <ProductsCarousel label={label}>
           {cards.map((card) => (

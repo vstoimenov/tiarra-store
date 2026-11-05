@@ -72,7 +72,7 @@ describe('productJsonLd', () => {
     const { product } = build()
 
     expect(product.url).toBe(urlOf(yodeyma.slug))
-    expect(product.image).toEqual(yodeyma.images.map((i) => imageUrl(i.path, 1200)))
+    expect(product.image).toEqual(yodeyma.images.map((i) => new URL(imageUrl(i.path, 1200), new URL(urlOf(yodeyma.slug)).origin).toString()))
     expect((product.image as string[]).every((u) => u.startsWith('http'))).toBe(true)
   })
 
