@@ -149,9 +149,60 @@ export function CheckoutForm() {
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>03</span><div><h2>Плащане</h2><p>Плащаш при получаване</p></div></div><div className={styles.payment}>◉ &nbsp; Наложен платеж <span>Сигурно и удобно</span></div><label className={styles.notes}>Бележка <span>(по желание)</span><textarea name="notes" rows={2} placeholder="Нещо, което трябва да знаем?" /></label></section>
         <label className={styles.consent}><input type="checkbox" required /> <span>Съгласен/на съм с <Link href="/obshti-usloviya" target="_blank">общите условия</Link> и данните ми да бъдат използвани според <Link href="/poveritelnost" target="_blank">политиката за поверителност</Link>.</span></label>
       </div>
-      <aside className={styles.summary}><div className={styles.summaryTop}><span>ТВОЯТА СЕЛЕКЦИЯ</span><Link href="/store/cart">Редактирай количката ↗</Link></div><h2>Твоята поръчка</h2><button type="button" className={styles.summaryToggle} aria-expanded={summaryOpen} aria-controls="checkout-lines" onClick={() => setSummaryOpen(!summaryOpen)}>{summaryOpen ? 'Скрий продуктите −' : `Виж продуктите (${items.length}) +`}</button><div id="checkout-lines" className={`${styles.lines} ${summaryOpen ? styles.expanded : styles.collapsed}`}>{items.map(item=>{ const price = quotedPrices.get(`${item.productId}:${item.variantId ?? ''}`) ?? item.unitPrice; return <div key={item.key} className={styles.line}><div className={styles.thumb}>{item.imagePath && <img src={imageUrl(item.imagePath,400)} alt="" /> }<small>{item.quantity}</small></div><div><strong>{item.title}</strong>{item.variantName && <span>{item.variantName}</span>}</div><b>{formatPrice(price*item.quantity)}</b></div>})}</div>
-        {bumps.some(bump => !items.some(item => item.productId === bump.productId)) && <div className={styles.bumps}><span className={styles.eyebrow}>ДОПЪЛНИ РИТУАЛА СИ</span><h3>Малък детайл. Голямо усещане.</h3>{bumps.filter(bump => !items.some(item => item.productId === bump.productId)).slice(0,2).map(bump => <div key={bump.productId} className={styles.bump}>{bump.imagePath && <img src={imageUrl(bump.imagePath,400)} alt="" />}<div><strong>{bump.title}</strong><span>{formatPrice(bump.unitPrice)}</span></div><button type="button" onClick={() => toggleBump(bump)} aria-label={`Добави ${bump.title}`}>+ Добави</button></div>)}</div>}
-        <div className={styles.totals}><p><span>Продукти</span><b>{formatPrice(subtotal)}</b></p><p><span>Доставка</span><b>{shipping === 0 ? 'Безплатна' : formatPrice(shipping)}</b></p><div><span>Общо</span><strong>{formatPrice(quote?.total ?? subtotal+shipping)}</strong></div></div><small>{subtotal < 39 ? `Добави още ${formatPrice(39 - subtotal)} за безплатна доставка. ` : 'Безплатната доставка е активна. '}{quotePending ? 'Проверяваме актуалните цени и наличности…' : priceChanged ? 'Цените в количката са актуализирани.' : 'Цените и наличностите са потвърдени.'}</small>{quoteError&&<p role="alert" className={styles.error}>{quoteError}</p>}{error&&<p role="alert" className={styles.error}>{error}</p>}<button className={styles.submit} type="submit" disabled={pending || quotePending || !quote}>{pending?'Изпращане…':'Потвърди поръчката →'}</button><p className={styles.safe}>Сигурна поръчка · Преглед при доставка · 14 дни връщане</p></aside>
+      <aside className={styles.summary} aria-labelledby="order-summary-title">
+        <div className={styles.summaryTop}>
+          <span>TIARRA COSMETICS</span>
+          <Link href="/store/cart">Редактирай ↗</Link>
+        </div>
+        <div className={styles.summaryHeading}>
+          <h2 id="order-summary-title">Твоята поръчка</h2>
+          <span>{items.reduce((sum, item) => sum + item.quantity, 0)} бр.</span>
+        </div>
+        <button type="button" className={styles.summaryToggle} aria-expanded={summaryOpen} aria-controls="checkout-lines" onClick={() => setSummaryOpen(!summaryOpen)}>
+          {summaryOpen ? 'Скрий продуктите −' : `Виж продуктите (${items.length}) +`}
+        </button>
+        <div id="checkout-lines" className={`${styles.lines} ${summaryOpen ? styles.expanded : styles.collapsed}`}>
+          {items.map(item => {
+            const price = quotedPrices.get(`${item.productId}:${item.variantId ?? ''}`) ?? item.unitPrice
+            return <div key={item.key} className={styles.line}>
+              <div className={styles.thumb}>
+                {item.imagePath && <img src={imageUrl(item.imagePath, 400)} alt="" width={64} height={64} />}
+                <small aria-label={`Количество: ${item.quantity}`}>{item.quantity}</small>
+              </div>
+              <div className={styles.lineInfo}>
+                <Link href={`/store/${encodeURIComponent(item.slug)}`} title={item.title}>{item.title}</Link>
+                {item.variantName && <span>{item.variantName}</span>}
+                <b>{formatPrice(price * item.quantity)}</b>
+              </div>
+            </div>
+          })}
+        </div>
+        <p className={styles.shippingStatus}>
+          <span aria-hidden="true">{subtotal >= 39 ? '✓' : '↗'}</span>
+          {subtotal >= 39 ? 'Безплатна доставка за твоята поръчка' : `Още ${formatPrice(39 - subtotal)} до безплатна доставка`}
+        </p>
+        {bumps.some(bump => !items.some(item => item.productId === bump.productId)) && <section className={styles.bumps} aria-labelledby="checkout-bumps-title">
+          <span className={styles.eyebrow}>ПОДБРАНО ЗА ТЕБ</span>
+          <h3 id="checkout-bumps-title">Добави финалния щрих</h3>
+          {bumps.filter(bump => !items.some(item => item.productId === bump.productId)).slice(0, 2).map(bump => <div key={bump.productId} className={styles.bump}>
+            <div className={styles.bumpThumb}>{bump.imagePath && <img src={imageUrl(bump.imagePath, 400)} alt="" width={48} height={48} loading="lazy" />}</div>
+            <div><Link href={`/store/${encodeURIComponent(bump.slug)}`} title={bump.title}><strong>{bump.title}</strong></Link><span>{formatPrice(bump.unitPrice)}</span></div>
+            <button type="button" onClick={() => toggleBump(bump)} aria-label={`Добави ${bump.title}`}><span aria-hidden="true">+</span> Добави</button>
+          </div>)}
+        </section>}
+        <div className={styles.totals} aria-live="polite">
+          <p><span>Междинна сума</span><b>{formatPrice(subtotal)}</b></p>
+          <p><span>Доставка</span><b className={shipping === 0 ? styles.freeShipping : undefined}>{shipping === 0 ? 'Безплатна' : formatPrice(shipping)}</b></p>
+          <div><span>Общо за плащане<small>Наложен платеж</small></span><strong>{formatPrice(quote?.total ?? subtotal + shipping)}</strong></div>
+        </div>
+        <p className={styles.quoteStatus} role="status">{quotePending ? 'Проверяваме цените и наличностите…' : quoteError ? 'Необходима е проверка на поръчката.' : !quote ? 'Изчакваме потвърждение на цените.' : priceChanged ? 'Цените са актуализирани спрямо текущата оферта.' : '✓ Цените и наличностите са потвърдени'}</p>
+        {quoteError && <p role="alert" className={styles.error}>{quoteError}</p>}
+        {error && <p role="alert" className={styles.error}>{error}</p>}
+        <button className={styles.submit} type="submit" disabled={pending || quotePending || !quote}>
+          <span>{pending ? 'Изпращане…' : 'Потвърди поръчката'}</span><span aria-hidden="true">→</span>
+        </button>
+        <div className={styles.safe}><span>Преглед при доставка</span><span>Плащаш при получаване</span></div>
+      </aside>
     </form>
   )
 }
