@@ -19,9 +19,9 @@ import { getSiteDocument } from '@/lib/site/documents'
 import { siteUrl } from '@/lib/site/url'
 import styles from './page.module.css'
 
-// Every product is a page built ahead of time; a slug that is not one is a 404 and never reaches the database.
+// Build visible products ahead of time; allow an admin to reactivate a hidden product without a deployment.
 // The old shop's addresses (`/store/reuzel`) are product slugs too, so they keep working.
-export const dynamicParams = false
+export const dynamicParams = true
 
 export async function generateStaticParams() {
   return (await getAllProductSlugs()).map((slug) => ({ slug }))

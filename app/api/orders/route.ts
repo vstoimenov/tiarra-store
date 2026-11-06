@@ -3,11 +3,13 @@ import { z } from 'zod'
 import { sql } from '@/lib/db'
 import { getCourierOffices } from '@/lib/ordyx-offices'
 import { syncOrder } from '@/lib/ordyx-sync'
+import { promoCodeSchema, promoError } from '@/lib/promo'
 import { checkoutRateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
 const requestSchema = z.object({
+  promoCode: promoCodeSchema,
   requestId: z.string().uuid(),
   customerName: z.string().trim().min(2).max(120),
   phone: z.string().trim().min(7).max(30),
@@ -45,10 +47,10 @@ export async function POST(request: Request) {
       data.deliveryAddress = `${office.city}, ${office.name}, ${office.address} [${office.code}]`
     }
     const rows = await sql<{ order_number: string; total: number; is_new: boolean }[]>`
-      select order_number, total::float8 as total, is_new from store.create_order(
+      select order_number, total::float8 as total, is_new from store.create_order_with_promo(
         ${data.requestId}, ${data.customerName}, ${data.phone}, ${data.email}, ${data.courier},
         ${data.deliveryType}, ${data.officeId}, ${data.city}, ${data.postCode},
-        ${data.deliveryAddress}, ${data.notes}, ${sql.json(data.items)})`
+        ${data.deliveryAddress}, ${data.notes}, ${sql.json(data.items)}, ${data.promoCode})`
     try { await syncOrder(rows[0].order_number) }
     catch (error) { console.error('Ordyx sync failed after order creation', error) }
     return NextResponse.json(
@@ -56,6 +58,8 @@ export async function POST(request: Request) {
       { status: rows[0].is_new ? 201 : 200 },
     )
   } catch (error) {
+    const promotionMessage = promoError(error)
+    if (promotionMessage) return NextResponse.json({ error: promotionMessage }, { status: 422 })
     const code = error instanceof Error ? error.message : ''
     if (code.includes('PRODUCT_NOT_FOUND')) return NextResponse.json({ error: 'Продукт от количката вече не е наличен.' }, { status: 409 })
     if (code.includes('INSUFFICIENT_STOCK')) return NextResponse.json({ error: 'Няма достатъчна наличност за избраното количество.' }, { status: 409 })

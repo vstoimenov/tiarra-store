@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import * as page from '@/app/store/[slug]/page'
 
 describe('product page route', () => {
-  // A slug that is not a product must be a 404 at once, with no database lookup for it.
-  it('builds only the products that exist', () => {
-    expect(page.dynamicParams).toBe(false)
+  // Existing products are prebuilt; reactivated products can render without redeploying.
+  it('supports products reactivated after build', () => {
+    expect(page.dynamicParams).toBe(true)
     expect(typeof page.generateStaticParams).toBe('function')
   })
 })

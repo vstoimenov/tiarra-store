@@ -1,15 +1,14 @@
 'use client'
-
-import { useMemo, useState, useTransition } from 'react'
+import { useState } from 'react'
 import type { InventoryItem } from '@/lib/admin/inventory'
 import styles from './InventoryAdmin.module.css'
-
-export function InventoryAdmin({ initialItems }: { initialItems: InventoryItem[] }) {
-  const [items, setItems] = useState(initialItems); const [query, setQuery] = useState(''); const [message, setMessage] = useState(''); const [pending, startTransition] = useTransition()
-  const visible = useMemo(() => { const q=query.trim().toLocaleLowerCase('bg'); return items.filter((item) => !q || `${item.title} ${item.variantName ?? ''}`.toLocaleLowerCase('bg').includes(q)) }, [items, query])
-  function save(item: InventoryItem, value: string) {
-    const stock = value === '' ? null : Number(value); if (stock !== null && (!Number.isInteger(stock) || stock < 0)) return
-    startTransition(async () => { setMessage(''); const response=await fetch('/api/admin/inventory',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:item.id,kind:item.kind,stock})}); if(!response.ok){setMessage('Наличността не беше записана.');return} setItems((current)=>current.map((entry)=>entry.id===item.id?{...entry,stock}:entry));setMessage('Наличността е обновена.') })
-  }
-  return <section className={styles.panel}><div className={styles.toolbar}><label>Търсене<input value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Продукт или разновидност…" /></label><span>{visible.length} позиции</span></div><p className={styles.message} role="status">{pending?'Записване…':message}</p><div className={styles.rows}>{visible.map((item)=><div className={styles.row} key={item.id}><div><strong>{item.title}</strong>{item.variantName?<span>{item.variantName}</span>:null}</div><label><span className="visually-hidden">Наличност за {item.title}</span><input key={`${item.id}-${item.stock}`} type="number" min="0" defaultValue={item.stock ?? ''} placeholder="∞" onBlur={(event)=>save(item,event.target.value)} /></label><a href={`/store/${item.slug}`} target="_blank" rel="noreferrer">Преглед ↗</a></div>)}</div></section>
+function InventoryRow({item,onSaved}:{item:InventoryItem;onSaved:(stock:number|null)=>void}){
+ const [value,setValue]=useState(item.stock===null?'':String(item.stock));const [pending,setPending]=useState(false);const [error,setError]=useState('');const dirty=value!==(item.stock===null?'':String(item.stock))
+ async function save(){const stock=value===''?null:Number(value);if(stock!==null&&(!Number.isInteger(stock)||stock<0||stock>99999)){setError('Въведи цяло число от 0 до 99999.');return}setPending(true);setError('');try{const r=await fetch('/api/admin/inventory',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:item.id,kind:item.kind,stock})});if(!r.ok)throw new Error(r.status===401?'Влез отново в администрацията.':'Наличността не беше записана.');onSaved(stock)}catch(e){setError(e instanceof Error?e.message:'Няма връзка.')}finally{setPending(false)}}
+ return <div className={styles.row}><div><strong>{item.title}</strong>{item.variantName&&<span>{item.variantName}</span>}<a href={`/store/${item.slug}`} target="_blank" rel="noreferrer">Преглед ↗</a>{error&&<p role="alert">{error}</p>}</div><label><span className="visually-hidden">Наличност за {item.title} {item.variantName}</span><input type="number" min="0" max="99999" value={value} disabled={pending} placeholder="∞" onChange={e=>setValue(e.target.value)}/></label><button type="button" disabled={!dirty||pending} onClick={save}>{pending?'…':'Запази'}</button></div>
+}
+export function InventoryAdmin({initialItems}:{initialItems:InventoryItem[]}){
+ const [items,setItems]=useState(initialItems);const [query,setQuery]=useState('');const [lowOnly,setLowOnly]=useState(false);const [message,setMessage]=useState('')
+ const q=query.trim().toLocaleLowerCase('bg');const visible=items.filter(item=>(!lowOnly||(item.stock!==null&&item.stock<=3))&&(!q||`${item.title} ${item.variantName??''}`.toLocaleLowerCase('bg').includes(q)))
+ return <section className={styles.panel}><div className={styles.toolbar}><label>Търсене<input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Продукт или разновидност…"/></label><span>{visible.length} позиции</span></div><label><input type="checkbox" checked={lowOnly} onChange={e=>setLowOnly(e.target.checked)}/> Само с ниска наличност (до 3 броя)</label><p>Празно поле означава неограничена наличност. Промените се прилагат с „Запази“.</p><p className={styles.message} role="status">{message}</p><div className={styles.rows}>{visible.map(item=><InventoryRow key={item.id} item={item} onSaved={stock=>{setItems(current=>current.map(entry=>entry.id===item.id?{...entry,stock}:entry));setMessage('Наличността е обновена.')}}/>)}</div>{!visible.length&&<p>Няма намерени позиции.</p>}</section>
 }

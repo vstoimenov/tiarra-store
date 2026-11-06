@@ -11,6 +11,8 @@ import { imageUrl } from '@/lib/images'
 
 type Bump = { productId: string; slug: string; title: string; imagePath: string | null; unitPrice: number }
 type Quote = {
+  promoCode: string
+  discount: number
   lines: { productId: string; variantId: string | null; quantity: number; unitPrice: number }[]
   subtotal: number
   shipping: number
@@ -23,6 +25,8 @@ export function CheckoutForm() {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [orderNumber, setOrderNumber] = useState('')
+  const [promoDraft, setPromoDraft] = useState('')
+  const [promoCode, setPromoCode] = useState('')
   const [quote, setQuote] = useState<Quote | null>(null)
   const [quoteError, setQuoteError] = useState('')
   const [quotePending, setQuotePending] = useState(false)
@@ -49,7 +53,7 @@ export function CheckoutForm() {
     fetch('/api/orders/quote', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ courier, items: items.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })) }),
+      body: JSON.stringify({ courier, promoCode, items: items.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })) }),
       signal: controller.signal,
     }).then(async (response) => {
       const result = await response.json() as Quote & { error?: string }
@@ -63,7 +67,7 @@ export function CheckoutForm() {
       if (!controller.signal.aborted) setQuotePending(false)
     })
     return () => controller.abort()
-  }, [courier, items, ready])
+  }, [courier, items, ready, promoCode])
 
   useEffect(() => {
     if (!ready || items.length === 0) return
@@ -100,8 +104,18 @@ export function CheckoutForm() {
     writeCart(next)
   }
 
+  function applyPromo(code: string) {
+    const normalized = code.trim().toUpperCase()
+    setPromoDraft(normalized)
+    if (normalized === promoCode) return
+    setQuote(null)
+    setQuotePending(true)
+    setPromoCode(normalized)
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (pending || quotePending || !quote || quote.promoCode !== promoCode) return
     setPending(true)
     setError('')
     const data = new FormData(event.currentTarget)
@@ -111,7 +125,7 @@ export function CheckoutForm() {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          requestId: requestId.current,
+          requestId: requestId.current, promoCode,
           customerName: data.get('customerName'), phone: data.get('phone'), email: data.get('email'),
           courier: data.get('courier'), officeId: data.get('officeId') || null, deliveryType: data.get('deliveryType'), city: data.get('city') || '', postCode: data.get('postCode') || '', deliveryAddress: data.get('deliveryAddress'), notes: data.get('notes'),
           items: items.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
@@ -190,8 +204,14 @@ export function CheckoutForm() {
             <button type="button" onClick={() => toggleBump(bump)} aria-label={`Добави ${bump.title}`}><span aria-hidden="true">+</span> Добави</button>
           </div>)}
         </section>}
+        <div className={styles.promo}>
+          <label htmlFor="checkout-promo">Имаш промокод?</label>
+          <div><input id="checkout-promo" value={promoDraft} maxLength={32} autoComplete="off" autoCapitalize="characters" spellCheck={false} placeholder="Въведи кода" disabled={pending} onChange={event => setPromoDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); if(!quotePending) applyPromo(promoDraft) } }} /><button type="button" disabled={pending || quotePending || !promoDraft.trim() || promoDraft.trim().toUpperCase() === promoCode} onClick={() => applyPromo(promoDraft)}>Приложи</button></div>
+          {promoCode && <p><span>{quote?.promoCode ? `Приложен код: ${promoCode}` : `Код: ${promoCode}`}</span><button type="button" disabled={pending} onClick={() => applyPromo('')}>Премахни</button></p>}
+        </div>
         <div className={styles.totals} aria-live="polite">
           <p><span>Междинна сума</span><b>{formatPrice(subtotal)}</b></p>
+          {!!quote?.discount && <p><span>Отстъпка · {quote.promoCode}</span><b className={styles.freeShipping}>−{formatPrice(quote.discount)}</b></p>}
           <p><span>Доставка</span><b className={shipping === 0 ? styles.freeShipping : undefined}>{shipping === 0 ? 'Безплатна' : formatPrice(shipping)}</b></p>
           <div><span>Общо за плащане<small>Наложен платеж</small></span><strong>{formatPrice(quote?.total ?? subtotal + shipping)}</strong></div>
         </div>

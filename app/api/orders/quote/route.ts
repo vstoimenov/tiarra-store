@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
+import { promoCodeSchema, promoError } from '@/lib/promo'
 import { checkoutRateLimit } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 
 const schema = z.object({
+  promoCode: promoCodeSchema,
   courier: z.enum(['econt', 'speedy']),
   items: z.array(z.object({
     productId: z.string().uuid(),
@@ -26,7 +28,7 @@ export async function POST(request: Request) {
   if (!(await checkoutRateLimit(request, 'quote'))) return NextResponse.json({ error: 'Твърде много опити. Изчакай няколко минути.' }, { status: 429 })
   const parsed = schema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Невалидна количка.' }, { status: 400 })
-  const { courier, items } = parsed.data
+  const { courier, items, promoCode } = parsed.data
 
   const rows = await sql<QuoteRow[]>`
     with requested as (
@@ -63,7 +65,19 @@ export async function POST(request: Request) {
 
   const subtotal = rows.reduce((sum, row) => sum + row.unit_price * row.quantity, 0)
   const shipping = subtotal >= 39 ? 0 : courier === 'econt' ? 4.5 : 3.5
+  let discount = 0
+  if (promoCode) {
+    try {
+      const [result] = await sql<{ discount: number }[]>`select store.promo_discount(${promoCode}, ${subtotal})::float8 as discount`
+      discount = result.discount
+    } catch (error) {
+      const message = promoError(error)
+      if (message) return NextResponse.json({ error: message }, { status: 422 })
+      throw error
+    }
+  }
   return NextResponse.json({
+    promoCode, discount,
     lines: rows.map((row) => ({
       productId: row.product_id,
       variantId: row.variant_id,
@@ -72,7 +86,7 @@ export async function POST(request: Request) {
     })),
     subtotal,
     shipping,
-    total: subtotal + shipping,
+    total: Math.round((subtotal + shipping - discount) * 100) / 100,
   })
 }
 

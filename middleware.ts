@@ -1,32 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ADMIN_COOKIE, validAdminSession } from '@/lib/admin/session'
 
-function unauthorized(message = 'Въведете администраторските данни.') {
-  return new NextResponse(message, {
-    status: 401,
-    headers: { 'WWW-Authenticate': 'Basic realm="Tiarra Admin", charset="UTF-8"' },
-  })
+export async function middleware(request: NextRequest) {
+  const path=request.nextUrl.pathname
+  if(path==='/admin/login' || path==='/api/admin/login')return NextResponse.next()
+  if(await validAdminSession(request.cookies.get(ADMIN_COOKIE)?.value))return NextResponse.next()
+  if(path.startsWith('/api/'))return NextResponse.json({error:'Влез отново в администрацията.'},{status:401})
+  const url=request.nextUrl.clone();url.pathname='/admin/login';url.search='';url.searchParams.set('next',path)
+  return NextResponse.redirect(url)
 }
-
-export function middleware(request: NextRequest) {
-  const username = process.env.ADMIN_USERNAME
-  const password = process.env.ADMIN_PASSWORD
-  if (!username || !password) return new NextResponse('Административният достъп не е конфигуриран.', { status: 503 })
-
-  const authorization = request.headers.get('authorization')
-  if (!authorization?.startsWith('Basic ')) return unauthorized()
-
-  try {
-    const decoded = atob(authorization.slice(6))
-    const separator = decoded.indexOf(':')
-    const suppliedUser = decoded.slice(0, separator)
-    const suppliedPassword = decoded.slice(separator + 1)
-    if (separator < 0 || suppliedUser !== username || suppliedPassword !== password) return unauthorized('Невалидни данни.')
-  } catch {
-    return unauthorized('Невалидни данни.')
-  }
-
-  return NextResponse.next()
-}
-
 export const config = { matcher: ['/admin/:path*', '/api/admin/:path*'] }
-
