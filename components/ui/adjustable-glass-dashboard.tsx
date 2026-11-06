@@ -4,7 +4,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
-import { ArrowUpRight, Boxes, ChartNoAxesCombined, ChevronRight, House, Layers, LogOut, Menu, Package, Search, Settings2, ShoppingBag, TicketPercent, X } from 'lucide-react'
+import { ArrowUpRight, Boxes, ChartNoAxesCombined, ChevronRight, House, Layers, LogOut, Menu, Package, Palette, Search, Settings2, ShoppingBag, TicketPercent, X } from 'lucide-react'
 import styles from './adjustable-glass-dashboard.module.css'
 
 const sections = [
@@ -13,6 +13,7 @@ const sections = [
   {href:'/admin/products',label:'Продукти',icon:Package,group:'Магазин'},
   {href:'/admin/inventory',label:'Наличности',icon:Boxes,group:'Магазин'},
   {href:'/admin/home',label:'Начална страница',icon:House,group:'Съдържание'},
+  {href:'/admin/appearance',label:'Визия на магазина',icon:Palette,group:'Съдържание'},
   {href:'/admin/promos',label:'Промокодове',icon:TicketPercent,group:'Съдържание'},
   {href:'/admin/bumps',label:'Допълващи оферти',icon:Layers,group:'Съдържание'},
   {href:'/admin/settings',label:'Настройки',icon:Settings2,group:'Управление'},
@@ -29,7 +30,7 @@ export default function GlassDashboard({children}:{children:ReactNode}) {
     <header className={styles.top}>
       <Link href="/admin" className={styles.brand}><span><Layers size={20}/></span><strong>TIARRA</strong><i/><small>Работно пространство</small></Link>
       <div className={styles.topActions}>
-        <details className={styles.appearance}><summary><Settings2 size={17}/><span>Визия</span></summary><div className={styles.popover}><strong>Твоето работно пространство</strong><label>Плътност <output>{opacity}%</output><input aria-label="Плътност на панелите" type="range" min="65" max="96" value={opacity} onChange={e=>appearance(Number(e.target.value),blur)}/></label><label>Размиване <output>{blur}px</output><input aria-label="Размиване на фона" type="range" min="0" max="36" value={blur} onChange={e=>appearance(opacity,Number(e.target.value))}/></label><button type="button" onClick={()=>appearance(82,22)}>Възстанови визията</button></div></details>
+        <details className={styles.appearance}><summary><Settings2 size={17}/><span>Визия</span></summary><div className={styles.popover}><strong>Визия</strong><Link href="/admin/appearance" className={styles.themeLink}><Palette size={16}/> Теми на магазина <ChevronRight size={15}/></Link><hr/><small>Работно пространство</small><label>Плътност <output>{opacity}%</output><input aria-label="Плътност на панелите" type="range" min="65" max="96" value={opacity} onChange={e=>appearance(Number(e.target.value),blur)}/></label><label>Размиване <output>{blur}px</output><input aria-label="Размиване на фона" type="range" min="0" max="36" value={blur} onChange={e=>appearance(opacity,Number(e.target.value))}/></label><button type="button" onClick={()=>appearance(82,22)}>Възстанови панела</button></div></details>
         <Link href="/" target="_blank" rel="noreferrer" className={styles.visit}>Към магазина <ArrowUpRight size={17}/></Link>
         <button className={styles.menuButton} type="button" aria-label={menu?'Затвори менюто':'Отвори менюто'} aria-expanded={menu} aria-controls="admin-navigation" onClick={()=>setMenu(!menu)}>{menu?<X size={20}/>:<Menu size={20}/>}</button>
         <span className={styles.avatar} aria-label="Tiarra администратор">T</span>

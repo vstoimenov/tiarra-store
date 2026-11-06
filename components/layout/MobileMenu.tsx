@@ -57,7 +57,9 @@ export function MobileMenu({ menu }: { menu: Navigation['menu'] }) {
           <nav aria-label="Мобилно меню">
             <ul className={styles.list}>
               {menu.map((item) => {
-                const hasChildren = (item.children?.length ?? 0) > 0
+                // "За него" stays a direct destination on phones. Its nested category list
+                // made the compact drawer unnecessarily long and duplicated the category page.
+                const hasChildren = item.href !== '/store/category/men' && (item.children?.length ?? 0) > 0
                 const isExpanded = expanded === item.href
                 return (
                   <li key={item.href}>

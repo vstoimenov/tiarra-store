@@ -74,7 +74,7 @@ test('header has the search form and the cart link', async ({ page }) => {
   await expect(page.getByRole('banner').getByRole('link', { name: 'Количка' })).toHaveAttribute('href', '/store/cart')
 })
 
-test('mobile menu opens a drawer with the 7 links and closes on Escape', async ({ page }) => {
+test('mobile menu keeps За него as a direct link and closes on Escape', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
   await page.goto('/')
 
@@ -83,6 +83,8 @@ test('mobile menu opens a drawer with the 7 links and closes on Escape', async (
   await page.getByRole('button', { name: 'Меню' }).click()
   await expect(drawer).toBeVisible()
   expect(await drawer.getByRole('link').allTextContents()).toEqual(navigation.menu.map((item) => item.label))
+  await expect(drawer.getByRole('link', { name: 'ЗА НЕГО', exact: true })).toHaveAttribute('href', '/store/category/men')
+  await expect(drawer.getByRole('link', { name: 'Всички за него', exact: true })).toHaveCount(0)
 
   await page.keyboard.press('Escape')
   await expect(drawer).toBeHidden()
