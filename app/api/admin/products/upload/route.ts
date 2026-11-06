@@ -18,3 +18,14 @@ export async function POST(request:Request){
   return NextResponse.json({path,width,height,alt:file.name.replace(/\.[^.]+$/,'')})
  }catch(error){console.error('Admin image upload failed',error);return NextResponse.json({error:'Снимката не беше качена. Опитай отново.'},{status:500})}
 }
+
+export async function DELETE(request:Request){
+ if(request.headers.get('origin')!==new URL(request.url).origin)return NextResponse.json({error:'Невалиден произход.'},{status:403})
+ const key=process.env.SUPABASE_SECRET_KEY,url=process.env.NEXT_PUBLIC_SUPABASE_URL
+ if(!key||!url)return NextResponse.json({error:'Качването на снимки още не е настроено.'},{status:503})
+ const data=await request.json().catch(()=>null),path=typeof data?.path==='string'?data.path:''
+ if(!/^admin\/[a-f0-9-]{36}$/.test(path))return NextResponse.json({error:'Невалидна снимка.'},{status:400})
+ const {error}=await createClient(url,key,{auth:{persistSession:false}}).storage.from('products').remove([400,800,1200].map(width=>`${path}-${width}.webp`))
+ if(error){console.error('Admin image cleanup failed',error);return NextResponse.json({error:'Снимката не беше премахната.'},{status:500})}
+ return new NextResponse(null,{status:204})
+}
