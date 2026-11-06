@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import type { CourierOffice } from '@/lib/ordyx-offices'
 import { formatPrice } from '@/lib/format'
 import styles from './CourierPicker.module.css'
-import type { CommerceSettings } from '@/lib/commerce-settings'
+import type { CommerceSettings } from '@/lib/commerce-settings-schema'
 
 type Courier = 'econt' | 'speedy'
 type PlaceType = 'office' | 'automat' | 'address'

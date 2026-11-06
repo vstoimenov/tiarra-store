@@ -1,6 +1,6 @@
 'use client'
 import { useState,type FormEvent } from 'react'
-import type { CommerceSettings } from '@/lib/commerce-settings'
+import type { CommerceSettings } from '@/lib/commerce-settings-schema'
 import styles from './SettingsAdmin.module.css'
 type Connections={ordyx:boolean;storage:boolean;stripe:boolean}
 const money=(value:string)=>Math.round(Number(value)*100)/100

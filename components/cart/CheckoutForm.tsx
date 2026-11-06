@@ -9,7 +9,7 @@ import styles from './CheckoutForm.module.css'
 import { CourierPicker } from './CourierPicker'
 import { currentVisitSession } from '@/lib/visit-analytics'
 import { imageUrl } from '@/lib/images'
-import { courierPrice,type CommerceSettings } from '@/lib/commerce-settings'
+import { courierPrice,type CommerceSettings } from '@/lib/commerce-settings-schema'
 
 type Bump = { productId: string; slug: string; title: string; imagePath: string | null; unitPrice: number }
 type Quote = {

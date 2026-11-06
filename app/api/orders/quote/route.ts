@@ -3,7 +3,8 @@ import { z } from 'zod'
 import { sql } from '@/lib/db'
 import { promoCodeSchema, promoError } from '@/lib/promo'
 import { checkoutRateLimit } from '@/lib/rate-limit'
-import { courierPrice,getCommerceSettings } from '@/lib/commerce-settings'
+import { getCommerceSettings } from '@/lib/commerce-settings'
+import { courierPrice } from '@/lib/commerce-settings-schema'
 
 export const runtime = 'nodejs'
 

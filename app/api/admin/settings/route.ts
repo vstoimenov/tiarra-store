@@ -1,6 +1,7 @@
 import { revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
-import { CommerceSettingsSchema,readCommerceSettings } from '@/lib/commerce-settings'
+import { readCommerceSettings } from '@/lib/commerce-settings'
+import { CommerceSettingsSchema } from '@/lib/commerce-settings-schema'
 import { sql } from '@/lib/db'
 export async function PUT(request:Request){
  if(request.headers.get('origin')!==new URL(request.url).origin)return NextResponse.json({error:'Невалиден произход.'},{status:403})
