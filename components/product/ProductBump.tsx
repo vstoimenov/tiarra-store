@@ -27,6 +27,7 @@ export function ProductBump({ product, label }: { product: Product; label: strin
       variantName: null,
       unitPrice: product.price,
       quantity: 1,
+      source: 'bump',
     })
     trackCommerce('add_to_cart', { currency: 'EUR', value: product.price, items: [{ item_id: product.id, item_name: product.title, price: product.price, quantity: 1 }] })
     setAdded(true)

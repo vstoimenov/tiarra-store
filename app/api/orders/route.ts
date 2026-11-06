@@ -9,6 +9,7 @@ import { checkoutRateLimit } from '@/lib/rate-limit'
 export const runtime = 'nodejs'
 
 const requestSchema = z.object({
+  visitSessionId: z.string().uuid().nullable().optional(),
   promoCode: promoCodeSchema,
   requestId: z.string().uuid(),
   customerName: z.string().trim().min(2).max(120),
@@ -25,6 +26,7 @@ const requestSchema = z.object({
     productId: z.string().uuid(),
     variantId: z.string().uuid().nullable(),
     quantity: z.number().int().min(1).max(99),
+    source: z.enum(['bump','upsell']).optional(),
   })).min(1).max(50),
 })
 
@@ -51,6 +53,10 @@ export async function POST(request: Request) {
         ${data.requestId}, ${data.customerName}, ${data.phone}, ${data.email}, ${data.courier},
         ${data.deliveryType}, ${data.officeId}, ${data.city}, ${data.postCode},
         ${data.deliveryAddress}, ${data.notes}, ${sql.json(data.items)}, ${data.promoCode})`
+    if (rows[0].is_new) {
+      try { await sql`select store.attach_order_attribution(${rows[0].order_number}, ${data.visitSessionId ?? null}, ${sql.json(data.items)})` }
+      catch (error) { console.error('Order attribution failed', error) }
+    }
     try { await syncOrder(rows[0].order_number) }
     catch (error) { console.error('Ordyx sync failed after order creation', error) }
     return NextResponse.json(

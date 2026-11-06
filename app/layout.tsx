@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Archivo, Manrope } from 'next/font/google'
 import type { ReactNode } from 'react'
 import { StorefrontChrome } from '@/components/layout/StorefrontChrome'
+import { VisitTracker } from '@/components/analytics/VisitTracker'
 import { Analytics } from '@/components/analytics/Analytics'
 import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
@@ -47,7 +48,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       {/* No `crossOrigin`: <img> requests are plain, and a preconnect with it would open a different socket. */}
       <head>{pictures && <link rel="preconnect" href={pictures} />}</head>
       <body>
-        <StorefrontChrome header={<Header menu={navigation.menu} topbar={<Topbar messages={settings.topbarMessages} />} />} footer={<Footer settings={settings} groups={navigation.footer} />} analytics={<Analytics />}>{children}</StorefrontChrome>
+        <StorefrontChrome header={<Header menu={navigation.menu} topbar={<Topbar messages={settings.topbarMessages} />} />} footer={<Footer settings={settings} groups={navigation.footer} />} analytics={<><Analytics /><VisitTracker /></>}>{children}</StorefrontChrome>
       </body>
     </html>
   )

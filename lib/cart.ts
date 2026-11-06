@@ -11,6 +11,7 @@ export interface CartItem {
   variantName: string | null
   unitPrice: number
   quantity: number
+  source?: 'bump' | 'upsell'
 }
 
 export function readCart(): CartItem[] {

@@ -16,5 +16,5 @@ export function CartRecommendations({items,onAdded}:{items:CartItem[];onAdded:()
   },[ids])
   const choices=bumps.filter(b=>!items.some(i=>i.productId===b.productId))
   if(!choices.length)return null
-  return <section className={styles.recommendations}><h3>Подходящо допълнение</h3>{choices.map(b=><div key={b.productId}>{b.imagePath&&<img src={imageUrl(b.imagePath,400)} width={48} height={48} alt="" loading="lazy"/>}<span>{b.title}<strong>{formatPrice(b.unitPrice)}</strong></span><button type="button" onClick={()=>{addCartItem({...b,key:`${b.productId}:default`,variantId:null,variantName:null,quantity:1});onAdded()}} aria-label={`Добави ${b.title}`}>+ Добави</button></div>)}</section>
+  return <section className={styles.recommendations}><h3>Подходящо допълнение</h3>{choices.map(b=><div key={b.productId}>{b.imagePath&&<img src={imageUrl(b.imagePath,400)} width={48} height={48} alt="" loading="lazy"/>}<span>{b.title}<strong>{formatPrice(b.unitPrice)}</strong></span><button type="button" onClick={()=>{addCartItem({...b,key:`${b.productId}:default`,variantId:null,variantName:null,quantity:1,source:'bump'});onAdded()}} aria-label={`Добави ${b.title}`}>+ Добави</button></div>)}</section>
 }

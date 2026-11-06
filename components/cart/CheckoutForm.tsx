@@ -7,6 +7,7 @@ import { type CartItem, readCart, writeCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import styles from './CheckoutForm.module.css'
 import { CourierPicker } from './CourierPicker'
+import { currentVisitSession } from '@/lib/visit-analytics'
 import { imageUrl } from '@/lib/images'
 
 type Bump = { productId: string; slug: string; title: string; imagePath: string | null; unitPrice: number }
@@ -99,7 +100,7 @@ export function CheckoutForm() {
     const key = `${bump.productId}:default`
     const next = items.some(item => item.key === key)
       ? items.filter(item => item.key !== key)
-      : [...items, { ...bump, key, variantId: null, variantName: null, quantity: 1 }]
+      : [...items, { ...bump, key, variantId: null, variantName: null, quantity: 1, source: 'bump' as const }]
     setItems(next)
     writeCart(next)
   }
@@ -125,10 +126,10 @@ export function CheckoutForm() {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          requestId: requestId.current, promoCode,
+          requestId: requestId.current, promoCode, visitSessionId: currentVisitSession(),
           customerName: data.get('customerName'), phone: data.get('phone'), email: data.get('email'),
           courier: data.get('courier'), officeId: data.get('officeId') || null, deliveryType: data.get('deliveryType'), city: data.get('city') || '', postCode: data.get('postCode') || '', deliveryAddress: data.get('deliveryAddress'), notes: data.get('notes'),
-          items: items.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
+          items: items.map(({ productId, variantId, quantity, source }) => ({ productId, variantId, quantity, source })),
         }),
       })
       const result = await response.json() as { error?: string; orderNumber?: string; total?: number }
