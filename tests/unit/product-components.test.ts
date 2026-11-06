@@ -51,6 +51,9 @@ describe('Gallery', () => {
 })
 
 describe('BuyBox', () => {
+  it('can suppress the sticky dock inside another product surface', () => {
+    expect(html(createElement(BuyBox, { product: yodeyma, variantId: initialVariantId(yodeyma), onVariantChange: () => {}, showStickyDock: false }))).not.toContain('undefined')
+  })
   it('labels the options with the option name and lists every variant', () => {
     const markup = buyBox(initialVariantId(yodeyma))
 

@@ -9,18 +9,18 @@ const variant=z.object({id:z.string().uuid(),name:z.string().trim().min(1).max(2
 const base=z.object({title:z.string().trim().min(2).max(300),brand:z.string().trim().max(120).nullable(),gender:z.enum(['female','male','unisex']),price,compareAtPrice:price.nullable(),stock:z.number().int().min(0).max(99999).nullable(),descriptionHtml:z.string().max(20000),hidden:z.boolean(),categoryIds:z.array(z.string().uuid()).max(20),images:z.array(image).max(12)})
 const patch=base.extend({id:z.string().uuid(),updatedAt:z.string().min(1).max(60),variants:z.array(variant).max(200)})
 function validImagePath(path:string){if(path.startsWith('admin/'))return /^admin\/[a-f0-9-]+$/.test(path);try{const url=new URL(path);return url.protocol==='https:'}catch{return false}}
-function valid(data:z.infer<typeof base>){return (!data.compareAtPrice||data.compareAtPrice>data.price)&&data.images.every(i=>validImagePath(i.path))&&(!data.hidden?data.images.length>0:true)&&new Set(data.categoryIds).size===data.categoryIds.length}
+function valid(data:z.infer<typeof base>){return (!data.compareAtPrice||data.compareAtPrice>data.price)&&data.images.every(i=>i.id!==undefined||validImagePath(i.path))&&(!data.hidden?data.images.length>0&&data.categoryIds.length>0:true)&&new Set(data.categoryIds).size===data.categoryIds.length}
 function clean(html:string){return sanitizeHtml(html,{allowedTags:['p','br','strong','em','ul','ol','li','h2','h3'],allowedAttributes:{}})}
 function origin(request:Request){return request.headers.get('origin')===new URL(request.url).origin}
 export async function POST(request:Request){
  if(!origin(request))return NextResponse.json({error:'Невалиден произход.'},{status:403})
- const p=base.safeParse(await request.json().catch(()=>null));if(!p.success||!valid(p.data))return NextResponse.json({error:'Провери данните. Видимият продукт трябва да има снимка.'},{status:400})
+ const p=base.safeParse(await request.json().catch(()=>null));if(!p.success||!valid(p.data))return NextResponse.json({error:'Провери данните. Видимият продукт трябва да има снимка и поне една категория.'},{status:400})
  const data=p.data,slug=data.title.toLocaleLowerCase('bg').normalize('NFC').replace(/[^\p{L}\p{N}]+/gu,'-').replace(/^-|-$/g,'').slice(0,85)+'-'+crypto.randomUUID().slice(0,8)
  try{const [created]=await sql<{id:string;slug:string}[]>`select id,slug from store.admin_save_product(${sql.json({...data,slug,descriptionHtml:clean(data.descriptionHtml)})})`;revalidatePath('/', 'layout');return NextResponse.json(created,{status:201})}catch(e){console.error('Product creation failed',e);return NextResponse.json({error:'Продуктът не беше създаден.'},{status:500})}
 }
 export async function PATCH(request:Request){
  if(!origin(request))return NextResponse.json({error:'Невалиден произход.'},{status:403})
- const parsed=patch.safeParse(await request.json().catch(()=>null));if(!parsed.success||!valid(parsed.data))return NextResponse.json({error:'Провери данните. Видимият продукт трябва да има снимка.'},{status:400})
+ const parsed=patch.safeParse(await request.json().catch(()=>null));if(!parsed.success||!valid(parsed.data))return NextResponse.json({error:'Провери данните. Видимият продукт трябва да има снимка и поне една категория.'},{status:400})
  const p=parsed.data
  if(p.variants.some(v=>v.compareAtPrice!==null&&v.compareAtPrice<=v.price))return NextResponse.json({error:'Старата цена трябва да е по-висока от текущата.'},{status:400})
  try{const saved=await sql.begin(async tx=>{
