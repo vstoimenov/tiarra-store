@@ -34,6 +34,7 @@ export function ProductCard({ card, sizes = DEFAULT_SIZES, priority = false }: P
       <Link href={`/store/${card.slug}`} className={styles.link}>
         <div className={styles.media}>
           {oldPrice !== null && <span className={styles.badge}>-{discountPercent(oldPrice, card.price)}%</span>}
+          {!card.inStock && <span className={styles.stock}>Изчерпан</span>}
           {card.imagePath && (
             <img
               src={imageUrl(card.imagePath, 400)}
@@ -45,7 +46,9 @@ export function ProductCard({ card, sizes = DEFAULT_SIZES, priority = false }: P
               decoding="async"
             />
           )}
+          {!card.imagePath && <span className={styles.noImage}>TIARRA</span>}
         </div>
+        <span className={styles.brand}>{card.brand?.trim() || 'Tiarra Cosmetics'}</span>
         <h3 className={styles.title}>{card.title}</h3>
         <p className={styles.price}>
           {card.hasVariants && <span className={styles.from}>От </span>}
@@ -53,7 +56,7 @@ export function ProductCard({ card, sizes = DEFAULT_SIZES, priority = false }: P
           {oldPrice !== null && <s className={styles.old}>{formatPrice(oldPrice)}</s>}
         </p>
         <Savings price={card.price} compareAtPrice={oldPrice} />
-        <span className={styles.cta}>Виж продукта</span>
+        <span className={styles.cta}>Виж продукта <i aria-hidden="true">→</i></span>
       </Link>
     </article>
   )
