@@ -29,7 +29,7 @@ const GENDERS: { value: Gender; label: string }[] = [
 ]
 
 const PAGE_SIZE = 24
-const SIZES = '(min-width: 1100px) 270px, (min-width: 760px) 31vw, 46vw'
+const SIZES = '(min-width: 900px) 374px, 46vw'
 
 const SORTS: { value: SortKey; label: string }[] = [
   { value: 'newest', label: 'Най-нови' },
@@ -128,7 +128,6 @@ export function ProductGrid({ title, cards, readQuery = false, children, initial
 
       <header className={styles.head}>
         <div className={styles.intro}>
-          <span className={styles.eyebrow}>TIARRA CATALOG</span>
           <h1 className={styles.title}>{title}</h1>
           <p className={styles.count} data-testid="result-count" aria-live="polite">
             {countText(shown.length, matching.length)}
