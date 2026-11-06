@@ -20,7 +20,6 @@ interface Props {
   onVariantChange: (variantId: string) => void
   /** Called with the selected product, variant and quantity. */
   onAdd?: (item: AddToCart) => void
-  showStickyDock?: boolean
 }
 
 const UNTRACKED_MAX = 99
@@ -39,7 +38,7 @@ const maxFor = (stock: number | null) => (stock === null ? UNTRACKED_MAX : Math.
  * (the picture follows it), so it comes in as props. A variant with stock 0 reads „Изчерпан“ and
  * disables the button; the other variants stay as they were.
  */
-export function BuyBox({ product, variantId, onVariantChange, onAdd = noop, showStickyDock = true }: Props) {
+export function BuyBox({ product, variantId, onVariantChange, onAdd = noop }: Props) {
   const [dockAdded, setDockAdded] = useState(false)
   useEffect(() => {
     if (!dockAdded) return
@@ -159,7 +158,7 @@ export function BuyBox({ product, variantId, onVariantChange, onAdd = noop, show
           {state.inStock ? 'Добави в количката' : 'Изчерпан'}
         </button>
       </div>
-      {showDock && showStickyDock && <div className={styles.dock}><span><strong>{formatPrice(state.price)}</strong><small>{quantity} бр. · {state.inStock ? 'В наличност' : 'Изчерпан'}</small></span><button type="button" disabled={!state.inStock} onClick={() => {onAdd({ productId: product.id, variantId, quantity });setDockAdded(true)}}>{dockAdded ? 'Добавено ✓' : 'Добави в количката'}</button></div>}
+      {showDock && <div className={styles.dock}><span><strong>{formatPrice(state.price)}</strong><small>{quantity} бр. · {state.inStock ? 'В наличност' : 'Изчерпан'}</small></span><button type="button" disabled={!state.inStock} onClick={() => {onAdd({ productId: product.id, variantId, quantity });setDockAdded(true)}}>{dockAdded ? 'Добавено ✓' : 'Добави в количката'}</button></div>}
     </div>
   )
 }

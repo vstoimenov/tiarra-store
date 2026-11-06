@@ -14,7 +14,7 @@ export default async function StorePage() {
   const [cards, categories] = await Promise.all([getProductCards(), getCategories()])
 
   return (
-    <ProductGrid title="Всички продукти" cards={cards} readQuery defaultShelf>
+    <ProductGrid title="Всички продукти" cards={cards} readQuery>
       <CategoryNav categories={categories} />
     </ProductGrid>
   )
