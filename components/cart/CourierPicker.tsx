@@ -4,24 +4,23 @@ import { useEffect, useState } from 'react'
 import type { CourierOffice } from '@/lib/ordyx-offices'
 import { formatPrice } from '@/lib/format'
 import styles from './CourierPicker.module.css'
+import type { CommerceSettings } from '@/lib/commerce-settings'
 
 type Courier = 'econt' | 'speedy'
 type PlaceType = 'office' | 'automat' | 'address'
-const COURIERS = [
-  { value: 'econt', name: 'Еконт', price: 4.5 },
-  { value: 'speedy', name: 'Спиди', price: 3.5 },
-] as const
 const PLACES = [
   { value: 'office', label: 'До офис' },
   { value: 'automat', label: 'До автомат' },
   { value: 'address', label: 'До адрес' },
 ] as const
 
-export function CourierPicker({ freeShipping = false, onCourierChange }: {
+export function CourierPicker({settings, freeShipping = false, onDeliveryChange }: {
+  settings:CommerceSettings
   freeShipping?: boolean
-  onCourierChange?: (courier: Courier) => void
+  onDeliveryChange?: (courier: Courier,place:PlaceType) => void
 }) {
-  const [courier, setCourier] = useState<Courier>('econt')
+  const couriers=[...(settings.econtEnabled?[{value:'econt' as const,name:'Еконт',officePrice:settings.econtOfficePrice,addressPrice:settings.econtAddressPrice}]:[]),...(settings.speedyEnabled?[{value:'speedy' as const,name:'Спиди',officePrice:settings.speedyOfficePrice,addressPrice:settings.speedyAddressPrice}]:[])]
+  const [courier, setCourier] = useState<Courier>(settings.econtEnabled?'econt':'speedy')
   const [offices, setOffices] = useState<CourierOffice[]>([])
   const [citySearch, setCitySearch] = useState('')
   const [officeSearch, setOfficeSearch] = useState('')
@@ -47,7 +46,7 @@ export function CourierPicker({ freeShipping = false, onCourierChange }: {
 
   function changeCourier(value: Courier) {
     setCourier(value)
-    onCourierChange?.(value)
+    onDeliveryChange?.(value,'office')
     setOfficeId('')
     setCity('')
     setCitySearch('')
@@ -63,6 +62,7 @@ export function CourierPicker({ freeShipping = false, onCourierChange }: {
     setCity('')
     setCitySearch('')
     setOfficeSearch('')
+    onDeliveryChange?.(courier,value)
   }
 
   const places = offices.filter(office => office.isAutomat === (placeType === 'automat'))
@@ -74,7 +74,7 @@ export function CourierPicker({ freeShipping = false, onCourierChange }: {
   return <fieldset className={styles.picker}>
     <legend className="visually-hidden">Избери куриер</legend>
     <input type="hidden" name="deliveryType" value={placeType} />
-    {COURIERS.map(option => {
+    {couriers.map(option => {
       const active = courier === option.value
       return <div key={option.value} className={`${styles.option} ${active ? styles.selected : ''}`}>
         <label className={styles.optionHeader}>
@@ -82,9 +82,9 @@ export function CourierPicker({ freeShipping = false, onCourierChange }: {
           <span className={styles.logo}><img src={`/site/${option.value}.png`} width="40" height="40" alt="" /></span>
           <span className={styles.optionText}>
             <strong>{active && placeType === 'address' ? 'До адрес с ' : 'До офис или автомат на '}<b>{option.name}</b></strong>
-            <span>1–2 работни дни</span>
+            <span>{settings.deliveryEstimate}</span>
           </span>
-          <span className={`${styles.price} ${freeShipping ? styles.free : ''}`}>{freeShipping ? 'Безплатна' : formatPrice(option.price)}</span>
+          <span className={`${styles.price} ${freeShipping ? styles.free : ''}`}>{freeShipping ? 'Безплатна' : formatPrice(placeType==='address'?option.addressPrice:option.officePrice)}</span>
         </label>
       </div>
     })}

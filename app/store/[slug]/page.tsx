@@ -16,6 +16,7 @@ import { imageUrl } from '@/lib/images'
 import { metaDescription } from '@/lib/seo/meta-description'
 import { productJsonLd, serializeJsonLd } from '@/lib/seo/product-jsonld'
 import { getSiteDocument } from '@/lib/site/documents'
+import { getCommerceSettings } from '@/lib/commerce-settings'
 import { siteUrl } from '@/lib/site/url'
 import styles from './page.module.css'
 
@@ -67,10 +68,11 @@ export default async function ProductPage({ params }: Params) {
   const product = await getProduct((await params).slug)
   if (!product) notFound()
 
-  const [related, settings, bump] = await Promise.all([
+  const [related, settings, bump,commerce] = await Promise.all([
     getRelatedProducts(product, 8),
     getSiteDocument('settings'),
     getProductBump(product),
+    getCommerceSettings(),
   ])
   const url = `${siteUrl()}/store/${encodeURIComponent(product.slug)}`
 
@@ -86,7 +88,13 @@ export default async function ProductPage({ params }: Params) {
           product={product}
           description={product.descriptionHtml.trim() ? <Description html={product.descriptionHtml} /> : undefined}
           perfume={pyramidNotes(product.perfume) ? <PerfumePyramid perfume={product.perfume} /> : undefined}
-          delivery={<TrustBlock freeShippingThreshold={settings.freeShippingThreshold} giftThreshold={settings.giftThreshold} />}
+          delivery={<TrustBlock
+            freeShippingThreshold={commerce.freeShippingThreshold}
+            giftThreshold={settings.giftThreshold}
+            deliveryEstimate={commerce.deliveryEstimate}
+            dispatchHours={commerce.dispatchHours}
+            couriersLabel={[commerce.econtEnabled&&'Еконт',commerce.speedyEnabled&&'Спиди'].filter(Boolean).join(' или ')}
+          />}
         />
         <ShareButtons />
       </div>

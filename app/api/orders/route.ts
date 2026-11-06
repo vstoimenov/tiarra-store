@@ -49,7 +49,7 @@ export async function POST(request: Request) {
       data.deliveryAddress = `${office.city}, ${office.name}, ${office.address} [${office.code}]`
     }
     const rows = await sql<{ order_number: string; total: number; is_new: boolean }[]>`
-      select order_number, total::float8 as total, is_new from store.create_order_with_promo(
+      select order_number, total::float8 as total, is_new from store.create_order_with_settings_and_promo(
         ${data.requestId}, ${data.customerName}, ${data.phone}, ${data.email}, ${data.courier},
         ${data.deliveryType}, ${data.officeId}, ${data.city}, ${data.postCode},
         ${data.deliveryAddress}, ${data.notes}, ${sql.json(data.items)}, ${data.promoCode})`
@@ -69,6 +69,7 @@ export async function POST(request: Request) {
     const code = error instanceof Error ? error.message : ''
     if (code.includes('PRODUCT_NOT_FOUND')) return NextResponse.json({ error: 'Продукт от количката вече не е наличен.' }, { status: 409 })
     if (code.includes('INSUFFICIENT_STOCK')) return NextResponse.json({ error: 'Няма достатъчна наличност за избраното количество.' }, { status: 409 })
+    if (code.includes('COURIER_DISABLED')) return NextResponse.json({error:'Избраният куриер временно не е достъпен.'},{status:422})
     console.error('Order creation failed', error)
     return NextResponse.json({ error: 'Поръчката не беше записана. Опитай отново.' }, { status: 500 })
   }

@@ -3,12 +3,14 @@ import { z } from 'zod'
 import { sql } from '@/lib/db'
 import { promoCodeSchema, promoError } from '@/lib/promo'
 import { checkoutRateLimit } from '@/lib/rate-limit'
+import { courierPrice,getCommerceSettings } from '@/lib/commerce-settings'
 
 export const runtime = 'nodejs'
 
 const schema = z.object({
   promoCode: promoCodeSchema,
   courier: z.enum(['econt', 'speedy']),
+  deliveryType:z.enum(['office','automat','address']).default('office'),
   items: z.array(z.object({
     productId: z.string().uuid(),
     variantId: z.string().uuid().nullable(),
@@ -28,7 +30,9 @@ export async function POST(request: Request) {
   if (!(await checkoutRateLimit(request, 'quote'))) return NextResponse.json({ error: 'Твърде много опити. Изчакай няколко минути.' }, { status: 429 })
   const parsed = schema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Невалидна количка.' }, { status: 400 })
-  const { courier, items, promoCode } = parsed.data
+  const { courier,deliveryType, items, promoCode } = parsed.data
+  const settings=await getCommerceSettings()
+  if((courier==='econt'&&!settings.econtEnabled)||(courier==='speedy'&&!settings.speedyEnabled))return NextResponse.json({error:'Избраният куриер временно не е достъпен.'},{status:422})
 
   const rows = await sql<QuoteRow[]>`
     with requested as (
@@ -64,7 +68,7 @@ export async function POST(request: Request) {
   }
 
   const subtotal = rows.reduce((sum, row) => sum + row.unit_price * row.quantity, 0)
-  const shipping = subtotal >= 39 ? 0 : courier === 'econt' ? 4.5 : 3.5
+  const shipping = subtotal >= settings.freeShippingThreshold ? 0 : courierPrice(settings,courier,deliveryType)
   let discount = 0
   if (promoCode) {
     try {

@@ -10,6 +10,7 @@ import { Topbar } from '@/components/layout/Topbar'
 import { imageOrigin } from '@/lib/images'
 import { SITE_URL } from '@/lib/seo/site'
 import { getSiteDocument } from '@/lib/site/documents'
+import { getCommerceSettings } from '@/lib/commerce-settings'
 import './globals.css'
 
 // Body text. Latin and Cyrillic are both on Manrope.
@@ -39,7 +40,7 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const [settings, navigation] = await Promise.all([getSiteDocument('settings'), getSiteDocument('navigation')])
+  const [settings, navigation, commerce] = await Promise.all([getSiteDocument('settings'), getSiteDocument('navigation'),getCommerceSettings()])
 
   const pictures = imageOrigin()
 
@@ -48,7 +49,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       {/* No `crossOrigin`: <img> requests are plain, and a preconnect with it would open a different socket. */}
       <head>{pictures && <link rel="preconnect" href={pictures} />}</head>
       <body>
-        <StorefrontChrome header={<Header menu={navigation.menu} topbar={<Topbar messages={settings.topbarMessages} />} />} footer={<Footer settings={settings} groups={navigation.footer} />} analytics={<><Analytics /><VisitTracker /></>}>{children}</StorefrontChrome>
+        <StorefrontChrome header={<Header menu={navigation.menu} topbar={<Topbar messages={settings.topbarMessages.map(message=>message.startsWith('Безплатна доставка над')?`Безплатна доставка над ${commerce.freeShippingThreshold.toLocaleString('bg-BG')} €`:message)} />} />} footer={<Footer settings={settings} groups={navigation.footer} />} analytics={<><Analytics googleAnalyticsId={commerce.googleAnalyticsId??process.env.NEXT_PUBLIC_GA_ID??null} googleTagManagerId={commerce.googleTagManagerId??process.env.NEXT_PUBLIC_GTM_ID??null} metaPixelId={commerce.metaPixelId??process.env.NEXT_PUBLIC_META_PIXEL_ID??null}/><VisitTracker /></>}>{children}</StorefrontChrome>
       </body>
     </html>
   )

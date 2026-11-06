@@ -9,6 +9,7 @@ import styles from './CheckoutForm.module.css'
 import { CourierPicker } from './CourierPicker'
 import { currentVisitSession } from '@/lib/visit-analytics'
 import { imageUrl } from '@/lib/images'
+import { courierPrice,type CommerceSettings } from '@/lib/commerce-settings'
 
 type Bump = { productId: string; slug: string; title: string; imagePath: string | null; unitPrice: number }
 type Quote = {
@@ -19,7 +20,7 @@ type Quote = {
   shipping: number
   total: number
 }
-export function CheckoutForm() {
+export function CheckoutForm({settings}:{settings:CommerceSettings}) {
   const [items, setItems] = useState<CartItem[]>([])
   const [summaryOpen, setSummaryOpen] = useState(false)
   const [ready, setReady] = useState(false)
@@ -34,10 +35,11 @@ export function CheckoutForm() {
   const [bumps, setBumps] = useState<Bump[]>([])
   const requestId = useRef('')
   const checkoutTracked = useRef(false)
-  const [courier, setCourier] = useState<'econt' | 'speedy'>('econt')
+  const [courier, setCourier] = useState<'econt' | 'speedy'>(settings.econtEnabled?'econt':'speedy')
+  const [deliveryType,setDeliveryType]=useState<'office'|'automat'|'address'>('office')
   const localSubtotal = useMemo(() => items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [items])
   const subtotal = quote?.subtotal ?? localSubtotal
-  const shipping = quote?.shipping ?? (subtotal >= 39 ? 0 : courier === 'econt' ? 4.5 : 3.5)
+  const shipping = quote?.shipping ?? (subtotal >= settings.freeShippingThreshold ? 0 : courierPrice(settings,courier,deliveryType))
   const quotedPrices = useMemo(() => new Map(quote?.lines.map((line) => [`${line.productId}:${line.variantId ?? ''}`, line.unitPrice]) ?? []), [quote])
   const priceChanged = quote?.lines.some((line) => {
     const cartItem = items.find((item) => item.productId === line.productId && item.variantId === line.variantId)
@@ -54,7 +56,7 @@ export function CheckoutForm() {
     fetch('/api/orders/quote', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ courier, promoCode, items: items.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })) }),
+      body: JSON.stringify({ courier, deliveryType, promoCode, items: items.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })) }),
       signal: controller.signal,
     }).then(async (response) => {
       const result = await response.json() as Quote & { error?: string }
@@ -68,7 +70,7 @@ export function CheckoutForm() {
       if (!controller.signal.aborted) setQuotePending(false)
     })
     return () => controller.abort()
-  }, [courier, items, ready, promoCode])
+  }, [courier,deliveryType, items, ready, promoCode])
 
   useEffect(() => {
     if (!ready || items.length === 0) return
@@ -160,7 +162,7 @@ export function CheckoutForm() {
           <label>Име и фамилия<input name="customerName" autoComplete="name" required minLength={2} placeholder="Твоето име" /></label>
           <label>Телефон<input name="phone" type="tel" autoComplete="tel" required minLength={7} placeholder="+359 ..." /></label>
         </div></section>
-        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><CourierPicker freeShipping={subtotal >= 39} onCourierChange={setCourier} /></section>
+        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><CourierPicker settings={settings} freeShipping={subtotal >= settings.freeShippingThreshold} onDeliveryChange={(nextCourier,nextType)=>{setCourier(nextCourier);setDeliveryType(nextType)}} /></section>
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>03</span><div><h2>Плащане</h2><p>Плащаш при получаване</p></div></div><div className={styles.payment}>◉ &nbsp; Наложен платеж <span>Сигурно и удобно</span></div><label className={styles.notes}>Бележка <span>(по желание)</span><textarea name="notes" rows={2} placeholder="Нещо, което трябва да знаем?" /></label></section>
 
       </div>
@@ -194,7 +196,7 @@ export function CheckoutForm() {
         </div>
         <p className={styles.shippingStatus}>
           <span aria-hidden="true">{subtotal >= 39 ? '✓' : '↗'}</span>
-          {subtotal >= 39 ? 'Безплатна доставка за твоята поръчка' : `Още ${formatPrice(39 - subtotal)} до безплатна доставка`}
+          {subtotal >= settings.freeShippingThreshold ? 'Безплатна доставка за твоята поръчка' : `Още ${formatPrice(settings.freeShippingThreshold - subtotal)} до безплатна доставка`}
         </p>
         {bumps.some(bump => !items.some(item => item.productId === bump.productId)) && <section className={styles.bumps} aria-labelledby="checkout-bumps-title">
           <span className={styles.eyebrow}>ПОДБРАНО ЗА ТЕБ</span>
