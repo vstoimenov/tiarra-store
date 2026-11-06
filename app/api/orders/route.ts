@@ -12,6 +12,7 @@ const requestSchema = z.object({
   visitSessionId: z.string().uuid().nullable().optional(),
   promoCode: promoCodeSchema,
   requestId: z.string().uuid(),
+  expectedTotal: z.number().finite().nonnegative(),
   customerName: z.string().trim().min(2).max(120),
   phone: z.string().trim().min(7).max(30),
   email: z.union([z.literal(''), z.string().trim().email().max(160)]),
@@ -48,11 +49,15 @@ export async function POST(request: Request) {
       if (!office || office.isAutomat !== (data.deliveryType === 'automat')) return NextResponse.json({ error: 'Избери валиден офис на куриера.' }, { status: 400 })
       data.deliveryAddress = `${office.city}, ${office.name}, ${office.address} [${office.code}]`
     }
-    const rows = await sql<{ order_number: string; total: number; is_new: boolean }[]>`
+    const rows = await sql.begin(async tx => {
+    const created = await tx<{ order_number: string; total: number; is_new: boolean }[]>`
       select order_number, total::float8 as total, is_new from store.create_order_with_settings_and_promo(
         ${data.requestId}, ${data.customerName}, ${data.phone}, ${data.email}, ${data.courier},
         ${data.deliveryType}, ${data.officeId}, ${data.city}, ${data.postCode},
         ${data.deliveryAddress}, ${data.notes}, ${sql.json(data.items)}, ${data.promoCode})`
+    if (created[0].is_new && Math.round(created[0].total * 100) !== Math.round(data.expectedTotal * 100)) throw new Error('PRICE_CHANGED')
+    return created
+    })
     if (rows[0].is_new) {
       try { await sql`select store.attach_order_attribution(${rows[0].order_number}, ${data.visitSessionId ?? null}, ${sql.json(data.items)})` }
       catch (error) { console.error('Order attribution failed', error) }
@@ -67,6 +72,7 @@ export async function POST(request: Request) {
     const promotionMessage = promoError(error)
     if (promotionMessage) return NextResponse.json({ error: promotionMessage }, { status: 422 })
     const code = error instanceof Error ? error.message : ''
+    if (code === 'PRICE_CHANGED') return NextResponse.json({code,error:'Цената се промени. Прегледай обновената сума и потвърди отново.'},{status:409})
     if (code.includes('PRODUCT_NOT_FOUND')) return NextResponse.json({ error: 'Продукт от количката вече не е наличен.' }, { status: 409 })
     if (code.includes('INSUFFICIENT_STOCK')) return NextResponse.json({ error: 'Няма достатъчна наличност за избраното количество.' }, { status: 409 })
     if (code.includes('COURIER_DISABLED')) return NextResponse.json({error:'Избраният куриер временно не е достъпен.'},{status:422})

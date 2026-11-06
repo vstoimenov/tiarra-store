@@ -32,6 +32,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
   const [quote, setQuote] = useState<Quote | null>(null)
   const [quoteError, setQuoteError] = useState('')
   const [quotePending, setQuotePending] = useState(false)
+  const [quoteRevision,setQuoteRevision]=useState(0)
   const [bumps, setBumps] = useState<Bump[]>([])
   const requestId = useRef('')
   const checkoutTracked = useRef(false)
@@ -70,7 +71,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
       if (!controller.signal.aborted) setQuotePending(false)
     })
     return () => controller.abort()
-  }, [courier,deliveryType, items, ready, promoCode])
+  }, [courier,deliveryType, items, ready, promoCode,quoteRevision])
 
   useEffect(() => {
     if (!ready || items.length === 0) return
@@ -128,20 +129,24 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          requestId: requestId.current, promoCode, visitSessionId: currentVisitSession(),
+          requestId: requestId.current, expectedTotal:quote.total, promoCode, visitSessionId: currentVisitSession(),
           customerName: data.get('customerName'), phone: data.get('phone'), email: data.get('email'),
           courier: data.get('courier'), officeId: data.get('officeId') || null, deliveryType: data.get('deliveryType'), city: data.get('city') || '', postCode: data.get('postCode') || '', deliveryAddress: data.get('deliveryAddress'), notes: data.get('notes'),
           items: items.map(({ productId, variantId, quantity, source }) => ({ productId, variantId, quantity, source })),
         }),
       })
-      const result = await response.json() as { error?: string; orderNumber?: string; total?: number }
+      const result = await response.json() as { error?: string; code?:string; orderNumber?: string; total?: number }
+      if(result.code==='PRICE_CHANGED'){setQuote(null);setQuoteRevision(v=>v+1)}
       if (!response.ok || !result.orderNumber) throw new Error(result.error || 'Поръчката не беше записана.')
       const purchaseKey = `tiarra-purchase-${result.orderNumber}`
+      // Optional browser storage and analytics must never turn a saved order into an error.
+      try {
       if (!window.localStorage.getItem(purchaseKey)) {
         trackCommerce('purchase', { currency: 'EUR', value: result.total ?? quote?.total ?? subtotal + shipping, transaction_id: result.orderNumber, items: items.map((item) => ({ item_id: item.variantId ?? item.productId, item_name: item.title, item_variant: item.variantName ?? undefined, price: quotedPrices.get(`${item.productId}:${item.variantId ?? ''}`) ?? item.unitPrice, quantity: item.quantity })) })
         window.localStorage.setItem(purchaseKey, '1')
       }
-      writeCart([])
+      } catch { /* The order is already committed. */ }
+      try { writeCart([]) } catch { /* Keep showing the successful order. */ }
       setItems([])
       setOrderNumber(result.orderNumber)
       requestId.current = ''
