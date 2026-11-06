@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState,type ReactNode } from 'react'
 import styles from './AdminShell.module.css'
-const links=[['/admin','Общ преглед','◫'],['/admin/orders','Поръчки','▤'],['/admin/products','Продукти','◇'],['/admin/inventory','Наличности','▦'],['/admin/promos','Промокодове','%'],['/admin/bumps','Допълващи предложения','＋'],['/admin/settings','Настройки','⚙']]
+const links=[['/admin','Общ преглед','◫'],['/admin/home','Начална страница','▧'],['/admin/orders','Поръчки','▤'],['/admin/products','Продукти','◇'],['/admin/inventory','Наличности','▦'],['/admin/promos','Промокодове','%'],['/admin/bumps','Допълващи предложения','＋'],['/admin/settings','Настройки','⚙']]
 export function AdminShell({children}:{children:ReactNode}){
  const path=usePathname();const [open,setOpen]=useState(false);const [error,setError]=useState('')
  if(path==='/admin/login')return children
