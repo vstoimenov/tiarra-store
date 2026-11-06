@@ -6,6 +6,7 @@ import { brandsOf, filterProducts, type SortKey } from '@/lib/catalog/filter'
 import type { ProductCard as Card } from '@/lib/catalog/types'
 import type { Gender } from '@/lib/catalog/types'
 import styles from './ProductGrid.module.css'
+import { ProductShelf } from '@/components/ui/product-shelf'
 import { UrlQuery } from './UrlQuery'
 import { isDiscounted } from '@/lib/format'
 import { SearchIcon, FilterIcon } from '@/components/layout/icons'
@@ -20,6 +21,7 @@ interface Props {
   /** Shown between the heading and the grid (the category links). */
   children?: ReactNode
   initialGender?: Gender
+  defaultShelf?: boolean
 }
 
 const GENDERS: { value: Gender; label: string }[] = [
@@ -50,7 +52,8 @@ function countText(shown: number, total: number): string {
  * A page of products: heading, brand filter, sort, the cards 24 at a time and „Покажи още“.
  * Rendered on the server like the rest of the page, so the first 24 cards are in the HTML.
  */
-export function ProductGrid({ title, cards, readQuery = false, children, initialGender }: Props) {
+export function ProductGrid({ title, cards, readQuery = false, children, initialGender, defaultShelf=false }: Props) {
+  const [shelf,setShelf]=useState(defaultShelf)
   const [onlyDiscounted, setOnlyDiscounted] = useState(false)
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
@@ -200,6 +203,7 @@ export function ProductGrid({ title, cards, readQuery = false, children, initial
       </details>
       {filtered && <p className={styles.activeFilters}>Активни: {[text && `Търсене: ${text}`, brand, GENDERS.find(option => option.value === gender)?.label, onlyDiscounted && 'Промоции', minPrice && `От ${minPrice} €`, maxPrice && `До ${maxPrice} €`].filter(Boolean).join(' · ')} <button type="button" onClick={clearFilters}>Изчисти</button></p>}
       {children}
+      <div className={styles.viewSwitch} role="group" aria-label="Изглед на продуктите"><span>Разгледай по твоя начин</span><button type="button" aria-pressed={shelf} onClick={()=>setShelf(true)}>На рафта</button><button type="button" aria-pressed={!shelf} onClick={()=>setShelf(false)}>Каталог</button></div>
 
       {matching.length === 0 ? (
         <div className={styles.empty}>
@@ -213,13 +217,13 @@ export function ProductGrid({ title, cards, readQuery = false, children, initial
       ) : (
         <>
           <h2 className="visually-hidden">Продукти</h2>
-          <ul className={styles.grid}>
+          {shelf?<ProductShelf cards={shown}/>:<ul className={styles.grid}>
             {shown.map((card, index) => (
               <li key={card.slug}>
                 <ProductCard card={card} sizes={SIZES} priority={index < FIRST_ROW_CARDS} />
               </li>
             ))}
-          </ul>
+          </ul>}
           {shown.length < matching.length && (
             <p className={styles.more}>
               <button type="button" className={styles.button} onClick={() => setVisible((n) => n + PAGE_SIZE)}>
