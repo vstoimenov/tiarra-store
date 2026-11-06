@@ -27,7 +27,6 @@
     "@supabase/supabase-js": "^2.118.0",
     "gsap": "3.14.2",
     "lucide-react": "^1.69.0",
-    "motion": "^14.9.1",
     "next": "15.5.28",
     "postgres": "^3.4.9",
     "react": "19.1.0",

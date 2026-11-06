@@ -228,4 +228,3 @@
 @media (max-width: 640px) {
   .select { width: 0; font-size: 16px; }
 }
-.viewSwitch{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin:24px 0 10px;padding:5px;background:#eeeee6;border:1px solid #e1e1d6;border-radius:12px}.viewSwitch span{margin-right:auto;padding-left:10px;font-size:11px;color:#787d6c}.viewSwitch button{border:0;padding:10px 18px;border-radius:8px;background:transparent;color:#69755d;font:inherit;font-size:12px;cursor:pointer}.viewSwitch button[aria-pressed=true]{background:#fff;color:#294b39;box-shadow:0 2px 8px #233a2910}.viewSwitch button:focus-visible{outline:2px solid #4a704b;outline-offset:2px}@media(max-width:500px){.viewSwitch span{font-size:10px}.viewSwitch button{padding:10px 12px}}
