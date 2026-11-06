@@ -3,10 +3,11 @@ import { HomeDocSchema } from '@/lib/sections/schema'
 
 export function parseHomeDocument(input: unknown) {
   const doc = HomeDocSchema.parse(input)
+  if (doc.sections.length > 100) throw new Error('Максимум 100 секции.')
   if (new Set(doc.sections.map(s => s.id)).size !== doc.sections.length) throw new Error('Секциите трябва да имат различни идентификатори.')
   function clean(value: unknown, key = ''): unknown {
     if (typeof value === 'string') {
-      if (/href$/i.test(key) && value && !/^(\/(?!\/)|https?:\/\/|mailto:|tel:|#)/i.test(value)) throw new Error('Използвай относителен адрес или https линк.')
+      if (/href$/i.test(key) && value && (/[\u0000-\u0020\\]/.test(value) || !/^(\/(?!\/)|https?:\/\/|mailto:|tel:|#)/i.test(value))) throw new Error('Използвай относителен адрес или https линк без интервали.')
       return /html$/i.test(key) ? sanitizeHtml(value) : value
     }
     if (Array.isArray(value)) return value.map(v => clean(v, key))
