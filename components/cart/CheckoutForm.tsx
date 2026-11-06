@@ -147,7 +147,7 @@ export function CheckoutForm() {
         </div></section>
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><CourierPicker freeShipping={subtotal >= 39} onCourierChange={setCourier} /></section>
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>03</span><div><h2>Плащане</h2><p>Плащаш при получаване</p></div></div><div className={styles.payment}>◉ &nbsp; Наложен платеж <span>Сигурно и удобно</span></div><label className={styles.notes}>Бележка <span>(по желание)</span><textarea name="notes" rows={2} placeholder="Нещо, което трябва да знаем?" /></label></section>
-        <label className={styles.consent}><input type="checkbox" required /> <span>Съгласен/на съм с <Link href="/obshti-usloviya" target="_blank">общите условия</Link> и данните ми да бъдат използвани според <Link href="/poveritelnost" target="_blank">политиката за поверителност</Link>.</span></label>
+
       </div>
       <aside className={styles.summary} aria-labelledby="order-summary-title">
         <div className={styles.summaryTop}>
@@ -198,6 +198,7 @@ export function CheckoutForm() {
         <p className={styles.quoteStatus} role="status">{quotePending ? 'Проверяваме цените и наличностите…' : quoteError ? 'Необходима е проверка на поръчката.' : !quote ? 'Изчакваме потвърждение на цените.' : priceChanged ? 'Цените са актуализирани спрямо текущата оферта.' : '✓ Цените и наличностите са потвърдени'}</p>
         {quoteError && <p role="alert" className={styles.error}>{quoteError}</p>}
         {error && <p role="alert" className={styles.error}>{error}</p>}
+        <p className={styles.orderNotice}>С натискането на „Потвърди поръчката“ приемаш <Link href="/obshti-usloviya" target="_blank" rel="noopener noreferrer">общите условия</Link>. Информация за обработката на личните данни ще намериш в <Link href="/poveritelnost" target="_blank" rel="noopener noreferrer">политиката за поверителност</Link>.</p>
         <button className={styles.submit} type="submit" disabled={pending || quotePending || !quote}>
           <span>{pending ? 'Изпращане…' : 'Потвърди поръчката'}</span><span aria-hidden="true">→</span>
         </button>
