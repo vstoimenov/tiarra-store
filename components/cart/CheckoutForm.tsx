@@ -145,7 +145,7 @@ export function CheckoutForm() {
           <label>Име и фамилия<input name="customerName" autoComplete="name" required minLength={2} placeholder="Твоето име" /></label>
           <label>Телефон<input name="phone" type="tel" autoComplete="tel" required minLength={7} placeholder="+359 ..." /></label>
         </div></section>
-        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><CourierPicker onCourierChange={setCourier} /></section>
+        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><CourierPicker freeShipping={subtotal >= 39} onCourierChange={setCourier} /></section>
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>03</span><div><h2>Плащане</h2><p>Плащаш при получаване</p></div></div><div className={styles.payment}>◉ &nbsp; Наложен платеж <span>Сигурно и удобно</span></div><label className={styles.notes}>Бележка <span>(по желание)</span><textarea name="notes" rows={2} placeholder="Нещо, което трябва да знаем?" /></label></section>
         <label className={styles.consent}><input type="checkbox" required /> <span>Съгласен/на съм с <Link href="/obshti-usloviya" target="_blank">общите условия</Link> и данните ми да бъдат използвани според <Link href="/poveritelnost" target="_blank">политиката за поверителност</Link>.</span></label>
       </div>
