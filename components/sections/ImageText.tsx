@@ -11,12 +11,12 @@ export function ImageText({ section }: { section: SectionOf<'imageText'> }) {
     <section className={styles.about} data-section={section.id}>
       <div className={styles.inner}>
         <img
-          className={styles.image}
+          className={`${styles.image} ${imagePath==='site/about'?styles.portrait:''}`}
           src={imageUrl(imagePath, 800)}
           srcSet={imageSrcSet(imagePath)}
           sizes="(min-width: 900px) 565px, calc(100vw - 38px)"
-          width={900}
-          height={1200}
+          width={imagePath==='site/about'?677:900}
+          height={imagePath==='site/about'?677:1200}
           alt={title}
           loading="lazy"
           decoding="async"

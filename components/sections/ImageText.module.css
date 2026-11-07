@@ -33,6 +33,8 @@
   text-wrap: balance;
 }
 
+.portrait{aspect-ratio:1;object-fit:contain;border-radius:12px}
+
 .body {
   margin-top: 28px;
   color: #1c1c28;

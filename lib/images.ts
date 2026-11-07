@@ -12,7 +12,7 @@ const LOCAL_SITE_IMAGE_PREFIXES: Record<string, string> = {
   'site/hero': '/site/hero',
   'site/logo': '/site/logo',
   'site/offer': '/site/offer',
-  'site/about': '/site/about',
+  'site/about': '/site/founder-2026',
 }
 
 const SITE_IMAGE_URLS: Record<string, string> = {
