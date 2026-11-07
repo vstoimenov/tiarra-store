@@ -21,7 +21,7 @@ export function CourierPicker({settings, freeShipping = false, onDeliveryChange 
 }) {
   const couriers=[...(settings.econtEnabled?[{value:'econt' as const,name:'Еконт',officePrice:settings.econtOfficePrice,addressPrice:settings.econtAddressPrice}]:[]),...(settings.speedyEnabled?[{value:'speedy' as const,name:'Спиди',officePrice:settings.speedyOfficePrice,addressPrice:settings.speedyAddressPrice}]:[])]
   const [courier, setCourier] = useState<Courier>(settings.econtEnabled?'econt':'speedy')
-  const [offices, setOffices] = useState<CourierOffice[]>([])
+  const [offices, setOffices] = useState<(CourierOffice & {selectionToken:string})[]>([])
   const [citySearch, setCitySearch] = useState('')
   const [officeSearch, setOfficeSearch] = useState('')
   const [city, setCity] = useState('')
@@ -74,6 +74,7 @@ export function CourierPicker({settings, freeShipping = false, onDeliveryChange 
   return <fieldset className={styles.picker}>
     <legend className="visually-hidden">Избери куриер</legend>
     <input type="hidden" name="deliveryType" value={placeType} />
+    <input type="hidden" name="officeToken" value={selected?.selectionToken??''} />
     {couriers.map(option => {
       const active = courier === option.value
       return <div key={option.value} className={`${styles.option} ${active ? styles.selected : ''}`}>

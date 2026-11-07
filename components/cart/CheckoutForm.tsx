@@ -143,7 +143,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
         body: JSON.stringify({
           requestId: requestId.current, expectedTotal:quote.total, promoCode, visitSessionId: currentVisitSession(),
           customerName: data.get('customerName'), phone: data.get('phone'), email: data.get('email'),
-          courier: data.get('courier'), officeId: data.get('officeId') || null, deliveryType: data.get('deliveryType'), city: data.get('city') || '', postCode: data.get('postCode') || '', deliveryAddress: data.get('deliveryAddress'), notes: data.get('notes'),
+          courier: data.get('courier'), officeId: data.get('officeId') || null, officeToken: data.get('officeToken') || '', deliveryType: data.get('deliveryType'), city: data.get('city') || '', postCode: data.get('postCode') || '', deliveryAddress: data.get('deliveryAddress'), notes: data.get('notes'),
           items: items.map(({ productId, variantId, quantity, source }) => ({ productId, variantId, quantity, source })),
         }),
       })

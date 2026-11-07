@@ -1,7 +1,7 @@
 import { after, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
-import { getCourierOffices } from '@/lib/ordyx-offices'
+import { verifyOffice } from '@/lib/office-token'
 import { syncOrder } from '@/lib/ordyx-sync'
 import { promoCodeSchema, promoError } from '@/lib/promo'
 import { checkoutRateLimit } from '@/lib/rate-limit'
@@ -19,6 +19,7 @@ const requestSchema = z.object({
   email: z.union([z.literal(''), z.string().trim().email().max(160)]),
   courier: z.enum(['econt', 'speedy']),
   officeId: z.string().min(1).max(120).nullable(),
+  officeToken: z.string().max(4000).optional().default(''),
   deliveryType: z.enum(['office','automat','address']),
   city: z.string().trim().max(100),
   postCode: z.string().trim().max(20),
@@ -46,8 +47,8 @@ export async function POST(request: Request) {
       if (data.officeId || !data.city || !data.postCode) return NextResponse.json({ error: 'Попълни точен адрес за доставка.' }, { status: 400 })
       data.deliveryAddress = `${data.city}, ${data.postCode}, ${data.deliveryAddress}`
     } else {
-      const office = (await getCourierOffices(data.courier)).find(entry => entry.id === data.officeId)
-      if (!office || office.isAutomat !== (data.deliveryType === 'automat')) return NextResponse.json({ error: 'Избери валиден офис на куриера.' }, { status: 400 })
+      const office = data.officeId && verifyOffice(data.officeToken,data.courier,data.officeId,data.deliveryType)
+      if (!office) return NextResponse.json({ error: 'Изборът на офис е изтекъл. Презареди страницата и избери отново.' }, { status: 400 })
       data.deliveryAddress = `${office.city}, ${office.name}, ${office.address} [${office.code}]`
     }
     const rows = await sql.begin(async tx => {
@@ -65,12 +66,10 @@ export async function POST(request: Request) {
     })
     const orderNumber=rows[0].order_number
     after(async () => {
-      const tasks:Promise<unknown>[] = [
-        syncOrder(orderNumber).catch(error=>console.error('Ordyx sync failed after order creation',error)),
-        sendOrderEmails(orderNumber).catch(error=>console.error('Order email queue failed',error)),
-      ]
+      const tasks:Promise<unknown>[] = [sendOrderEmails(orderNumber).catch(error=>console.error('Order email queue failed',error))]
       if(rows[0].is_new) tasks.push(Promise.resolve(sql`select store.attach_order_attribution(${orderNumber}, ${data.visitSessionId ?? null}, ${sql.json(data.items)})`).catch(error=>console.error('Order attribution failed',error)))
       await Promise.all(tasks)
+      try { await syncOrder(orderNumber) } catch(error) { console.error('Ordyx sync failed after order creation',error) }
     })
     return NextResponse.json(
       { orderNumber: rows[0].order_number, total: rows[0].total },
