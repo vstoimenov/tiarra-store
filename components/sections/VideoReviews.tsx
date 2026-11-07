@@ -56,7 +56,7 @@ export function VideoReviews({ section }: { section: SectionOf<'videoReviews'> }
   return (
     <section className={styles.reviews} data-section={section.id} aria-label="Видео отзиви">
       <header className={styles.heading}>
-        <div><small>ИСТИНСКИ ИСТОРИИ</small><h2>Видео обратна връзка</h2><p>Виж какво споделят клиентите на Tiarra.</p></div>
+        <div><p>Виж какво споделят клиентите на Tiarra.</p></div>
       </header>
       <GlassyVideoCarousel items={[1,2,3].map(number => ({youtubeId:String(number),name:'',stars:5}))} />
       {stats.length > 0 && (
