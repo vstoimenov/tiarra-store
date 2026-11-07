@@ -17,7 +17,7 @@ export async function sendQueuedOrderEmail(queueId: string): Promise<boolean> {
       await tx`update store.order_email_queue set status='sent',attempts=attempts+1,last_error=null,sent_at=now() where id=${entry.id}`
       return true
     } catch (error) {
-      const message=error instanceof Error?error.message.slice(0,160):'EMAIL_SEND_FAILED'
+      const message=error instanceof Error?error.message.slice(0,320):'EMAIL_SEND_FAILED'
       await tx`update store.order_email_queue set status='failed',attempts=attempts+1,last_error=${message} where id=${entry.id}`
       return false
     }
