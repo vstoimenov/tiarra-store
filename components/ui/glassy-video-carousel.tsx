@@ -15,6 +15,8 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
   const [activeVideo, setActiveVideo] = useState<string | null>(null)
   const [paused, setPaused] = useState(false)
   const [reduced, setReduced] = useState(false)
+  const [cardStep, setCardStep] = useState(280)
+  const stage = useRef<HTMLDivElement>(null)
   const videoFrame = useRef<HTMLIFrameElement>(null)
   const gesture = useRef<{ x: number; y: number; horizontal: boolean } | null>(null)
   const suppressClickUntil = useRef(0)
@@ -32,6 +34,17 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
     const timer = window.setTimeout(() => setIndex(value => value + 1), 5000)
     return () => window.clearTimeout(timer)
   }, [activeVideo, dragging, index, items.length, reduced])
+
+  useEffect(() => {
+    const element = stage.current
+    if (!element) return
+    const update = () => setCardStep(Math.min(280, Math.max(200, element.clientWidth * .72)))
+    update()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(update)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
 
   if (!items.length) return null
 
@@ -58,7 +71,7 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
     const dx = event.clientX - start.x, dy = event.clientY - start.y
     if (!start.horizontal && Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { gesture.current = null; return }
     if (!start.horizontal && Math.abs(dx) > 8) { start.horizontal = true; setDragging(true); event.currentTarget.setPointerCapture(event.pointerId) }
-    if (start.horizontal) setDrag(Math.max(-1, Math.min(1, dx / 280)))
+    if (start.horizontal) setDrag(Math.max(-1, Math.min(1, dx / cardStep)))
   }
   const pointerUp = (event: PointerEvent<HTMLDivElement>) => {
     const start = gesture.current; gesture.current = null
@@ -72,12 +85,12 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
 
   return <div className={`${styles.shell} ${interaction.compactShell}`} aria-label="Видео обратна връзка" aria-roledescription="carousel">
     <div className={styles.atmosphere} aria-hidden="true"/>
-    <div className={styles.stage} data-dragging={dragging || undefined} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={pointerUp}>
+    <div ref={stage} className={styles.stage} data-dragging={dragging || undefined} onPointerDown={pointerDown} onPointerMove={pointerMove} onPointerUp={pointerUp} onPointerCancel={pointerUp}>
       <div className={styles.floor} aria-hidden="true"/>
       {items.map((item, itemIndex) => {
         const delta = distance(itemIndex), offset = delta + drag, absolute = Math.abs(offset), selected = delta === 0
         const showingVideo = selected && activeVideo === item.youtubeId
-        return <div key={item.youtubeId} className={styles.card} data-active={selected || undefined} style={{ transform: `translate3d(${offset * 280}px,0,${-Math.min(absolute, 2) * 145}px) rotateY(${-Math.max(-44, Math.min(44, offset * 31))}deg) scale(${1 - Math.min(absolute, 2) * .09})`, opacity: absolute > 2.2 ? 0 : 1, zIndex: 10 - Math.round(absolute) }}>
+        return <div key={item.youtubeId} className={styles.card} data-active={selected || undefined} style={{ transform: `translate3d(${offset * cardStep}px,0,${-Math.min(absolute, 2) * 145}px) rotateY(${-Math.max(-44, Math.min(44, offset * 31))}deg) scale(${1 - Math.min(absolute, 2) * .09})`, opacity: absolute > 2.2 ? 0 : 1, zIndex: 10 - Math.round(absolute) }}>
           <span className={styles.browser}><span><i/><i/><i/></span><b>TIARRA STORIES</b></span>
           <span className={styles.poster}>
             {showingVideo ? (

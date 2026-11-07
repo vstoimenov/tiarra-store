@@ -11,5 +11,5 @@
 .actions button { min-height: 50px; padding: 0 24px; border: 0; border-radius: 999px; background: #171717; color: #fff; cursor: pointer; font-weight: 800; }
 .actions button:disabled { cursor: wait; opacity: .55; }
 .actions p { margin: 0; color: #47734a; font-size: 14px; }
-@media (max-width: 560px) { .actions { align-items: stretch; flex-direction: column; } .actions button { width: 100%; } }
+@media (max-width: 560px) { .panel { padding: 18px 14px; border-radius: 16px; } .step { grid-template-columns: 32px minmax(0,1fr); gap: 10px; padding: 20px 0; } .number { width: 32px; height: 32px; } .step input, .step select { font-size: 16px; } .actions { align-items: stretch; flex-direction: column; } .actions button { width: 100%; min-height: 48px; } }
 
