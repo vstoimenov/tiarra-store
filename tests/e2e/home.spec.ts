@@ -168,7 +168,7 @@ test('the offer keeps its height when the countdown numbers appear', async ({ br
   expect(heights[1]).toBe(heights[0])
 })
 
-test('there are 4 video thumbnails and no iframe until a click', async ({ page }) => {
+test('there are 4 video thumbnails without an embedded player', async ({ page }) => {
   await stubYoutube(page)
   await page.goto('/')
 
@@ -178,21 +178,7 @@ test('there are 4 video thumbnails and no iframe until a click', async ({ page }
     videos.map((v) => `https://i.ytimg.com/vi/${v.youtubeId}/hqdefault.jpg`),
   )
   await expect(page.locator('iframe')).toHaveCount(0)
-})
-
-test('clicking a video thumbnail puts a privacy-friendly player in its place', async ({ page }) => {
-  await stubYoutube(page)
-  await page.goto('/')
-
-  const reviews = section(page, 'video-reviews')
-  await reviews.getByRole('button', { name: /Пусни/ }).first().click()
-
-  const frame = reviews.locator('iframe')
-  await expect(frame).toHaveCount(1)
-  await expect(frame).toHaveAttribute('src', new RegExp(`^https://www\\.youtube-nocookie\\.com/embed/${videos[0].youtubeId}\\?autoplay=1&controls=0`))
-  await expect(reviews.locator('img[src^="https://i.ytimg.com/vi/"]')).toHaveCount(3)
-  await reviews.getByRole('button', { name: 'Постави видеото на пауза' }).click()
-  await expect(reviews.getByRole('button', { name: 'Продължи видеото' })).toBeVisible()
+  await expect(reviews.getByRole('button')).toHaveCount(0)
 })
 
 test('the video stats show the counters', async ({ page }) => {

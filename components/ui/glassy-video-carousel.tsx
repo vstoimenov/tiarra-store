@@ -1,6 +1,5 @@
 'use client'
 
-import { Play } from 'lucide-react'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import styles from './glassy-video-carousel.module.css'
 import interaction from './glassy-video-interaction.module.css'
@@ -12,14 +11,10 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
   const [index, setIndex] = useState(0)
   const [drag, setDrag] = useState(0)
   const [dragging, setDragging] = useState(false)
-  const [activeVideo, setActiveVideo] = useState<string | null>(null)
-  const [paused, setPaused] = useState(false)
   const [reduced, setReduced] = useState(false)
   const [cardStep, setCardStep] = useState(280)
   const stage = useRef<HTMLDivElement>(null)
-  const videoFrame = useRef<HTMLIFrameElement>(null)
   const gesture = useRef<{ x: number; y: number; horizontal: boolean } | null>(null)
-  const suppressClickUntil = useRef(0)
   const activeIndex = items.length ? wrap(index, items.length) : 0
 
   useEffect(() => {
@@ -30,10 +25,10 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
   }, [])
 
   useEffect(() => {
-    if (reduced || activeVideo || dragging || items.length < 2) return
+    if (reduced || dragging || items.length < 2) return
     const timer = window.setTimeout(() => setIndex(value => value + 1), 5000)
     return () => window.clearTimeout(timer)
-  }, [activeVideo, dragging, index, items.length, reduced])
+  }, [dragging, index, items.length, reduced])
 
   useEffect(() => {
     const element = stage.current
@@ -48,18 +43,12 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
 
   if (!items.length) return null
 
-  const select = (next: number) => { setIndex(next); setDrag(0); setActiveVideo(null); setPaused(false) }
+  const select = (next: number) => { setIndex(next); setDrag(0) }
   const distance = (itemIndex: number) => {
     let value = itemIndex - activeIndex
     if (value > items.length / 2) value -= items.length
     if (value < -items.length / 2) value += items.length
     return value
-  }
-  const sendVideoCommand = (command: 'playVideo' | 'pauseVideo') => videoFrame.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: command, args: [] }), '*')
-  const toggleVideo = (item: GlassyVideoItem) => {
-    if (activeVideo !== item.youtubeId) { setActiveVideo(item.youtubeId); setPaused(false); return }
-    sendVideoCommand(paused ? 'playVideo' : 'pauseVideo')
-    setPaused(value => !value)
   }
   const pointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return
@@ -77,7 +66,6 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
     const start = gesture.current; gesture.current = null
     if (start?.horizontal) {
       if (Math.abs(event.clientX - start.x) > 45) select(index + (event.clientX < start.x ? 1 : -1))
-      suppressClickUntil.current = performance.now() + 300
     }
     setDrag(0); setDragging(false)
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
@@ -89,25 +77,16 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
       <div className={styles.floor} aria-hidden="true"/>
       {items.map((item, itemIndex) => {
         const delta = distance(itemIndex), offset = delta + drag, absolute = Math.abs(offset), selected = delta === 0
-        const showingVideo = selected && activeVideo === item.youtubeId
-        return <div key={item.youtubeId} className={styles.card} data-active={selected || undefined} style={{ transform: `translate3d(${offset * cardStep}px,0,${-Math.min(absolute, 2) * 145}px) rotateY(${-Math.max(-44, Math.min(44, offset * 31))}deg) scale(${1 - Math.min(absolute, 2) * .09})`, opacity: absolute > 2.2 ? 0 : 1, zIndex: 10 - Math.round(absolute) }}>
+        return <div key={item.youtubeId} className={styles.card} data-active={selected || undefined} role="group" aria-label={`Видео отзив ${itemIndex + 1} от ${items.length}`} aria-hidden={!selected} style={{ transform: `translate3d(${offset * cardStep}px,0,${-Math.min(absolute, 2) * 145}px) rotateY(${-Math.max(-44, Math.min(44, offset * 31))}deg) scale(${1 - Math.min(absolute, 2) * .09})`, opacity: absolute > 2.2 ? 0 : 1, zIndex: 10 - Math.round(absolute) }}>
           <span className={styles.browser}><span><i/><i/><i/></span><b>TIARRA STORIES</b></span>
           <span className={styles.poster}>
-            {showingVideo ? (
-              <iframe ref={videoFrame} className={interaction.inlinePlayer} src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(item.youtubeId)}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&disablekb=1&enablejsapi=1`} title={`Видео отзив${item.name ? ` на ${item.name}` : ''}`} allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin"/>
-            ) : (
-              <img src={`https://i.ytimg.com/vi/${encodeURIComponent(item.youtubeId)}/hqdefault.jpg`} alt="" width={480} height={360} loading={absolute < 2 ? 'eager' : 'lazy'} draggable={false}/>
-            )}
-            <span className={styles.shade} style={{ opacity: showingVideo ? 0 : Math.min(absolute, 2) * .18 }}/>
-            {selected && !showingVideo && <span className={styles.watch}><Play size={15} fill="currentColor"/> Гледай видеото</span>}
+            <img src={`https://i.ytimg.com/vi/${encodeURIComponent(item.youtubeId)}/hqdefault.jpg`} alt="" width={480} height={360} loading={absolute < 2 ? 'eager' : 'lazy'} draggable={false}/>
+            <span className={styles.shade} style={{ opacity: Math.min(absolute, 2) * .18 }}/>
           </span>
           <span className={styles.cardInfo}><span><strong>Реална видео обратна връзка</strong><small>{'★'.repeat(item.stars)} · Клиент на Tiarra</small></span></span>
-          <button type="button" className={interaction.hit} data-video={showingVideo || undefined} tabIndex={selected ? 0 : -1} aria-current={selected ? 'true' : undefined}
-            aria-label={selected ? showingVideo ? paused ? 'Продължи видеото' : 'Постави видеото на пауза' : 'Пусни видео отзива' : `Избери видео отзив ${itemIndex + 1}`}
-            onClick={() => { if (performance.now() < suppressClickUntil.current) return; if (selected) toggleVideo(item); else select(index + delta) }}/>
         </div>
       })}
     </div>
-    <p className={interaction.hint}>Каруселът се движи автоматично · Натисни активното видео за пускане или пауза</p>
+    <p className={interaction.hint}>Реални отзиви от клиенти на Tiarra</p>
   </div>
 }
