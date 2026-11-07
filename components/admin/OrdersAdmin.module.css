@@ -19,4 +19,5 @@
 .actions { display: flex; gap: 8px; }.actions button { min-height: 42px; padding: 0 16px; border: 0; border-radius: 999px; background: #171717; color: #fff; cursor: pointer; font-weight: 800; }.actions button:disabled { opacity: .5; cursor: wait; }.actions .danger { border: 1px solid #d5a5a5; background: #fff; color: #8b3232; }
 .actions .secondary { border: 1px solid #cbc5ba; background: #fff; color: #49433a; }
 @media (max-width: 900px) { .operations { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 760px) { .filters, .operations { grid-template-columns: 1fr; }.filters > span { padding: 0; }.grid { grid-template-columns: 1fr; gap: 18px; }.bottom { align-items: stretch; flex-direction: column; }.actions { width: 100%; flex-wrap: wrap; }.actions button { flex: 1; } }
+@media (max-width: 760px) { .filters, .operations { grid-template-columns: 1fr; }.filters > span { padding: 0; }.top { flex-direction:column; }.grid { grid-template-columns: 1fr; gap: 18px; }.bottom { align-items: stretch; flex-direction: column; }.actions { display:grid;grid-template-columns:1fr 1fr;width: 100%; }.actions button { width:100%;min-height:46px; }.filters input, .filters select, .operations input, .operations textarea { font-size:16px; } }
+@media (max-width: 400px) { .actions { grid-template-columns:1fr; } }
