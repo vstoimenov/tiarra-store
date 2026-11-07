@@ -58,6 +58,7 @@ export function Countdown({ endsAt }: { endsAt: string }) {
             <Ring value={left.days} of={7} label="ДНИ" pad={false} />
             <Ring value={left.hours} of={24} label="ЧАСА" pad />
             <Ring value={left.minutes} of={60} label="МИНУТИ" pad />
+            <Ring value={left.seconds} of={60} label="СЕКУНДИ" pad />
           </>
         )}
       </div>

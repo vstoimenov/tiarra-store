@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { formatPrice, isDiscounted } from '@/lib/format'
 import { imageSrcSet, imageUrl } from '@/lib/images'
 import type { SectionOf } from '@/lib/sections/schema'
+import { effectiveOfferEnd } from '@/lib/countdown'
 import { Countdown } from './Countdown'
 import styles from './Offer.module.css'
 
@@ -17,7 +18,8 @@ export function Offer({ section }: { section: SectionOf<'offer'> }) {
   // "BRAND — what it is": the brand is the heading, the rest reads as the description under it.
   const [heading, ...rest] = title.split(' — ')
   const description = rest.join(' — ')
-  const running = endsAt !== undefined && Date.parse(endsAt) > Date.now()
+  const countdownEnd = endsAt === undefined ? undefined : effectiveOfferEnd(endsAt)
+  const running = countdownEnd !== undefined && Date.parse(countdownEnd) > Date.now()
 
   return (
     <section className={styles.offer} data-section={section.id}>
@@ -43,7 +45,7 @@ export function Offer({ section }: { section: SectionOf<'offer'> }) {
         <p className={styles.now}>СЕГА: {formatPrice(newPrice)}</p>
         <Savings price={newPrice} compareAtPrice={oldPrice} />
       </div>
-      {running && <Countdown endsAt={endsAt} />}
+      {running && <Countdown endsAt={countdownEnd} />}
       <p className={styles.action}>
         <Link href={`/store/${productSlug}`} className={styles.button}>
           {buttonLabel}

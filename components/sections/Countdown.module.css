@@ -1,14 +1,20 @@
 .countdown {
-  margin-top: 36px;
+  margin-top: 30px;
+  padding: 22px 14px;
+  border: 1px solid #e1d2b7;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #fffdf8, #f8efe0);
   text-align: center;
 }
 
 .lead {
   margin: 0 0 14px;
-  color: #545454;
-  font-size: 16px;
-  font-style: italic;
+  color: #6d4b2d;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
   line-height: 1.6;
+  text-transform: uppercase;
 }
 
 /*
@@ -18,7 +24,7 @@
 .rings {
   display: flex;
   justify-content: center;
-  gap: 22px;
+  gap: 14px;
   min-height: 117px;
 }
 
@@ -54,7 +60,7 @@
 }
 
 .arc {
-  stroke: #333;
+  stroke: var(--gold-deep);
   stroke-linecap: round;
 }
 
@@ -81,13 +87,16 @@
 
 @media (max-width: 899px) {
   .rings {
-    gap: 12px;
+    gap: 8px;
   }
 }
 
 @media (max-width: 380px) {
+  .countdown { padding-inline: 8px; }
+  .rings { gap: 4px; }
+  .value { font-size: 20px; }
   .label {
-    font-size: 12px;
+    font-size: 9px;
     letter-spacing: 0.05em;
   }
 }
