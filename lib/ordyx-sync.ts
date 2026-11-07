@@ -31,7 +31,7 @@ export async function syncOrder(orderNumber: string): Promise<boolean> {
     office_text: office ? `${office.city}, ${office.name}, ${office.address}` : `${order.courier.toUpperCase()} – адрес: ${order.delivery_address}`,
     city: office?.city ?? order.city ?? '', post_code: office?.postCode ?? order.post_code ?? '', address_text: order.delivery_type === 'address' ? order.delivery_address : '',
     items: items.map(item => ({ name: item.variant_name ? `${item.title} — ${item.variant_name}` : item.title, qty: item.quantity, price: item.unit_price, sku: '' })),
-    total: order.total, currency: 'EUR', paid: false, payment_method: 'cod', page_url: 'https://tiarra-store.vercel.app',
+    total: order.total, currency: 'EUR', paid: false, payment_method: 'cod', page_url: process.env.SITE_URL || 'https://tiarracosmetics.com',
   }
     const response = await fetch('https://app.ordyx.eu/api/orders', {
       method: 'POST', headers: {
