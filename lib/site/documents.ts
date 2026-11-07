@@ -43,7 +43,9 @@ export async function readSiteDocument<K extends SiteDocumentKey>(key: K): Promi
 // `unstable_cache` needs a Next request or build context and throws without one, so call
 // `getSiteDocument` from app code only, and `readSiteDocument` from scripts and tests.
 const cachedReaders = Object.fromEntries(
-  KEYS.map((key) => [key, unstable_cache(() => readSiteDocument(key), ['site-document', key], { tags: ['site'] })]),
+  // Bump the cache namespace when the parsed document shape changes. Otherwise a deployment can
+  // receive a value serialized by the previous schema (for example a home document without theme).
+  KEYS.map((key) => [key, unstable_cache(() => readSiteDocument(key), ['site-document-v2', key], { tags: ['site'] })]),
 ) as { [K in SiteDocumentKey]: () => Promise<SiteDocuments[K]> }
 
 export function getSiteDocument<K extends SiteDocumentKey>(key: K): Promise<SiteDocuments[K]> {

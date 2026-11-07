@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
 import { StoreThemeSchema } from '@/lib/sections/schema'
@@ -18,5 +18,6 @@ export async function PUT(request: Request) {
     returning published->>'theme' as theme`
   if (!rows.length) return NextResponse.json({ error: 'Настройките на началната страница липсват.' }, { status: 404 })
   revalidateTag('site')
+  revalidatePath('/', 'layout')
   return NextResponse.json({ theme: rows[0].theme }, { headers: { 'Cache-Control': 'no-store' } })
 }
