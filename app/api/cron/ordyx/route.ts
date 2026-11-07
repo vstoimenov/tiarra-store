@@ -1,7 +1,6 @@
 import { timingSafeEqual } from 'node:crypto'
 import { sql } from '@/lib/db'
 import { cancelOrderInOrdyx, syncOrder } from '@/lib/ordyx-sync'
-import { sendQueuedOrderEmail } from '@/lib/order-email-queue'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -13,10 +12,6 @@ export async function GET(request: Request) {
   const supplied = Buffer.from(request.headers.get('authorization') ?? '')
   if (!secret || expected.length !== supplied.length || !timingSafeEqual(expected, supplied)) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-  if (process.env.BREVO_API_KEY) {
-    const emails = await sql<{id:string}[]>`select id from store.order_email_queue where status in ('pending','failed') and attempts < 10 and created_at > now() - interval '7 days' order by created_at limit 3`
-    for(const email of emails) { try { await sendQueuedOrderEmail(email.id) } catch { console.error('Scheduled email retry failed') } }
   }
   if (!process.env.ORDYX_API_KEY) return Response.json({ error: 'Ordyx is not configured' }, { status: 503 })
   // Hobby schedules run once daily, with a variable start time. Use a 48-hour
