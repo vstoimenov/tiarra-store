@@ -137,7 +137,7 @@ describe('seed homepage', () => {
     const offer = home.sections.find((s) => s.type === 'offer')
     if (offer?.type !== 'offer') throw new Error('no offer section')
 
-    expect(offer.data.endsAt).toBe(new Date(1793465390000).toISOString())
+    expect(offer.data.endsAt).toBe('2026-11-30T21:59:59.000Z')
     expect(offer.data).toMatchObject({ oldPrice: 59.9, newPrice: 48, buttonLabel: 'ВЗЕМИ СЕГА' })
   })
 
