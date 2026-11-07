@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight, Pause, Play, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type PointerEvent } from 'react'
 import styles from './glassy-video-carousel.module.css'
+import playerStyles from './glassy-video-player.module.css'
 
 export interface GlassyVideoItem {
   youtubeId: string
@@ -112,7 +113,7 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
       <p className={styles.hint}>Плъзни, използвай стрелките или избери видео</p>
     </div>
     <dialog ref={dialog} className={styles.dialog} aria-labelledby={titleId} onCancel={() => setPreview(null)} onClose={() => setPreview(null)} onClick={event => { if (event.target === event.currentTarget) setPreview(null) }}>
-      {preview && <div className={styles.dialogPanel}><header><span>Видео обратна връзка</span><button type="button" onClick={() => setPreview(null)}><X size={17}/> Затвори</button></header><div className={styles.player}><iframe src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(preview.youtubeId)}?autoplay=1`} title={`Видео отзив${preview.name ? ` на ${preview.name}` : ''}`} allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen referrerPolicy="strict-origin-when-cross-origin"/></div><h3 id={titleId}>{preview.name || 'Клиент на Tiarra Cosmetics'}</h3><p>{'★'.repeat(preview.stars)} · Проверена видео обратна връзка</p></div>}
+      {preview && <div className={styles.dialogPanel}><header><span className={playerStyles.brand}><i/> TIARRA STORIES</span><button type="button" onClick={() => setPreview(null)}><X size={17}/> Затвори</button></header><div className={`${styles.player} ${playerStyles.cleanPlayer}`}><iframe src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(preview.youtubeId)}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&disablekb=1`} title={`Видео отзив${preview.name ? ` на ${preview.name}` : ''}`} allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin"/></div><div className={playerStyles.meta}><span className={playerStyles.avatar}>T</span><div><h3 id={titleId}>{preview.name || 'Клиент на Tiarra Cosmetics'}</h3><p>{'★'.repeat(preview.stars)} <b>Проверена видео обратна връзка</b></p></div><span className={playerStyles.verified}>✓ VERIFIED</span></div></div>}
     </dialog>
   </div>
 }
