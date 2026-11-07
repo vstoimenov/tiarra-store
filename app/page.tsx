@@ -8,7 +8,7 @@ import { brandsOf } from '@/lib/catalog/filter'
 import styles from './brands.module.css'
 import Link from 'next/link'
 
-const brandLogos:Record<string,string>={'AMERICAN CREW':'american-crew','DEPOT':'depot','GILLETTE':'gillette','NISH LADY':'nish-lady','NISH MAN':'nish-man','REDONE':'redone','REUZEL':'reuzel','STMNT':'stmnt','YODEYMA':'yodeyma'}
+const brandLogos:Record<string,string>={'AMERICAN CREW':'american-crew','CHOGAN':'chogan','DEPOT':'depot','GILLETTE':'gillette','NISH LADY':'nish-lady','NISH MAN':'nish-man','REDONE':'redone','REUZEL':'reuzel','STMNT':'stmnt','YODEYMA':'yodeyma'}
 
 export const metadata = pageMetadata({
   title: 'Tiarra Cosmetics | Професионална козметика за коса, лице и тяло',
@@ -28,7 +28,7 @@ export default async function HomePage() {
     getSiteDocument('settings'),
     getProductCards(),
   ])
-  const brands=brandsOf(cards)
+  const brands=[...new Set([...brandsOf(cards).map(brand=>/chogan/i.test(brand)?'CHOGAN':brand),'CHOGAN'])].sort((a,b)=>a.localeCompare(b,'bg'))
   const brandRows=Array.from({length:Math.ceil(brands.length/4)},(_,index)=>brands.slice(index*4,index*4+4))
 
   return <><SectionRenderer
