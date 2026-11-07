@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: 'Завършване на поръч
 
 export default async function CheckoutPage() {
   const settings=await getCommerceSettings()
-  return <div className={styles.page}><div className={styles.intro}><span>TIARRA COSMETICS / CHECKOUT</span><h1>Завърши поръчката</h1><p>Избери удобна доставка. Плати при получаване.</p></div><CheckoutForm settings={settings}/></div>
+  return <div className={styles.page}><CheckoutForm settings={settings}/></div>
 }

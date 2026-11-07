@@ -11,6 +11,7 @@ import { CourierPicker } from './CourierPicker'
 import { currentVisitSession } from '@/lib/visit-analytics'
 import { imageUrl } from '@/lib/images'
 import { courierPrice,type CommerceSettings } from '@/lib/commerce-settings-schema'
+import { OrderThankYou,type Confirmation } from './OrderThankYou'
 
 type Bump = { productId: string; slug: string; title: string; imagePath: string | null; unitPrice: number }
 type Quote = {
@@ -28,6 +29,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [orderNumber, setOrderNumber] = useState('')
+  const [confirmation,setConfirmation]=useState<Confirmation|null>(null)
   const [promoDraft, setPromoDraft] = useState('')
   const [promoCode, setPromoCode] = useState('')
   const [quote, setQuote] = useState<Quote | null>(null)
@@ -158,6 +160,8 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
         window.localStorage.setItem(purchaseKey, '1')
       }
       } catch { /* The order is already committed. */ }
+      const delivery=deliveryType==='address'?[data.get('city'),data.get('postCode'),data.get('deliveryAddress')].filter(Boolean).join(', '):String(data.get('deliveryAddress')??'')
+      setConfirmation({number:result.orderNumber,total:result.total??quote.total,courier:String(data.get('courier')??courier),delivery,items:[...items]})
       try { writeCart([]) } catch { /* Keep showing the successful order. */ }
       setItems([])
       setOrderNumber(result.orderNumber)
@@ -168,11 +172,11 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
   }
 
   if (!ready) return <p>Зареждане…</p>
-  if (orderNumber) return <div className={styles.success}><h2>Благодарим ти!</h2><p>Поръчка №{orderNumber} е приета. Ще се свържем с теб за потвърждение.</p><Link href="/store">Обратно към магазина</Link></div>
+  if (orderNumber && confirmation) return <OrderThankYou order={confirmation}/>
   if (items.length === 0) return <div className={styles.success}><p>Количката ти е празна.</p><Link href="/store">Разгледай продуктите</Link></div>
 
   return (
-    <form className={styles.form} onSubmit={submit}>
+    <><div className={styles.intro}><span>TIARRA COSMETICS / CHECKOUT</span><h1>Завърши поръчката</h1><p>Избери удобна доставка. Плати при получаване.</p></div><form className={styles.form} onSubmit={submit}>
       <div className={styles.fields}>
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>01</span><div><h2>Контакт</h2><p>За да потвърдим поръчката ти</p></div></div><div className={styles.fieldGrid}>
           <label className={styles.full}>Имейл <span>(по желание)</span><input name="email" type="email" autoComplete="email" placeholder="Име@пример.бг" /></label>
@@ -245,6 +249,6 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
         </button>
         <div className={styles.safe}><span>Преглед при доставка</span><span>Плащаш при получаване</span></div>
       </aside>
-    </form>
+    </form></>
   )
 }
