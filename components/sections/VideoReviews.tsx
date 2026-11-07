@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { SectionOf } from '@/lib/sections/schema'
-import { VideoCard } from './VideoCard'
+import { GlassyVideoCarousel } from '@/components/ui/glassy-video-carousel'
 import styles from './VideoReviews.module.css'
 
 /** `290+` becomes the number and a smaller `+` after it, as on the live page. */
@@ -52,26 +52,13 @@ function AnimatedValue({ value }: { value: string }) {
 /** A sideways row of video reviews (thumbnails until clicked) and the two big counters under it. */
 export function VideoReviews({ section }: { section: SectionOf<'videoReviews'> }) {
   const { videos, stats } = section.data
-  const track = useRef<HTMLUListElement>(null)
-  const move = (direction: -1 | 1) => track.current?.scrollBy({ left: direction * Math.min(track.current.clientWidth * 0.82, 336), behavior: 'smooth' })
 
   return (
     <section className={styles.reviews} data-section={section.id} aria-label="Видео отзиви">
       <header className={styles.heading}>
         <div><small>ИСТИНСКИ ИСТОРИИ</small><h2>Видео обратна връзка</h2><p>Виж какво споделят клиентите на Tiarra.</p></div>
-        {videos.length > 1 && <div className={styles.controls}><button type="button" aria-label="Предишни видео отзиви" onClick={() => move(-1)}>←</button><button type="button" aria-label="Следващи видео отзиви" onClick={() => move(1)}>→</button></div>}
       </header>
-      {videos.length > 0 && (
-        <div className={styles.slider}>
-          <ul ref={track} className={styles.track}>
-            {videos.map((video) => (
-              <li key={video.youtubeId} className={styles.slide}>
-                <VideoCard youtubeId={video.youtubeId} name={video.name} stars={video.stars} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {videos.length > 0 && <GlassyVideoCarousel items={videos} />}
       {stats.length > 0 && (
         <ul className={styles.stats}>
           {stats.map((stat) => {

@@ -1,39 +1,57 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Check, Eye, ShieldCheck, Sparkles, Star, Truck } from 'lucide-react'
+import type { StoreTheme } from '@/lib/sections/schema'
 import styles from './ThemeStudio.module.css'
+import controls from './ThemeStudioControls.module.css'
 
-type Preview = 'current' | 'boost'
-
-export function ThemeStudio() {
-  const [preview, setPreview] = useState<Preview>('boost')
+export function ThemeStudio({ initialTheme }: { initialTheme: StoreTheme }) {
+  const router = useRouter()
+  const [preview, setPreview] = useState<StoreTheme>(initialTheme)
+  const [active, setActive] = useState<StoreTheme>(initialTheme)
+  const [pending, setPending] = useState<StoreTheme | null>(null)
+  const [message, setMessage] = useState('')
+  async function activate(theme: StoreTheme) {
+    setPending(theme); setMessage('')
+    try {
+      const response = await fetch('/api/admin/appearance', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ theme }) })
+      const body = await response.json()
+      if (!response.ok) throw new Error(body.error || 'Темата не беше сменена.')
+      setActive(body.theme); setPreview(body.theme)
+      setMessage(body.theme === 'classic' ? 'Tiarra Classic е възстановена.' : 'Tiarra Boost е активирана.')
+      router.refresh()
+    } catch (error) { setMessage(error instanceof Error ? error.message : 'Няма връзка.') }
+    finally { setPending(null) }
+  }
 
   return <main className={styles.page}>
     <header className={styles.heading}>
-      <div><small>ВИЗИЯ НА МАГАЗИНА</small><h1>Теми</h1><p>Сравни дизайните тук. Публичният магазин остава с настоящата тема, докато не одобриш друга.</p></div>
+      <div><small>ВИЗИЯ НА МАГАЗИНА</small><h1>Теми</h1><p>Прегледай тема и я активирай. Изборът се записва за всички посетители.</p></div>
       <a href="/" target="_blank" rel="noreferrer">Отвори магазина ↗</a>
     </header>
 
     <section className={styles.choices} aria-label="Теми">
-      <article className={preview === 'current' ? styles.selected : ''}>
+      <article className={preview === 'classic' ? styles.selected : ''}>
         <div className={`${styles.swatch} ${styles.classicSwatch}`}><span>TIARRA</span><i/><i/><i/></div>
-        <div><span className={styles.active}><Check size={13}/> АКТИВНА</span><h2>Tiarra Classic</h2><p>Сегашната изчистена черно-златна визия.</p></div>
-        <button type="button" onClick={() => setPreview('current')}><Eye size={16}/> Преглед</button>
+        <div><span className={active === 'classic' ? styles.active : styles.ready}>{active === 'classic' ? <><Check size={13}/> АКТИВНА</> : 'НАЛИЧНА'}</span><h2>Tiarra Classic</h2><p>Оригиналната изчистена черно-златна визия.</p></div>
+        <div className={controls.actions}><button type="button" onClick={() => setPreview('classic')}><Eye size={16}/> Преглед</button><button className={controls.apply} type="button" disabled={active === 'classic' || pending !== null} onClick={() => activate('classic')}>{pending === 'classic' ? 'Връщане…' : active === 'classic' ? 'Активна' : 'Върни темата'}</button></div>
       </article>
       <article className={preview === 'boost' ? styles.selected : ''}>
         <div className={`${styles.swatch} ${styles.boostSwatch}`}><span>TIARRA</span><b>BEAUTY, ELEVATED.</b><i/><i/><i/></div>
-        <div><span className={styles.ready}><Sparkles size={13}/> НОВА КОНЦЕПЦИЯ</span><h2>Tiarra Boost</h2><p>Оригинална conversion тема с усещане, близко до Shrine.</p></div>
-        <button type="button" onClick={() => setPreview('boost')}><Eye size={16}/> Преглед</button>
+        <div><span className={active === 'boost' ? styles.active : styles.ready}>{active === 'boost' ? <><Check size={13}/> АКТИВНА</> : <><Sparkles size={13}/> НОВА ТЕМА</>}</span><h2>Tiarra Boost</h2><p>Оригинална conversion тема с усещане, близко до Shrine.</p></div>
+        <div className={controls.actions}><button type="button" onClick={() => setPreview('boost')}><Eye size={16}/> Преглед</button><button className={controls.apply} type="button" disabled={active === 'boost' || pending !== null} onClick={() => activate('boost')}>{pending === 'boost' ? 'Активиране…' : active === 'boost' ? 'Активна' : 'Активирай'}</button></div>
       </article>
     </section>
 
     <section className={styles.preview} aria-live="polite">
       <div className={styles.browser}><i/><i/><i/><span>tiarra-store.vercel.app</span></div>
-      {preview === 'current' ? <ClassicPreview/> : <BoostPreview/>}
+      {preview === 'classic' ? <ClassicPreview/> : <BoostPreview/>}
     </section>
 
-    <aside className={styles.note}><strong>{preview === 'current' ? 'Активната тема' : 'Концепцията е готова за преглед'}</strong><p>{preview === 'current' ? 'Това е посоката на магазина в момента.' : 'Провери посоката и разположението. Активиране ще направим само след твоето изрично одобрение.'}</p></aside>
+    {message && <p className={controls.message} role="status">{message}</p>}
+    <aside className={styles.note}><strong>{preview === active ? 'Активната тема' : 'Само преглед'}</strong><p>{preview === active ? 'Тази тема се използва в публичния магазин.' : 'Натисни „Активирай“, за да приложиш този дизайн за всички посетители.'}</p></aside>
   </main>
 }
 

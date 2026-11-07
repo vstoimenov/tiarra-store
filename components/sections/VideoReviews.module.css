@@ -32,56 +32,6 @@
   line-height: 1.5;
 }
 
-.controls {
-  display: flex;
-  gap: 9px;
-}
-
-.controls button {
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  background: #fff;
-  color: var(--ink);
-  font-size: 21px;
-  cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
-}
-
-.controls button:hover {
-  background: var(--ink);
-  color: #fff;
-  transform: translateY(-2px);
-}
-
-/* The row fades out at both edges, like the live slider. */
-.slider {
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-}
-
-.track {
-  display: flex;
-  margin: 0;
-  padding: 25px 0;
-  list-style: none;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  scrollbar-width: none;
-}
-
-.track::-webkit-scrollbar {
-  display: none;
-}
-
-.slide {
-  flex: 0 0 320px;
-  padding: 0 8px;
-  scroll-snap-align: center;
-}
-
 .stats {
   display: flex;
   flex-wrap: wrap;
@@ -133,22 +83,12 @@
     padding-top: 36px;
   }
 
-  .slide {
-    flex-basis: min(240px, 66vw);
-    padding: 0 6px;
-  }
-
   .heading {
     align-items: center;
   }
 
   .heading p {
     font-size: 13px;
-  }
-
-  .controls button {
-    width: 40px;
-    height: 40px;
   }
 
   .stats {
@@ -161,6 +101,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .track { scroll-behavior: auto; }
-  .controls button { transition: none; }
+  .reviews { scroll-behavior: auto; }
 }

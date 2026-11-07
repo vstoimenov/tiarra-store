@@ -190,7 +190,7 @@ test('clicking a video thumbnail puts a privacy-friendly player in its place', a
   const frame = reviews.locator('iframe')
   await expect(frame).toHaveCount(1)
   await expect(frame).toHaveAttribute('src', `https://www.youtube-nocookie.com/embed/${videos[0].youtubeId}?autoplay=1`)
-  await expect(reviews.locator('img[src^="https://i.ytimg.com/vi/"]')).toHaveCount(3)
+  await expect(reviews.locator('img[src^="https://i.ytimg.com/vi/"]')).toHaveCount(4)
 })
 
 test('the video stats show the counters', async ({ page }) => {
