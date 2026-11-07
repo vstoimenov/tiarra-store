@@ -40,6 +40,42 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* The public theme selected in Admin → Визия. Classic keeps the established tokens;
+   Boost shifts the same accessible components into a warmer conversion-focused skin. */
+.storefront-theme {
+  min-height: 100vh;
+  background: #fff;
+}
+
+.storefront-theme[data-store-theme='boost'] {
+  --gold: #bd704b;
+  --gold-hover: #d68a63;
+  --gold-text: #985033;
+  --gold-deep: #a85d3d;
+  --ink: #2f241d;
+  --ink-2: #5f5148;
+  --ink-3: #716258;
+  --ink-4: #88786d;
+  --line: rgba(70, 45, 32, 0.14);
+  --black: #2b1d18;
+  background: #fbf6ef;
+}
+
+.storefront-theme[data-store-theme='boost'] > main {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 7%, rgba(215, 169, 130, 0.16), transparent 28%),
+    linear-gradient(#fffaf4, #fbf6ef 38%, #fff);
+}
+
+.storefront-theme[data-store-theme='boost'] > div:first-child header {
+  background: linear-gradient(105deg, #261915, #4a2d22);
+}
+
+.storefront-theme[data-store-theme='boost'] footer {
+  background-color: #2b1d18;
+}
+
 a {
   color: inherit;
   text-decoration: none;

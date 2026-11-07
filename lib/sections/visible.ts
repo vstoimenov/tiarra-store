@@ -5,7 +5,7 @@ import type { HomeDoc, Section } from './schema'
  * `showFrom <= now < showUntil`; a missing bound always passes. Callers pass `now` so a page
  * that revalidates (`/` every 5 minutes) drops an expired campaign without a deploy.
  */
-export function visibleSections(doc: HomeDoc, now: Date): Section[] {
+export function visibleSections(doc: Pick<HomeDoc, 'sections'>, now: Date): Section[] {
   const t = now.getTime()
   return doc.sections.filter(
     (s) =>

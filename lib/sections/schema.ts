@@ -155,10 +155,15 @@ export const SectionSchema = z.discriminatedUnion('type', [
   section('banner', BannerData),
 ])
 
-export const HomeDocSchema = z.object({ sections: z.array(SectionSchema) })
+export const StoreThemeSchema = z.enum(['classic', 'boost'])
+export const HomeDocSchema = z.object({
+  theme: StoreThemeSchema.default('classic'),
+  sections: z.array(SectionSchema),
+})
 
 export type Section = z.infer<typeof SectionSchema>
 export type SectionType = Section['type']
 /** One section type, e.g. `SectionOf<'hero'>`; what a section component takes as its prop. */
 export type SectionOf<T extends SectionType> = Extract<Section, { type: T }>
 export type HomeDoc = z.infer<typeof HomeDocSchema>
+export type StoreTheme = z.infer<typeof StoreThemeSchema>

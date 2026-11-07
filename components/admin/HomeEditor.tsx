@@ -25,7 +25,7 @@ export function HomeEditor({initial,initialRevision}:{initial:HomeDoc;initialRev
  const [revision,setRevision]=useState(initialRevision)
  const [doc,setDoc]=useState(initial),[selected,setSelected]=useState<string | undefined>(initial.sections[0]?.id),[dirty,setDirty]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState('')
  useEffect(()=>{const warn=(e:BeforeUnloadEvent)=>{if(dirty)e.preventDefault()};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn)},[dirty])
- function change(sections:Section[]){setDoc({sections});setDirty(true);setMessage('')}
+ function change(sections:Section[]){setDoc({...doc,sections});setDirty(true);setMessage('')}
  const active=doc.sections.find(s=>s.id===selected)
  function update(next:Section){change(doc.sections.map(s=>s.id===next.id?next:s))}
  function add(type:string){const data=type==='banner'?{imagePath:'site/hero',title:'Black Friday',text:'Открий специалните ни предложения.',buttonLabel:'Разгледай',buttonHref:'/store'}:type==='products'?{title:'Избрани продукти',subtitle:'',source:'all',limit:8,categorySlug:'all',slugs:[]}:type==='faq'?{title:'Често задавани въпроси',items:[{q:'Твоят въпрос',aHtml:'Отговор'}]}:{imagePath:'site/about',title:'Нова секция',bodyHtml:'Твоят текст',buttonLabel:'Разгледай',buttonHref:'/store'};const section={id:crypto.randomUUID(),type,enabled:true,data} as Section;change([...doc.sections,section]);setSelected(section.id)}
