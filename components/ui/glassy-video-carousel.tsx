@@ -114,7 +114,7 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
               <img src={`/reviews/review-${item.youtubeId}.jpg`} alt="" width={360} height={640} loading="lazy" draggable={false}/>
             )}
             <span className={styles.shade} style={{ opacity: showingVideo ? 0 : Math.min(absolute, 2) * .18 }}/>
-            {selected && !showingVideo && <span className={styles.watch}><Play size={15} fill="currentColor"/> Гледай видеото</span>}
+            {selected && (!showingVideo || paused) && <span className={interaction.playMark} aria-hidden="true"><Play size={20} fill="currentColor"/></span>}
           </span>
           <span className={styles.cardInfo}><span><strong>Реална видео обратна връзка</strong><small>{'★'.repeat(item.stars)} · Клиент на Tiarra</small></span></span>
           <button type="button" className={interaction.hit} data-video={showingVideo || undefined} tabIndex={selected ? 0 : -1} aria-current={selected ? 'true' : undefined}
@@ -123,6 +123,6 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
         </div>
       })}
     </div>
-    <p className={interaction.hint}>Каруселът се движи автоматично · Натисни активното видео за пускане или пауза</p>
+    <p className={interaction.hint}>Натисни, за да гледаш · Плъзни, за да разгледаш</p>
   </div>
 }

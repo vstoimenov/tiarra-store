@@ -4,6 +4,8 @@ import { getProductCards } from '@/lib/catalog/queries'
 import { pageMetadata } from '@/lib/seo/page-metadata'
 import { visibleSections } from '@/lib/sections/visible'
 import { getSiteDocument } from '@/lib/site/documents'
+import { brandsOf } from '@/lib/catalog/filter'
+import styles from './brands.module.css'
 
 export const metadata = pageMetadata({
   title: 'Tiarra Cosmetics | Професионална козметика за коса, лице и тяло',
@@ -24,9 +26,9 @@ export default async function HomePage() {
     getProductCards(),
   ])
 
-  return <SectionRenderer
+  return <><SectionRenderer
     sections={visibleSections(process.env.CINEMATIC_HOME === '1' ? cinematicHomeV1(home) : home, new Date())}
     cards={cards}
     settings={settings}
-  />
+  /><section className={styles.brands} aria-label="Марки в Tiarra"><p>ПОДБРАНИ ЗА ТЕБ</p><h2>Брандовете, на които се доверяваме</h2><div className={styles.list}>{brandsOf(cards).map(brand => <span key={brand}>{brand}</span>)}</div></section></>
 }
