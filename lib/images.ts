@@ -25,6 +25,7 @@ const SITE_IMAGE_URLS: Record<string, string> = {
 
 /** Public URL of one resized copy. `path` is the storage key without width or extension. */
 export function imageUrl(path: string, width: ImageWidth): string {
+  if (/^\/catalog\/chogan\/\d{3}$/.test(path)) return `${path}.webp`
   // The first catalog bootstrap may retain the original public CDN URL. This keeps the
   // storefront usable before the background Storage copy has completed.
   if (/^https?:\/\//.test(path)) return path
@@ -37,6 +38,7 @@ export function imageUrl(path: string, width: ImageWidth): string {
 
 /** `srcset` value listing every width of one image. */
 export function imageSrcSet(path: string): string {
+  if (/^\/catalog\/chogan\/\d{3}$/.test(path)) return `${path}.webp`
   if (/^https?:\/\//.test(path)) return path
   if (LOCAL_SITE_IMAGE_PREFIXES[path]) {
     return IMAGE_WIDTHS.map((width) => `${imageUrl(path, width)} ${width}w`).join(', ')
