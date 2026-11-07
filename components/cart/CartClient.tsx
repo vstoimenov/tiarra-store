@@ -58,16 +58,11 @@ export function CartClient({ compact = false }: { compact?: boolean }) {
               {item.variantName && <p className={styles.variant}>{item.variantName}</p>}
               <p className={styles.price}>{formatPrice(item.unitPrice)}</p>
               <div className={styles.actions}>
-                <label>
-                  <span className="visually-hidden">Количество за {item.title}</span>
-                  <input
-                    type="number"
-                    min={1}
-                    max={99}
-                    value={item.quantity}
-                    onChange={(event) => changeQuantity(item.key, Number.parseInt(event.target.value, 10) || 1)}
-                  />
-                </label>
+                <div className={styles.quantity} role="group" aria-label={`Количество за ${item.title}`}>
+                  <button type="button" aria-label={`Намали количеството на ${item.title}`} disabled={item.quantity <= 1} onClick={() => changeQuantity(item.key, item.quantity - 1)}>−</button>
+                  <output aria-live="polite">{item.quantity}</output>
+                  <button type="button" aria-label={`Увеличи количеството на ${item.title}`} disabled={item.quantity >= 99} onClick={() => changeQuantity(item.key, item.quantity + 1)}>+</button>
+                </div>
                 <button type="button" onClick={() => remove(item.key)}>Премахни</button>
               </div>
             </div>
