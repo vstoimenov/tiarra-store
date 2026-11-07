@@ -48,6 +48,11 @@
   margin: 0 0 12px;
 }
 
+.collapsed{max-height:24em;overflow:hidden;mask-image:linear-gradient(to bottom,#000 88%,transparent)}
+.readMore{display:inline-flex;align-items:center;gap:20px;margin-top:18px;padding:12px 0;border:0;border-bottom:1px solid #b59458;background:transparent;color:#775b28;font:inherit;font-size:14px;font-weight:700;cursor:pointer;min-height:44px}
+.readMore:hover{color:#211c14;border-color:#211c14}
+.readMore:focus-visible{outline:2px solid #b59458;outline-offset:5px}
+
 .action {
   margin: 28px 0 0;
 }
