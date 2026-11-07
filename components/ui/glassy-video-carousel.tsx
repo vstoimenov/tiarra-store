@@ -1,5 +1,6 @@
 'use client'
 
+import { Play, X } from 'lucide-react'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import styles from './glassy-video-carousel.module.css'
 import interaction from './glassy-video-interaction.module.css'
@@ -11,10 +12,13 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
   const [index, setIndex] = useState(0)
   const [drag, setDrag] = useState(0)
   const [dragging, setDragging] = useState(false)
+  const [activeVideo, setActiveVideo] = useState<GlassyVideoItem | null>(null)
   const [reduced, setReduced] = useState(false)
   const [cardStep, setCardStep] = useState(280)
   const stage = useRef<HTMLDivElement>(null)
+  const playerDialog = useRef<HTMLDialogElement>(null)
   const gesture = useRef<{ x: number; y: number; horizontal: boolean } | null>(null)
+  const suppressClickUntil = useRef(0)
   const activeIndex = items.length ? wrap(index, items.length) : 0
 
   useEffect(() => {
@@ -25,10 +29,17 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
   }, [])
 
   useEffect(() => {
-    if (reduced || dragging || items.length < 2) return
+    if (reduced || dragging || activeVideo || items.length < 2) return
     const timer = window.setTimeout(() => setIndex(value => value + 1), 5000)
     return () => window.clearTimeout(timer)
-  }, [dragging, index, items.length, reduced])
+  }, [activeVideo, dragging, index, items.length, reduced])
+
+  useEffect(() => {
+    const dialog = playerDialog.current
+    if (!dialog) return
+    if (activeVideo && !dialog.open) dialog.showModal()
+    if (!activeVideo && dialog.open) dialog.close()
+  }, [activeVideo])
 
   useEffect(() => {
     const element = stage.current
@@ -66,6 +77,7 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
     const start = gesture.current; gesture.current = null
     if (start?.horizontal) {
       if (Math.abs(event.clientX - start.x) > 45) select(index + (event.clientX < start.x ? 1 : -1))
+      suppressClickUntil.current = performance.now() + 300
     }
     setDrag(0); setDragging(false)
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
@@ -82,11 +94,24 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
           <span className={styles.poster}>
             <img src={`https://i.ytimg.com/vi/${encodeURIComponent(item.youtubeId)}/hqdefault.jpg`} alt="" width={480} height={360} loading={absolute < 2 ? 'eager' : 'lazy'} draggable={false}/>
             <span className={styles.shade} style={{ opacity: Math.min(absolute, 2) * .18 }}/>
+            {selected && <span className={interaction.playBadge}><Play size={17} fill="currentColor"/> Гледай</span>}
           </span>
           <span className={styles.cardInfo}><span><strong>Реална видео обратна връзка</strong><small>{'★'.repeat(item.stars)} · Клиент на Tiarra</small></span></span>
+          <button type="button" className={interaction.hit} tabIndex={selected ? 0 : -1} aria-label={selected ? 'Пусни видео отзива' : `Избери видео отзив ${itemIndex + 1}`}
+            onClick={() => { if (performance.now() < suppressClickUntil.current) return; if (selected) setActiveVideo(item); else select(index + delta) }}/>
         </div>
       })}
     </div>
     <p className={interaction.hint}>Реални отзиви от клиенти на Tiarra</p>
+    <dialog ref={playerDialog} className={interaction.dialog} onCancel={() => setActiveVideo(null)} onClose={() => setActiveVideo(null)}
+      onClick={(event) => { if (event.target === event.currentTarget) { event.currentTarget.close(); setActiveVideo(null) } }}>
+      {activeVideo && <div className={interaction.playerCard}>
+        <header><span><b>TIARRA</b> STORIES</span><button type="button" onClick={() => { playerDialog.current?.close(); setActiveVideo(null) }} aria-label="Затвори видеото"><X size={18}/></button></header>
+        <div className={interaction.playerViewport}>
+          <iframe src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(activeVideo.youtubeId)}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&disablekb=1`} title="Видео обратна връзка от клиент на Tiarra" allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin"/>
+        </div>
+        <footer><strong>Реална видео обратна връзка</strong><span>{'★'.repeat(activeVideo.stars)} · Клиент на Tiarra</span></footer>
+      </div>}
+    </dialog>
   </div>
 }
