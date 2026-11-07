@@ -189,8 +189,10 @@ test('clicking a video thumbnail puts a privacy-friendly player in its place', a
 
   const frame = reviews.locator('iframe')
   await expect(frame).toHaveCount(1)
-  await expect(frame).toHaveAttribute('src', `https://www.youtube-nocookie.com/embed/${videos[0].youtubeId}?autoplay=1`)
-  await expect(reviews.locator('img[src^="https://i.ytimg.com/vi/"]')).toHaveCount(4)
+  await expect(frame).toHaveAttribute('src', new RegExp(`^https://www\\.youtube-nocookie\\.com/embed/${videos[0].youtubeId}\\?autoplay=1&controls=0`))
+  await expect(reviews.locator('img[src^="https://i.ytimg.com/vi/"]')).toHaveCount(3)
+  await reviews.getByRole('button', { name: 'Постави видеото на пауза' }).click()
+  await expect(reviews.getByRole('button', { name: 'Продължи видеото' })).toBeVisible()
 })
 
 test('the video stats show the counters', async ({ page }) => {
