@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mocks = vi.hoisted(() => ({ query: vi.fn(), revalidate: vi.fn() }))
+const mocks = vi.hoisted(() => ({ query: vi.fn(), revalidate: vi.fn(), revalidatePath: vi.fn() }))
 vi.mock('@/lib/db', () => ({ sql: mocks.query }))
-vi.mock('next/cache', () => ({ revalidateTag: mocks.revalidate }))
+vi.mock('next/cache', () => ({ revalidateTag: mocks.revalidate, revalidatePath: mocks.revalidatePath }))
 import { PUT } from '@/app/api/admin/appearance/route'
 
 const request = (theme: unknown, origin = 'https://shop.test') => new Request('https://shop.test/api/admin/appearance', {
@@ -21,5 +21,6 @@ describe('store theme API', () => {
     const response = await PUT(request('boost'))
     expect(await response.json()).toEqual({ theme: 'boost' })
     expect(mocks.revalidate).toHaveBeenCalledWith('site')
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/', 'layout')
   })
 })
