@@ -28,7 +28,7 @@ export default function GlassDashboard({children}:{children:ReactNode}) {
   return <div className={styles.root} style={{'--glass-alpha':opacity/100,'--glass-blur':`${blur}px`} as CSSProperties} onKeyDown={e=>{if(e.key==='Escape')setMenu(false)}}>
     <a className={styles.skip} href="#admin-content">Към съдържанието</a>
     <header className={styles.top}>
-      <Link href="/admin" className={styles.brand}><span><Layers size={20}/></span><strong>TIARRA</strong><i/><small>Работно пространство</small></Link>
+      <Link href="/admin" className={styles.brand}><span><Layers size={20}/></span><strong>TIARRA COSMETICS</strong><i/><small>Работно пространство</small></Link>
       <div className={styles.topActions}>
         <details className={styles.appearance}><summary><Settings2 size={17}/><span>Визия</span></summary><div className={styles.popover}><strong>Визия</strong><Link href="/admin/appearance" className={styles.themeLink}><Palette size={16}/> Теми на магазина <ChevronRight size={15}/></Link><hr/><small>Работно пространство</small><label>Плътност <output>{opacity}%</output><input aria-label="Плътност на панелите" type="range" min="65" max="96" value={opacity} onChange={e=>appearance(Number(e.target.value),blur)}/></label><label>Размиване <output>{blur}px</output><input aria-label="Размиване на фона" type="range" min="0" max="36" value={blur} onChange={e=>appearance(opacity,Number(e.target.value))}/></label><button type="button" onClick={()=>appearance(82,22)}>Възстанови панела</button></div></details>
         <Link href="/" target="_blank" rel="noreferrer" className={styles.visit}>Към магазина <ArrowUpRight size={17}/></Link>

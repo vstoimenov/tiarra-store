@@ -12,7 +12,7 @@ export function GlassOverview({stats,daily,recent}:{stats:OverviewStats;daily:Da
  const [period,setPeriod]=useState(7)
  const shown=daily.slice(-period),max=Math.max(1,...shown.map(d=>d.value)),sum=shown.reduce((n,d)=>n+d.value,0)
  return <>
- <header className={styles.heading}><div><p>ТВОЯТ МАГАЗИН, НА ЕДНО МЯСТО</p><h1>Добре дошъл в Tiarra<span>Един поглед. Ясна картина.</span></h1></div><Link href="/admin/products?new=1"><Plus size={16}/> Нов продукт</Link></header>
+ <header className={styles.heading}><div><p>ТВОЯТ МАГАЗИН, НА ЕДНО МЯСТО</p><h1>Добре дошъл в Tiarra Cosmetics<span>Един поглед. Ясна картина.</span></h1></div><Link href="/admin/products?new=1"><Plus size={16}/> Нов продукт</Link></header>
  <div className={styles.metrics}>
   <Link href="/admin/orders" className={styles.balance}><div><span>Стойност на поръчките днес</span><ArrowUpRight size={18}/></div><strong>{formatPrice(stats.value)}</strong><small>Без анулираните · не е получен приход</small><div className={styles.balanceBottom}><span>TIARRA COSMETICS</span><ShoppingBag size={23}/></div></Link>
   <Link href="/admin/orders" className={styles.metric}><div><i><ShoppingBag size={18}/></i><ArrowUpRight size={17}/></div><span>Поръчки днес</span><strong>{stats.today}</strong><small>{stats.new_orders} очакват преглед</small></Link>
