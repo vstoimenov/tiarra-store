@@ -17,10 +17,26 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
   const [reduced, setReduced] = useState(false)
   const [cardStep, setCardStep] = useState(280)
   const stage = useRef<HTMLDivElement>(null)
-  const videoFrame = useRef<HTMLIFrameElement>(null)
+  const videoFrame = useRef<HTMLVideoElement>(null)
+  const activeCard = useRef<HTMLDivElement>(null)
   const gesture = useRef<{ x: number; y: number; horizontal: boolean } | null>(null)
   const suppressClickUntil = useRef(0)
   const activeIndex = items.length ? wrap(index, items.length) : 0
+
+  useEffect(() => {
+    if (!activeVideo) return
+    const outside = (event: globalThis.PointerEvent) => { if (!activeCard.current?.contains(event.target as Node)) { videoFrame.current?.pause(); setPaused(true) } }
+    document.addEventListener('pointerdown', outside)
+    return () => document.removeEventListener('pointerdown', outside)
+  }, [activeVideo])
+
+  useEffect(() => {
+    const element = stage.current
+    if (!element) return
+    const observer = new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) { videoFrame.current?.pause(); setPaused(true) } }, { threshold: .2 })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const media = matchMedia('(prefers-reduced-motion: reduce)')
@@ -55,11 +71,10 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
     if (value < -items.length / 2) value += items.length
     return value
   }
-  const sendVideoCommand = (command: 'playVideo' | 'pauseVideo') => videoFrame.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: command, args: [] }), '*')
   const toggleVideo = (item: GlassyVideoItem) => {
     if (activeVideo !== item.youtubeId) { setActiveVideo(item.youtubeId); setPaused(false); return }
-    sendVideoCommand(paused ? 'playVideo' : 'pauseVideo')
-    setPaused(value => !value)
+    if (videoFrame.current?.paused) videoFrame.current.play().then(() => setPaused(false)).catch(() => setPaused(true))
+    else { videoFrame.current?.pause(); setPaused(true) }
   }
   const pointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return
@@ -90,13 +105,13 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
       {items.map((item, itemIndex) => {
         const delta = distance(itemIndex), offset = delta + drag, absolute = Math.abs(offset), selected = delta === 0
         const showingVideo = selected && activeVideo === item.youtubeId
-        return <div key={item.youtubeId} className={styles.card} data-active={selected || undefined} style={{ transform: `translate3d(${offset * cardStep}px,0,${-Math.min(absolute, 2) * 145}px) rotateY(${-Math.max(-44, Math.min(44, offset * 31))}deg) scale(${1 - Math.min(absolute, 2) * .09})`, opacity: absolute > 2.2 ? 0 : 1, zIndex: 10 - Math.round(absolute) }}>
+        return <div ref={selected ? activeCard : undefined} key={item.youtubeId} className={styles.card} data-active={selected || undefined} style={{ transform: `translate3d(${offset * cardStep}px,0,${-Math.min(absolute, 2) * 145}px) rotateY(${-Math.max(-44, Math.min(44, offset * 31))}deg) scale(${1 - Math.min(absolute, 2) * .09})`, opacity: absolute > 2.2 ? 0 : 1, zIndex: 10 - Math.round(absolute) }}>
           <span className={styles.browser}><span><i/><i/><i/></span><b>TIARRA STORIES</b></span>
           <span className={styles.poster}>
             {showingVideo ? (
-              <iframe ref={videoFrame} className={interaction.inlinePlayer} src={`https://www.youtube-nocookie.com/embed/${encodeURIComponent(item.youtubeId)}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&playsinline=1&fs=0&disablekb=1&enablejsapi=1`} title={`Видео отзив${item.name ? ` на ${item.name}` : ''}`} allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="strict-origin-when-cross-origin"/>
+              <video ref={videoFrame} className={interaction.nativePlayer} src={`/reviews/review-${item.youtubeId}.mp4`} autoPlay playsInline preload="none" onPause={() => setPaused(true)} onPlay={() => setPaused(false)}/>
             ) : (
-              <img src={`https://i.ytimg.com/vi/${encodeURIComponent(item.youtubeId)}/hqdefault.jpg`} alt="" width={480} height={360} loading={absolute < 2 ? 'eager' : 'lazy'} draggable={false}/>
+              <img src={`/reviews/review-${item.youtubeId}.jpg`} alt="" width={360} height={640} loading="lazy" draggable={false}/>
             )}
             <span className={styles.shade} style={{ opacity: showingVideo ? 0 : Math.min(absolute, 2) * .18 }}/>
             {selected && !showingVideo && <span className={styles.watch}><Play size={15} fill="currentColor"/> Гледай видеото</span>}
