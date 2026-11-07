@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
 import { getCourierOffices } from '@/lib/ordyx-offices'
@@ -63,14 +63,15 @@ export async function POST(request: Request) {
     }
     return created
     })
-    if (rows[0].is_new) {
-      try { await sql`select store.attach_order_attribution(${rows[0].order_number}, ${data.visitSessionId ?? null}, ${sql.json(data.items)})` }
-      catch (error) { console.error('Order attribution failed', error) }
-    }
-    try { await syncOrder(rows[0].order_number) }
-    catch (error) { console.error('Ordyx sync failed after order creation', error) }
-    try { await sendOrderEmails(rows[0].order_number) }
-    catch (error) { console.error('Order email queue failed', error) }
+    const orderNumber=rows[0].order_number
+    after(async () => {
+      const tasks:Promise<unknown>[] = [
+        syncOrder(orderNumber).catch(error=>console.error('Ordyx sync failed after order creation',error)),
+        sendOrderEmails(orderNumber).catch(error=>console.error('Order email queue failed',error)),
+      ]
+      if(rows[0].is_new) tasks.push(Promise.resolve(sql`select store.attach_order_attribution(${orderNumber}, ${data.visitSessionId ?? null}, ${sql.json(data.items)})`).catch(error=>console.error('Order attribution failed',error)))
+      await Promise.all(tasks)
+    })
     return NextResponse.json(
       { orderNumber: rows[0].order_number, total: rows[0].total },
       { status: rows[0].is_new ? 201 : 200 },
