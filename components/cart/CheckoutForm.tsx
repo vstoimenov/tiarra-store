@@ -6,6 +6,7 @@ import { analyticsAllowed, trackCommerce } from '@/lib/analytics'
 import { type CartItem, readCart, writeCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import styles from './CheckoutForm.module.css'
+import controls from './CheckoutControls.module.css'
 import { CourierPicker } from './CourierPicker'
 import { currentVisitSession } from '@/lib/visit-analytics'
 import { imageUrl } from '@/lib/images'
@@ -89,6 +90,18 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
     return () => controller.abort()
   }, [items, ready])
 
+  function updateItems(next: CartItem[]) {
+    setItems(next)
+    writeCart(next)
+    setQuote(null)
+    setQuoteError('')
+    requestId.current = ''
+  }
+
+  function removeItem(key: string) {
+    updateItems(items.filter(item => item.key !== key))
+  }
+
   useEffect(() => {
     function trackCheckout() {
       if (checkoutTracked.current || !quote || !analyticsAllowed()) return
@@ -104,8 +117,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
     const next = items.some(item => item.key === key)
       ? items.filter(item => item.key !== key)
       : [...items, { ...bump, key, variantId: null, variantName: null, quantity: 1, source: 'bump' as const }]
-    setItems(next)
-    writeCart(next)
+    updateItems(next)
   }
 
   function applyPromo(code: string) {
@@ -196,6 +208,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
                 {item.variantName && <span>{item.variantName}</span>}
                 <b>{formatPrice(price * item.quantity)}</b>
               </div>
+              <button type="button" className={controls.removeLine} aria-label={`Премахни ${item.title} от поръчката`} onClick={() => removeItem(item.key)}>Премахни</button>
             </div>
           })}
         </div>
