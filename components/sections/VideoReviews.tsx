@@ -79,37 +79,31 @@ const reviews = ['/reviews/review-1.mp4', '/reviews/review-2.mp4', '/reviews/rev
 function ReviewPlayer() {
   const container = useRef<HTMLDivElement>(null)
   const video = useRef<HTMLVideoElement>(null)
-  const [visible, setVisible] = useState(false)
   const [index, setIndex] = useState(0)
-  const [muted, setMuted] = useState(true)
+  const [muted, setMuted] = useState(false)
   const [playing, setPlaying] = useState(false)
   useEffect(() => {
     const node = container.current
     if (!node) return
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { threshold: .4 })
+    const observer = new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) video.current?.pause() }, { threshold: .4 })
     observer.observe(node)
     return () => observer.disconnect()
   }, [])
-  useEffect(() => {
-    const node = video.current
-    if (!node) return
-    if (visible && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) node.play().catch(() => setPlaying(false))
-    else node.pause()
-  }, [visible, index])
   useEffect(() => {
     const outside = (event: PointerEvent) => { if (!container.current?.contains(event.target as Node)) video.current?.pause() }
     document.addEventListener('pointerdown', outside)
     return () => document.removeEventListener('pointerdown', outside)
   }, [])
   return <div className={player.wrap} ref={container}>
+    <div className={player.intro}><span>TIARRA STORIES</span><h3>Истински думи.<br/><em>Истинска грижа.</em></h3><p>Най-хубавите истории са тези, които споделяте с нас.</p><div className={player.stars}>★★★★★</div><small>ОБРАТНА ВРЪЗКА ОТ НАШИТЕ КЛИЕНТИ</small></div>
     <div className={player.frame}>
-      {visible && <video key={index} ref={video} src={reviews[index]} muted={muted} playsInline preload="none" onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setIndex(current => (current + 1) % reviews.length)} />}
+      <video key={index} ref={video} poster={`/reviews/review-${index+1}.jpg`} muted={muted} playsInline preload="none" onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)} />
       <div className={player.top}>TIARRA <span> / ИСТИНСКИ ИСТОРИИ</span></div>
       <div className={player.controls}>
-        <button type="button" onClick={() => { const node = video.current; if (!node) return; if (node.paused) node.play().catch(() => {}); else node.pause() }}>{playing ? '❚❚ Пауза' : '▶ Пусни'}</button>
+        <button type="button" onClick={() => { const node = video.current; if (!node) return; if (!node.getAttribute('src')) node.src = reviews[index]; if (node.paused) node.play().catch(() => {}); else node.pause() }}>{playing ? '❚❚ Пауза' : '▶ Пусни'}</button>
         <button type="button" onClick={() => setMuted(value => !value)}>{muted ? 'Включи звук' : 'Изключи звук'}</button>
       </div>
     </div>
-    <div className={player.navigation}><button type="button" aria-label="Предишно видео" onClick={() => setIndex((index + reviews.length - 1) % reviews.length)}>←</button><span>{index + 1} / {reviews.length} · Видео отзив</span><button type="button" aria-label="Следващо видео" onClick={() => setIndex((index + 1) % reviews.length)}>→</button></div>
+    <div className={player.navigation}><button type="button" aria-label="Предишно видео" onClick={() => { setPlaying(false); setIndex((index + reviews.length - 1) % reviews.length) }}>←</button><span>{index + 1} / {reviews.length} · Видео отзив</span><button type="button" aria-label="Следващо видео" onClick={() => { setPlaying(false); setIndex((index + 1) % reviews.length) }}>→</button></div>
   </div>
 }
