@@ -1,6 +1,6 @@
 'use client'
 
-import { Pause, Play } from 'lucide-react'
+import { Play } from 'lucide-react'
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import styles from './glassy-video-carousel.module.css'
 import interaction from './glassy-video-interaction.module.css'
@@ -104,9 +104,7 @@ export function GlassyVideoCarousel({ items }: { items: GlassyVideoItem[] }) {
           <span className={styles.cardInfo}><span><strong>Реална видео обратна връзка</strong><small>{'★'.repeat(item.stars)} · Клиент на Tiarra</small></span></span>
           <button type="button" className={interaction.hit} data-video={showingVideo || undefined} tabIndex={selected ? 0 : -1} aria-current={selected ? 'true' : undefined}
             aria-label={selected ? showingVideo ? paused ? 'Продължи видеото' : 'Постави видеото на пауза' : 'Пусни видео отзива' : `Избери видео отзив ${itemIndex + 1}`}
-            onClick={() => { if (performance.now() < suppressClickUntil.current) return; if (selected) toggleVideo(item); else select(index + delta) }}>
-            {showingVideo && <span className={interaction.control}>{paused ? <Play size={22} fill="currentColor"/> : <Pause size={22} fill="currentColor"/>}</span>}
-          </button>
+            onClick={() => { if (performance.now() < suppressClickUntil.current) return; if (selected) toggleVideo(item); else select(index + delta) }}/>
         </div>
       })}
     </div>
