@@ -6,6 +6,7 @@ import { visibleSections } from '@/lib/sections/visible'
 import { getSiteDocument } from '@/lib/site/documents'
 import { brandsOf } from '@/lib/catalog/filter'
 import styles from './brands.module.css'
+import Link from 'next/link'
 
 export const metadata = pageMetadata({
   title: 'Tiarra Cosmetics | Професионална козметика за коса, лице и тяло',
@@ -25,10 +26,12 @@ export default async function HomePage() {
     getSiteDocument('settings'),
     getProductCards(),
   ])
+  const brands=brandsOf(cards)
+  const brandRows=Array.from({length:Math.ceil(brands.length/4)},(_,index)=>brands.slice(index*4,index*4+4))
 
   return <><SectionRenderer
     sections={visibleSections(process.env.CINEMATIC_HOME === '1' ? cinematicHomeV1(home) : home, new Date())}
     cards={cards}
     settings={settings}
-  /><section className={styles.brands} aria-label="Марки в Tiarra"><p>ПОДБРАНИ ЗА ТЕБ</p><h2>Брандовете, на които се доверяваме</h2><div className={styles.list}>{brandsOf(cards).map(brand => <span key={brand}>{brand}</span>)}</div></section></>
+  />{brands.length>0&&<section className={styles.brands} aria-labelledby="brands-title"><div className={styles.inner}><header className={styles.heading}><div><p>СЕЛЕКЦИЯТА НА TIARRA</p><h2 id="brands-title">Брандове с присъствие.</h2></div><span>{brands.length} марки · една селекция</span></header><div className={styles.grid}>{brandRows.map((row,index)=><div className={styles.row} key={index}>{row.map(brand=><Link href={`/store?q=${encodeURIComponent(brand)}`} key={brand} className={styles.cell}><span className={styles.wordmark}>{brand}</span><span className={styles.arrow} aria-hidden="true">↗</span></Link>)}</div>)}</div><div className={styles.bottom}><span>Открий своята грижа.</span><Link href="/store">Разгледай селекцията ↗</Link></div></div></section>}</>
 }
