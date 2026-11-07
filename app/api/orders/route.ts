@@ -5,6 +5,7 @@ import { getCourierOffices } from '@/lib/ordyx-offices'
 import { syncOrder } from '@/lib/ordyx-sync'
 import { promoCodeSchema, promoError } from '@/lib/promo'
 import { checkoutRateLimit } from '@/lib/rate-limit'
+import { sendOrderEmails } from '@/lib/order-email-queue'
 
 export const runtime = 'nodejs'
 
@@ -56,6 +57,10 @@ export async function POST(request: Request) {
         ${data.deliveryType}, ${data.officeId}, ${data.city}, ${data.postCode},
         ${data.deliveryAddress}, ${data.notes}, ${sql.json(data.items)}, ${data.promoCode})`
     if (created[0].is_new && Math.round(created[0].total * 100) !== Math.round(data.expectedTotal * 100)) throw new Error('PRICE_CHANGED')
+    if (created[0].is_new) {
+      await tx`insert into store.order_email_queue(order_id,kind) select id,'merchant' from store.orders where order_number=${created[0].order_number}::bigint on conflict(order_id,kind) do nothing`
+      if(data.email) await tx`insert into store.order_email_queue(order_id,kind) select id,'customer' from store.orders where order_number=${created[0].order_number}::bigint on conflict(order_id,kind) do nothing`
+    }
     return created
     })
     if (rows[0].is_new) {
@@ -64,6 +69,8 @@ export async function POST(request: Request) {
     }
     try { await syncOrder(rows[0].order_number) }
     catch (error) { console.error('Ordyx sync failed after order creation', error) }
+    try { await sendOrderEmails(rows[0].order_number) }
+    catch (error) { console.error('Order email queue failed', error) }
     return NextResponse.json(
       { orderNumber: rows[0].order_number, total: rows[0].total },
       { status: rows[0].is_new ? 201 : 200 },
