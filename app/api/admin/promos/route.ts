@@ -8,9 +8,9 @@ export async function PUT(request: Request) {
   const parsed = promoAdminSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Провери кода, сумите, срока и лимита.' }, { status: 400 })
   const p = parsed.data
-  await sql`insert into store.promo_codes (code,kind,value,min_subtotal,expires_at,max_uses,active)
-    values (${p.code},${p.kind},${p.value},${p.minSubtotal},${p.expiresAt},${p.maxUses},${p.active})
+  await sql`insert into store.promo_codes (code,kind,value,min_subtotal,expires_at,max_uses,active,brands)
+    values (${p.code},${p.kind},${p.value},${p.minSubtotal},${p.expiresAt},${p.maxUses},${p.active},${p.brands})
     on conflict (code) do update set kind=excluded.kind,value=excluded.value,min_subtotal=excluded.min_subtotal,
-    expires_at=excluded.expires_at,max_uses=excluded.max_uses,active=excluded.active`
+    expires_at=excluded.expires_at,max_uses=excluded.max_uses,active=excluded.active,brands=excluded.brands`
   return NextResponse.json({ promos: await getAdminPromos() })
 }
