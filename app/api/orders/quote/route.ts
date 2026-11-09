@@ -73,7 +73,7 @@ export async function POST(request: Request) {
   let discount = 0
   if (promoCode) {
     try {
-      const [result] = await sql<{ discount: number }[]>`select store.promo_discount(${promoCode}, ${subtotal})::float8 as discount`
+      const [result] = await sql<{ discount: number }[]>`select store.promo_discount_for_items(${promoCode}, ${subtotal}, ${sql.json(items)})::float8 as discount`
       discount = result.discount
     } catch (error) {
       const message = promoError(error)
