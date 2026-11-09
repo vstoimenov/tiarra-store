@@ -19,6 +19,10 @@ export function ProductDetails({
     product.brand ? ['Марка', product.brand] : null,
     ['Подходящ за', genderLabel[product.gender]],
     product.categories.length ? ['Категория', product.categories.map((category) => category.name).join(', ')] : null,
+    product.perfume?.top ? ['Връхни нотки', product.perfume.top] : null,
+    product.perfume?.heart ? ['Средни нотки', product.perfume.heart] : null,
+    product.perfume?.base ? ['Базови нотки', product.perfume.base] : null,
+    product.perfume?.aroma ? ['Аромат', product.perfume.aroma] : null,
     product.perfume?.volume ? ['Количество', product.perfume.volume] : null,
     ['Наличност', product.inStock ? 'В наличност' : 'Изчерпан'],
   ].filter((fact): fact is string[] => fact !== null)
