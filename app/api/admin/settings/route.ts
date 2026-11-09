@@ -10,7 +10,7 @@ export async function PUT(request:Request){
  const p=parsed.data
  await sql`update store.commerce_settings set google_analytics_id=${p.googleAnalyticsId},google_tag_manager_id=${p.googleTagManagerId},meta_pixel_id=${p.metaPixelId},
  free_shipping_threshold=${p.freeShippingThreshold},econt_enabled=${p.econtEnabled},econt_office_price=${p.econtOfficePrice},econt_address_price=${p.econtAddressPrice},
- speedy_enabled=${p.speedyEnabled},speedy_office_price=${p.speedyOfficePrice},speedy_address_price=${p.speedyAddressPrice},delivery_estimate=${p.deliveryEstimate},dispatch_hours=${p.dispatchHours},updated_at=now() where singleton`
+ box_now_price=${p.boxNowPrice},speedy_enabled=${p.speedyEnabled},speedy_office_price=${p.speedyOfficePrice},speedy_address_price=${p.speedyAddressPrice},delivery_estimate=${p.deliveryEstimate},dispatch_hours=${p.dispatchHours},updated_at=now() where singleton`
  revalidateTag('commerce-settings')
  return NextResponse.json({settings:await readCommerceSettings()},{headers:{'Cache-Control':'no-store'}})
 }
