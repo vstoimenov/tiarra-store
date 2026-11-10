@@ -2,6 +2,9 @@
   position: relative;
 }
 
+.motion { display: grid; place-items: center; margin: 10px auto 0; min-width: 44px; min-height: 44px; border: 1px solid #d7c9b3; border-radius: 50%; background: #fff; color: #30251d; cursor: pointer; }
+.motion:focus-visible { outline: 2px solid #a47723; outline-offset: 3px; }
+
 .track {
   display: flex;
   gap: 24px;
