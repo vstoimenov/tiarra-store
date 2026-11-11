@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const query = vi.hoisted(() => Object.assign(vi.fn(), { json: (value: unknown) => value }))
+const query = vi.hoisted(() => { const fn = Object.assign(vi.fn(), { json: (value: unknown) => value, begin: vi.fn() }); fn.begin.mockImplementation(async (callback) => callback(fn)); return fn })
 vi.mock('@/lib/db', () => ({ sql: query }))
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 
@@ -30,5 +30,11 @@ describe('product category validation', () => {
     const response = await POST(request({ ...product, hidden: true }))
     expect(response.status).toBe(201)
     expect(query).toHaveBeenCalledOnce()
+  })
+  it('reports an error when the database does not persist perfume notes', async () => {
+    query.mockResolvedValueOnce([{ id: '11111111-1111-4111-8111-111111111111', slug: 'test' }]).mockResolvedValueOnce([{ matches: false }])
+    const response = await POST(request({ ...product, hidden: true, perfume: { top: 'Бергамот' } }))
+    expect(response.status).toBe(500)
+    expect((await response.json()).error).toContain('Нотките не бяха записани')
   })
 })
