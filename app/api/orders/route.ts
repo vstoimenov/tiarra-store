@@ -16,7 +16,7 @@ const requestSchema = z.object({
   expectedTotal: z.number().finite().nonnegative(),
   customerName: z.string().trim().min(2).max(120),
   phone: z.string().trim().min(7).max(30),
-  email: z.union([z.literal(''), z.string().trim().email().max(160)]),
+  email: z.string().trim().email().max(160),
   courier: z.enum(['econt', 'speedy']),
   officeId: z.string().min(1).max(120).nullable(),
   officeToken: z.string().max(4000).optional().default(''),

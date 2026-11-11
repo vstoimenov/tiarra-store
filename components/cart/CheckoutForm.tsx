@@ -179,7 +179,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
     <><div className={styles.intro}><span>TIARRA COSMETICS / CHECKOUT</span><h1>Завърши поръчката</h1><p>Избери удобна доставка. Плати при получаване.</p></div><form className={styles.form} onSubmit={submit}>
       <div className={styles.fields}>
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>01</span><div><h2>Контакт</h2><p>За да потвърдим поръчката ти</p></div></div><div className={styles.fieldGrid}>
-          <label className={styles.full}>Имейл <span>(по желание)</span><input name="email" type="email" autoComplete="email" placeholder="Име@пример.бг" /></label>
+          <label className={styles.full}>Имейл<input name="email" type="email" autoComplete="email" required maxLength={160} placeholder="Име@пример.бг" /></label>
           <label>Име и фамилия<input name="customerName" autoComplete="name" required minLength={2} placeholder="Твоето име" /></label>
           <label>Телефон<input name="phone" type="tel" autoComplete="tel" required minLength={7} placeholder="+359 ..." /></label>
         </div></section>
