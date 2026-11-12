@@ -1,3 +1,4 @@
+import { splitProductDescription } from '@/lib/catalog/split-description'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
@@ -86,7 +87,7 @@ export default async function ProductPage({ params }: Params) {
       <div className={styles.details}>
         <ProductDetails
           product={product}
-          description={product.descriptionHtml.trim() ? <Description html={product.descriptionHtml} /> : undefined}
+          description={product.descriptionHtml.trim() ? <Description html={splitProductDescription(product.descriptionHtml, product.title)} /> : undefined}
           perfume={pyramidNotes(product.perfume) ? <PerfumePyramid perfume={product.perfume} /> : undefined}
           delivery={<TrustBlock
             freeShippingThreshold={commerce.freeShippingThreshold}
