@@ -34,6 +34,7 @@ export async function POST(request: Request) {
   const { courier,deliveryType, items, promoCode } = parsed.data
   if(courier==='boxnow' && deliveryType!=='automat')return NextResponse.json({error:'BOX NOW доставя до автомат.'},{status:400})
   const settings=await getCommerceSettings()
+  if(deliveryType==='address' && ((courier==='econt'&&!settings.econtAddressEnabled)||(courier==='speedy'&&!settings.speedyAddressEnabled)))return NextResponse.json({error:'Доставката до адрес не е достъпна.'},{status:422})
   if((courier==='econt'&&!settings.econtEnabled)||(courier==='speedy'&&!settings.speedyEnabled)||(courier==='boxnow'&&!settings.boxnowEnabled))return NextResponse.json({error:'Избраният куриер временно не е достъпен.'},{status:422})
 
   const rows = await sql<QuoteRow[]>`
