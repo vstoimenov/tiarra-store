@@ -10,7 +10,7 @@ export const runtime = 'nodejs'
 
 const schema = z.object({
   promoCode: promoCodeSchema,
-  courier: z.enum(['econt', 'speedy']),
+  courier: z.enum(['econt', 'speedy', 'boxnow']),
   deliveryType:z.enum(['office','automat','address']).default('office'),
   items: z.array(z.object({
     productId: z.string().uuid(),
@@ -32,8 +32,9 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Невалидна количка.' }, { status: 400 })
   const { courier,deliveryType, items, promoCode } = parsed.data
+  if(courier==='boxnow' && deliveryType!=='automat')return NextResponse.json({error:'BOX NOW доставя до автомат.'},{status:400})
   const settings=await getCommerceSettings()
-  if((courier==='econt'&&!settings.econtEnabled)||(courier==='speedy'&&!settings.speedyEnabled))return NextResponse.json({error:'Избраният куриер временно не е достъпен.'},{status:422})
+  if((courier==='econt'&&!settings.econtEnabled)||(courier==='speedy'&&!settings.speedyEnabled)||(courier==='boxnow'&&!settings.boxnowEnabled))return NextResponse.json({error:'Избраният куриер временно не е достъпен.'},{status:422})
 
   const rows = await sql<QuoteRow[]>`
     with requested as (

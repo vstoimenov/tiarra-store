@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Archivo, Manrope } from 'next/font/google'
+import localFont from 'next/font/local'
 import type { ReactNode } from 'react'
 import { StorefrontChrome } from '@/components/layout/StorefrontChrome'
 import { VisitTracker } from '@/components/analytics/VisitTracker'
@@ -13,24 +13,21 @@ import { getSiteDocument } from '@/lib/site/documents'
 import { getCommerceSettings } from '@/lib/commerce-settings'
 import './globals.css'
 
-// Body text. Latin and Cyrillic are both on Manrope.
-const manrope = Manrope({
-  subsets: ['latin', 'cyrillic'],
-  weight: ['400', '600', '700'],
-  display: 'swap',
-  variable: '--font-body',
+// Local font files make builds independent of Google Fonts availability.
+const manrope = localFont({
+  src: [
+    { path: './fonts/manrope-400.ttf', weight: '400', style: 'normal' },
+    { path: './fonts/manrope-600.ttf', weight: '600', style: 'normal' },
+    { path: './fonts/manrope-700.ttf', weight: '700', style: 'normal' },
+  ],
+  display: 'swap', variable: '--font-body',
 })
-
-// Display type and buttons. Archivo has no Cyrillic, so Cyrillic headings fall back to the
-// generic sans-serif, exactly as on the live site; `adjustFontFallback: false` keeps Next from
-// inserting its size-adjusted Arial in front of that fallback.
-const archivo = Archivo({
-  subsets: ['latin'],
-  style: ['italic'],
-  weight: ['800', '900'],
-  display: 'swap',
-  variable: '--font-display',
-  adjustFontFallback: false,
+const archivo = localFont({
+  src: [
+    { path: './fonts/archivo-800.ttf', weight: '800', style: 'italic' },
+    { path: './fonts/archivo-900.ttf', weight: '900', style: 'italic' },
+  ],
+  display: 'swap', variable: '--font-display', adjustFontFallback: false,
 })
 
 export const metadata: Metadata = {

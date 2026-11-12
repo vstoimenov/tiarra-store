@@ -1,7 +1,7 @@
 import { sql } from '@/lib/db'
 import { getCourierOffices } from '@/lib/ordyx-offices'
 
-type Order = { id: string; order_number: string; customer_name: string; phone: string; email: string | null; courier: 'econt' | 'speedy'; delivery_type: 'office' | 'automat' | 'address' | null; office_id: string | null; city: string | null; post_code: string | null; delivery_address: string; total: number }
+type Order = { id: string; order_number: string; customer_name: string; phone: string; email: string | null; courier: 'econt' | 'speedy' | 'boxnow'; delivery_type: 'office' | 'automat' | 'address' | null; office_id: string | null; city: string | null; post_code: string | null; delivery_address: string; total: number }
 type Item = { title: string; variant_name: string | null; unit_price: number; quantity: number }
 
 export async function syncOrder(orderNumber: string): Promise<boolean> {
@@ -27,8 +27,8 @@ export async function syncOrder(orderNumber: string): Promise<boolean> {
   const payload = {
     source: 'api', external_id: `tiarra-${order.order_number}`,
     name: order.customer_name, phone: order.phone, email: order.email || '',
-    delivery_type: `${order.courier}_${order.delivery_type === 'address' ? 'address' : 'office'}`, office_id: office?.id ?? '',
-    office_text: office ? `${office.city}, ${office.name}, ${office.address}` : `${order.courier.toUpperCase()} – адрес: ${order.delivery_address}`,
+    delivery_type: order.courier === 'boxnow' ? 'boxnow_locker' : `${order.courier}_${order.delivery_type === 'address' ? 'address' : 'office'}`, office_id: office?.id ?? '',
+    office_text: office ? order.courier === 'boxnow' ? `BOX NOW – автомат ${office.name}, ${office.address}` : `${office.city}, ${office.name}, ${office.address}` : `${order.courier.toUpperCase()} – адрес: ${order.delivery_address}`,
     city: office?.city ?? order.city ?? '', post_code: office?.postCode ?? order.post_code ?? '', address_text: order.delivery_type === 'address' ? order.delivery_address : '',
     items: items.map(item => ({ name: item.variant_name ? `${item.title} — ${item.variant_name}` : item.title, qty: item.quantity, price: item.unit_price, sku: '' })),
     total: order.total, currency: 'EUR', paid: false, payment_method: 'cod', page_url: process.env.SITE_URL || 'https://tiarracosmetics.com',
