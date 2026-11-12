@@ -11,6 +11,7 @@ import { Hero } from './Hero'
 import { ImageText } from './ImageText'
 import { Offer } from './Offer'
 import { ProductsSection } from './ProductsSection'
+import { KitsCollection } from './KitsCollection'
 import { RatingStrip } from './RatingStrip'
 import styles from './SectionRenderer.module.css'
 import { VideoReviews } from './VideoReviews'
@@ -39,6 +40,7 @@ function renderSection(section: Section, { cards, settings }: Pick<Props, 'cards
     case 'rating':
       return <RatingStrip section={section} />
     case 'products':
+      if (section.id === 'kits') return <KitsCollection section={section} cards={cardsForSection(section.data, cards)} />
       return <ProductsSection section={section} cards={cardsForSection(section.data, cards)} layout={layout} />
     case 'offer':
       return <Offer section={section} />
@@ -73,7 +75,10 @@ export function SectionRenderer({ sections, cards, settings }: Props) {
     const section = sections[i]
     const next = sections[i + 1]
 
-    if (section.type === 'offer' && next?.type === 'products') {
+    if (section.id === 'offer' && section.type === 'offer' && next?.id === 'kits' && next.type === 'products') {
+      rendered.push(<Fragment key={next.id}>{renderSection(next, context)}</Fragment>)
+      i++
+    } else if (section.type === 'offer' && next?.type === 'products') {
       rendered.push(
         <div key={section.id} className={styles.campaign}>
           {renderSection(section, context)}
