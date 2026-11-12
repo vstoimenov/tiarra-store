@@ -1,7 +1,7 @@
 import type { Perfume } from '@/lib/catalog/types'
 import { sql } from '@/lib/db'
 export type AdminImage={id?:string;path:string;alt:string;width:number;height:number}
-export type AdminProduct={id:string;title:string;slug:string;brand:string|null;gender:'female'|'male'|'unisex';price:number;compareAtPrice:number|null;stock:number|null;descriptionHtml:string;perfume:Perfume|null;hidden:boolean;updatedAt:string;categoryIds:string[];images:AdminImage[];variants:{id:string;name:string;price:number;compareAtPrice:number|null}[]}
+export type AdminProduct={id:string;title:string;slug:string;brand:string|null;gender:'female'|'male'|'unisex';price:number;compareAtPrice:number|null;stock:number|null;descriptionHtml:string;perfume:Perfume|null;hidden:boolean;updatedAt:string;categoryIds:string[];images:AdminImage[];variants:{id:string;name:string;price:number;compareAtPrice:number|null;stock?:number|null}[]}
 export type AdminCategory={id:string;name:string}
 export async function getAdminCategories():Promise<AdminCategory[]>{return sql<AdminCategory[]>`select id,name from store.categories order by position,legacy_id nulls last,name`}
 export async function getAdminProducts():Promise<AdminProduct[]>{
