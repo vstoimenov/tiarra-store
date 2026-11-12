@@ -1,4 +1,5 @@
 import { splitProductDescription } from '@/lib/catalog/split-description'
+import { decodeProductSlug } from '@/lib/catalog/slug'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
@@ -32,10 +33,11 @@ export async function generateStaticParams() {
 // Metadata and page both need the product; `cache` makes that one query per request.
 const getProduct = cache(getProductBySlug)
 
+
 type Params = { params: Promise<{ slug: string }> }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const product = await getProduct((await params).slug)
+  const product = await getProduct(decodeProductSlug((await params).slug))
   if (!product) return {}
 
   const url = `${siteUrl()}/store/${encodeURIComponent(product.slug)}`
@@ -66,7 +68,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Params) {
-  const product = await getProduct((await params).slug)
+  const product = await getProduct(decodeProductSlug((await params).slug))
   if (!product) notFound()
 
   const [related, settings, bump,commerce] = await Promise.all([
