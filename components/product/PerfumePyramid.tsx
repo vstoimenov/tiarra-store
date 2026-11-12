@@ -2,8 +2,7 @@ import type { Perfume } from '@/lib/catalog/types'
 import styles from './PerfumePyramid.module.css'
 
 // Port of tiarra-sections/07-product-perfume.html. The notes come from the product's `perfume`
-// field (filled at import from the description); the block shows only when at least two of the
-// three are there.
+// field (filled by import or in the admin panel); only the available notes are shown.
 
 const GOLD = '#E5A72E'
 const DARK = '#2E2720'
@@ -69,11 +68,11 @@ function Triangle({ active }: { active: number }) {
   )
 }
 
-/** The notes the product has, or `null` when fewer than two of the three are given. */
+/** The notes the product has, or `null` if none are given. */
 export function pyramidNotes(perfume: Perfume | null): { note: (typeof NOTES)[number]; text: string }[] | null {
   if (!perfume) return null
   const given = NOTES.flatMap((note) => (perfume[note.key] ? [{ note, text: perfume[note.key]! }] : []))
-  return given.length >= 2 ? given : null
+  return given.length > 0 ? given : null
 }
 
 export function PerfumePyramid({ perfume }: { perfume: Perfume | null }) {
