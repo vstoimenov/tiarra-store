@@ -115,9 +115,9 @@ describe('BuyBox', () => {
 describe('PerfumePyramid', () => {
   const full = { top: 'Бергамот', heart: 'Роза', base: 'Мускус' }
 
-  it('renders only when at least two of top, heart and base are given', () => {
+  it('renders when at least one fragrance note is given', () => {
     expect(html(createElement(PerfumePyramid, { perfume: null }))).toBe('')
-    expect(html(createElement(PerfumePyramid, { perfume: { top: 'Бергамот' } }))).toBe('')
+    expect(html(createElement(PerfumePyramid, { perfume: { top: 'Бергамот' } }))).toContain('Бергамот')
     expect(html(createElement(PerfumePyramid, { perfume: { aroma: 'Роза', volume: '50 мл' } }))).toBe('')
     expect(html(createElement(PerfumePyramid, { perfume: { top: 'Бергамот', base: 'Мускус' } }))).toContain('Ароматна пирамида')
   })
@@ -167,7 +167,7 @@ describe('TrustBlock', () => {
 })
 
 describe('ProductDetails', () => {
-  it('keeps the description visible and places characteristics in accessible dropdowns', () => {
+  it('keeps the description and fragrance graphic visible', () => {
     const markup = html(createElement(ProductDetails, {
       product: yodeyma,
       description: createElement('p', null, 'Описание на продукта'),
@@ -176,8 +176,9 @@ describe('ProductDetails', () => {
     }))
 
     expect(markup).toContain('<details')
-    expect(markup).toContain('<summary><span>Характеристики</span>')
-    expect(markup).toContain('<summary><span>Аромат и нотки</span>')
+    expect(markup).toContain('<summary><span>Основни данни</span>')
+    expect(markup).not.toContain('<summary><span>Аромат и нотки</span>')
+    expect(markup).toContain('Ароматни нотки')
     expect(markup).toContain('Описание на продукта')
     expect(markup).toContain('В наличност')
   })

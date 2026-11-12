@@ -19,9 +19,6 @@ export function ProductDetails({
     product.brand ? ['Марка', product.brand] : null,
     ['Подходящ за', genderLabel[product.gender]],
     product.categories.length ? ['Категория', product.categories.map((category) => category.name).join(', ')] : null,
-    product.perfume?.top ? ['Връхни нотки', product.perfume.top] : null,
-    product.perfume?.heart ? ['Средни нотки', product.perfume.heart] : null,
-    product.perfume?.base ? ['Базови нотки', product.perfume.base] : null,
     product.perfume?.aroma ? ['Аромат', product.perfume.aroma] : null,
     product.perfume?.volume ? ['Количество', product.perfume.volume] : null,
     ['Наличност', product.inStock ? 'В наличност' : 'Изчерпан'],
@@ -40,7 +37,7 @@ export function ProductDetails({
       ) : null}
 
       <details className={styles.item}>
-        <summary><span>Характеристики</span><span className={styles.plus} aria-hidden="true" /></summary>
+        <summary><span>Основни данни</span><span className={styles.plus} aria-hidden="true" /></summary>
         <div className={styles.content}>
           <dl className={styles.facts}>
             {facts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
@@ -49,10 +46,7 @@ export function ProductDetails({
       </details>
 
       {perfume ? (
-        <details className={styles.item}>
-          <summary><span>Аромат и нотки</span><span className={styles.plus} aria-hidden="true" /></summary>
-          <div className={`${styles.content} ${styles.perfume}`}>{perfume}</div>
-        </details>
+        <div className={styles.fragrance}>{perfume}</div>
       ) : null}
 
       <section className={styles.item} aria-labelledby="delivery-heading">
