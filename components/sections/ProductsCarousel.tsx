@@ -22,7 +22,6 @@ export function ProductsCarousel({
   const track = useRef<HTMLUListElement>(null)
   const [atStart, setAtStart] = useState(false)
   const [atEnd, setAtEnd] = useState(false)
-  const [paused, setPaused] = useState(false)
   const [inView, setInView] = useState(false)
   const [interacting, setInteracting] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
@@ -66,7 +65,7 @@ export function ProductsCarousel({
   }, [])
 
   useEffect(() => {
-    if (paused || interacting || reducedMotion || !inView) return
+    if (interacting || reducedMotion || !inView) return
     const timer = window.setInterval(() => {
       const el = track.current
       if (!el || document.hidden || el.scrollWidth <= el.clientWidth + 2) return
@@ -80,7 +79,7 @@ export function ProductsCarousel({
       }
     }, 5000)
     return () => window.clearInterval(timer)
-  }, [paused, interacting, reducedMotion, inView, hasMore, onLoadMore])
+  }, [interacting, reducedMotion, inView, hasMore, onLoadMore])
 
   function scroll(direction: 1 | -1) {
     const el = track.current
@@ -95,7 +94,7 @@ export function ProductsCarousel({
   }
 
   return (
-    <div className={styles.carousel} onPointerEnter={(event) => { if (event.pointerType === 'mouse') setInteracting(true) }} onPointerLeave={() => setInteracting(false)} onFocusCapture={() => setInteracting(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setInteracting(false) }} onTouchStart={() => setPaused(true)}>
+    <div className={styles.carousel} onPointerEnter={(event) => { if (event.pointerType === 'mouse') setInteracting(true) }} onPointerLeave={() => setInteracting(false)} onFocusCapture={() => setInteracting(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setInteracting(false) }} onTouchStart={() => setInteracting(true)} onTouchEnd={() => setInteracting(false)} onTouchCancel={() => setInteracting(false)}>
       <button type="button" className={`${styles.arrow} ${styles.prev}`} aria-label="Назад" disabled={atStart} onClick={() => scroll(-1)}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="m15 5-7 7 7 7" />
@@ -109,7 +108,6 @@ export function ProductsCarousel({
           <path d="m9 5 7 7-7 7" />
         </svg>
       </button>
-      {!reducedMotion && <button type="button" className={styles.motion} aria-label={paused ? 'Пусни автоматичното движение' : 'Спри автоматичното движение'} aria-pressed={paused} onClick={() => setPaused(value => !value)}>{paused ? '▶' : 'Ⅱ'}</button>}
     </div>
   )
 }
