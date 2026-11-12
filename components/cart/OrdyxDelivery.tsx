@@ -17,7 +17,7 @@ export function OrdyxDelivery({ settings, freeShipping, onDelivery }: { settings
   callback.current = onDelivery
   const [ready, setReady] = useState(false)
   const [failed, setFailed] = useState(false)
-  const types = useMemo(() => [...(settings.econtEnabled ? ['econt_office', 'econt_address'] : []), ...(settings.speedyEnabled ? ['speedy_office', 'speedy_address'] : []), ...(settings.boxnowEnabled ? ['boxnow_locker'] : [])], [settings.econtEnabled, settings.speedyEnabled, settings.boxnowEnabled])
+  const types = useMemo(() => [...(settings.econtEnabled ? ['econt_office', ...(settings.econtAddressEnabled ? ['econt_address'] : [])] : []), ...(settings.speedyEnabled ? ['speedy_office', ...(settings.speedyAddressEnabled ? ['speedy_address'] : [])] : []), ...(settings.boxnowEnabled ? ['boxnow_locker'] : [])], [settings.econtEnabled, settings.speedyEnabled, settings.boxnowEnabled, settings.econtAddressEnabled, settings.speedyAddressEnabled])
   const prices = useMemo(() => {
     const display = (amount: number) => freeShipping ? 'Безплатна' : formatPrice(amount)
     return { econt_office: display(settings.econtOfficePrice), econt_address: display(settings.econtAddressPrice), speedy_office: display(settings.speedyOfficePrice), speedy_address: display(settings.speedyAddressPrice), boxnow_locker: display(settings.boxnowPrice) }

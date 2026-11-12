@@ -26,6 +26,9 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
   const [items, setItems] = useState<CartItem[]>([])
   const [summaryOpen, setSummaryOpen] = useState(false)
   const [ready, setReady] = useState(false)
+  const [step, setStep] = useState<1 | 2 | 3>(1)
+  const contactSection = useRef<HTMLElement>(null)
+  const [stepError, setStepError] = useState('')
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
   const [orderNumber, setOrderNumber] = useState('')
@@ -132,8 +135,21 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
     setPromoCode(normalized)
   }
 
+  function nextContact() {
+    const inputs = contactSection.current?.querySelectorAll<HTMLInputElement>('input[required]') ?? []
+    for (const input of inputs) {
+      if (!input.value.trim() || !input.checkValidity()) { input.reportValidity(); input.focus(); setStepError('Попълни валидни име, имейл и телефон.'); return }
+    }
+    setStepError(''); setStep(2)
+  }
+  function nextDelivery() {
+    if (!delivery || delivery.error || !delivery.type) { setStepError(delivery?.error || 'Избери начин на доставка.'); return }
+    setStepError(''); setStep(3)
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (step !== 3) { if (step === 1) nextContact(); else nextDelivery(); return }
     if (pending || quotePending || !quote || quote.promoCode !== promoCode) return
     if (!delivery || delivery.error || !delivery.type) { setError(delivery?.error || 'Избери начин на доставка.'); return }
     setPending(true)
@@ -180,14 +196,15 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
   return (
     <><div className={styles.intro}><span>TIARRA COSMETICS / CHECKOUT</span><h1>Завърши поръчката</h1><p>Избери удобна доставка. Плати при получаване.</p></div><form className={styles.form} onSubmit={submit}>
       <div className={styles.fields}>
-        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>01</span><div><h2>Контакт</h2><p>За да потвърдим поръчката ти</p></div></div><div className={styles.fieldGrid}>
+        <nav className={controls.progress} aria-label="Стъпки на поръчката">{(['Контакт','Доставка','Плащане'] as const).map((label,index)=><span key={label} aria-current={step===index+1?'step':undefined}>{index+1}. {label}</span>)}</nav>
+        <section ref={contactSection} hidden={step!==1} className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>01</span><div><h2>Контакт</h2><p>За да потвърдим поръчката ти</p></div></div><div className={styles.fieldGrid}>
           <label className={styles.full}>Имейл<input name="email" type="email" autoComplete="email" required maxLength={160} placeholder="Име@пример.бг" /></label>
           <label>Име и фамилия<input name="customerName" autoComplete="name" required minLength={2} placeholder="Твоето име" /></label>
           <label>Телефон<input name="phone" type="tel" autoComplete="tel" required minLength={7} placeholder="+359 ..." /></label>
-        </div></section>
-        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><OrdyxDelivery settings={settings} freeShipping={subtotal >= settings.freeShippingThreshold} onDelivery={value=>{setDelivery(value);if(value.type){const next=value.type.split('_')[0];if(next==='econt'||next==='speedy'||next==='boxnow'){setCourier(next);setDeliveryType(value.type==='boxnow_locker'?'automat':value.type.endsWith('_address')?'address':'office')}}}} /></section>
-        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>03</span><div><h2>Плащане</h2><p>Плащаш при получаване</p></div></div><div className={styles.payment}>◉ &nbsp; Наложен платеж <span>Сигурно и удобно</span></div><label className={styles.notes}>Бележка <span>(по желание)</span><textarea name="notes" rows={2} placeholder="Нещо, което трябва да знаем?" /></label></section>
-
+        </div><button type="button" className={controls.stepButton} onClick={nextContact}>Продължи към доставка →</button></section>
+        <section hidden={step!==2} className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><OrdyxDelivery settings={settings} freeShipping={subtotal >= settings.freeShippingThreshold} onDelivery={value=>{setDelivery(value);if(value.type){const next=value.type.split('_')[0];if(next==='econt'||next==='speedy'||next==='boxnow'){setCourier(next);setDeliveryType(value.type==='boxnow_locker'?'automat':value.type.endsWith('_address')?'address':'office')}}}} /><div className={controls.stepActions}><button type="button" onClick={()=>{setStepError('');setStep(1)}}>← Назад</button><button type="button" onClick={nextDelivery}>Продължи към плащане →</button></div></section>
+        <section hidden={step!==3} className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>03</span><div><h2>Плащане</h2><p>Плащаш при получаване</p></div></div><div className={styles.payment}>◉ &nbsp; Наложен платеж <span>Сигурно и удобно</span></div><p className={controls.inspection}>Всяка доставка е с опция за преглед при получаване.</p><label className={styles.notes}>Бележка <span>(по желание)</span><textarea name="notes" rows={2} placeholder="Нещо, което трябва да знаем?" /></label><div className={controls.stepActions}><button type="button" onClick={()=>{setStepError('');setStep(2)}}>← Обратно към доставка</button></div></section>
+        {stepError && <p className={controls.stepError} role="alert">{stepError}</p>}
       </div>
       <aside className={styles.summary} aria-labelledby="order-summary-title">
         <div className={styles.summaryTop}>
@@ -246,7 +263,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
         {quoteError && <p role="alert" className={styles.error}>{quoteError}</p>}
         {error && <p role="alert" className={styles.error}>{error}</p>}
         <p className={styles.orderNotice}>С натискането на „Потвърди поръчката“ приемаш <Link href="/obshti-usloviya" target="_blank" rel="noopener noreferrer">общите условия</Link>. Информация за обработката на личните данни ще намериш в <Link href="/poveritelnost" target="_blank" rel="noopener noreferrer">политиката за поверителност</Link>.</p>
-        <button className={styles.submit} type="submit" disabled={pending || quotePending || !quote}>
+        <button className={styles.submit} type="submit" hidden={step!==3} disabled={step!==3 || pending || quotePending || !quote}>
           <span>{pending ? 'Изпращане…' : 'Потвърди поръчката'}</span><span aria-hidden="true">→</span>
         </button>
         <div className={styles.safe}><span>Преглед при доставка</span><span>Плащаш при получаване</span></div>
