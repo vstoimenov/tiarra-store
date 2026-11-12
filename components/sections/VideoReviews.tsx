@@ -5,6 +5,13 @@ import type { SectionOf } from '@/lib/sections/schema'
 import { GlassyVideoCarousel } from '@/components/ui/glassy-video-carousel'
 import styles from './VideoReviews.module.css'
 
+const testimonials = [
+  'Топ е. Ползвам си го всеки ден.',
+  'Парфюмчето гърми. Вчера цял ден няма грешка.',
+  'Иначе жената много го хареса. Бил унисекс и тоя кокос и ванилика ще ѝ отивали на нея повече.',
+  'Много яки. Страхотни аромати!!! УНИКАЛНИ!!!',
+]
+
 /** `290+` becomes the number and a smaller `+` after it, as on the live page. */
 function splitSuffix(value: string): [string, string] {
   return value.endsWith('+') ? [value.slice(0, -1), '+'] : [value, '']
@@ -59,6 +66,21 @@ export function VideoReviews({ section }: { section: SectionOf<'videoReviews'> }
         <div><p>Виж какво споделят клиентите на Tiarra.</p></div>
       </header>
       <GlassyVideoCarousel items={[1,2,3].map(number => ({youtubeId:String(number),name:'',stars:5}))} />
+      <div className={styles.testimonials}>
+        <div className={styles.testimonialsHeading}>
+          <h2>Думи от нашите клиенти</h2>
+          <p>Споделено с нас</p>
+        </div>
+        <ul className={styles.testimonialList} aria-label="Отзиви от клиенти">
+          {testimonials.map((quote) => (
+            <li className={styles.testimonial} key={quote}>
+              <span className={styles.quoteMark} aria-hidden="true">“</span>
+              <blockquote>{quote}</blockquote>
+              <span className={styles.testimonialLabel}>Отзив от клиент</span>
+            </li>
+          ))}
+        </ul>
+      </div>
       {stats.length > 0 && (
         <ul className={styles.stats}>
           {stats.map((stat) => {
