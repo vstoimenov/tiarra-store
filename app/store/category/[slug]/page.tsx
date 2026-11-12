@@ -6,7 +6,7 @@ import { getCategories, getCategoryBySlug, getProductCards } from '@/lib/catalog
 import { pageMetadata } from '@/lib/seo/page-metadata'
 
 // Only the categories that exist are pages; anything else is a 404 and never reaches the database.
-export const dynamicParams = false
+export const dynamicParams = true
 
 // Cyrillic slugs go in as they are stored. A request carries them percent-encoded, so the
 // params of a request are decoded (see `slugOf`) before they are looked up.
