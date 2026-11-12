@@ -3,14 +3,14 @@ import { sql } from '@/lib/db'
 export type OrderStatus = 'new' | 'confirmed' | 'sent' | 'completed' | 'cancelled'
 export interface AdminOrder {
   promoCode: string | null; discountAmount: number; orderNumber: string; status: OrderStatus; customerName: string; phone: string; email: string | null
-  courier: 'econt' | 'speedy'; deliveryAddress: string; total: number; createdAt: string
+  courier: 'econt' | 'speedy' | 'boxnow'; deliveryAddress: string; total: number; createdAt: string
   ordyxStatus: string; ordyxError: string | null
   internalNotes: string; trackingNumber: string; trackingUrl: string
   items: { title: string; variantName: string | null; quantity: number; unitPrice: number }[]
 }
 
 export async function getAdminOrders(): Promise<AdminOrder[]> {
-  const rows = await sql<{ promo_code: string | null; discount_amount: number; order_number: string; status: OrderStatus; customer_name: string; phone: string; email: string | null; courier: 'econt' | 'speedy'; delivery_address: string; total: number; created_at: string; ordyx_status: string; ordyx_error: string | null; internal_notes: string; tracking_number: string | null; tracking_url: string | null; items: AdminOrder['items'] }[]>`
+  const rows = await sql<{ promo_code: string | null; discount_amount: number; order_number: string; status: OrderStatus; customer_name: string; phone: string; email: string | null; courier: 'econt' | 'speedy' | 'boxnow'; delivery_address: string; total: number; created_at: string; ordyx_status: string; ordyx_error: string | null; internal_notes: string; tracking_number: string | null; tracking_url: string | null; items: AdminOrder['items'] }[]>`
     select o.promo_code,o.discount_amount::float8 as discount_amount,o.order_number, o.status, o.customer_name, o.phone, o.email, o.courier,
       o.delivery_address, o.total::float8 as total, o.created_at, o.internal_notes, o.tracking_number, o.tracking_url,
       case when o.status = 'cancelled' then o.ordyx_cancel_status else o.ordyx_sync_status end as ordyx_status,

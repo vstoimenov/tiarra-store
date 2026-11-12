@@ -7,7 +7,7 @@ import { type CartItem, readCart, writeCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import styles from './CheckoutForm.module.css'
 import controls from './CheckoutControls.module.css'
-import { CourierPicker } from './CourierPicker'
+import { OrdyxDelivery, type DeliverySelection } from './OrdyxDelivery'
 import { currentVisitSession } from '@/lib/visit-analytics'
 import { imageUrl } from '@/lib/images'
 import { courierPrice,type CommerceSettings } from '@/lib/commerce-settings-schema'
@@ -39,8 +39,9 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
   const [bumps, setBumps] = useState<Bump[]>([])
   const requestId = useRef('')
   const checkoutTracked = useRef(false)
-  const [courier, setCourier] = useState<'econt' | 'speedy'>(settings.econtEnabled?'econt':'speedy')
-  const [deliveryType,setDeliveryType]=useState<'office'|'automat'|'address'>('office')
+  const [courier, setCourier] = useState<'econt' | 'speedy' | 'boxnow'>(settings.econtEnabled?'econt':settings.speedyEnabled?'speedy':'boxnow')
+  const [delivery, setDelivery] = useState<DeliverySelection | null>(null)
+  const [deliveryType,setDeliveryType]=useState<'office'|'automat'|'address'>(settings.econtEnabled || settings.speedyEnabled ? 'office' : 'automat')
   const localSubtotal = useMemo(() => items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [items])
   const subtotal = quote?.subtotal ?? localSubtotal
   const shipping = quote?.shipping ?? (subtotal >= settings.freeShippingThreshold ? 0 : courierPrice(settings,courier,deliveryType))
@@ -134,6 +135,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (pending || quotePending || !quote || quote.promoCode !== promoCode) return
+    if (!delivery || delivery.error || !delivery.type) { setError(delivery?.error || 'Избери начин на доставка.'); return }
     setPending(true)
     setError('')
     const data = new FormData(event.currentTarget)
@@ -145,7 +147,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
         body: JSON.stringify({
           requestId: requestId.current, expectedTotal:quote.total, promoCode, visitSessionId: currentVisitSession(),
           customerName: data.get('customerName'), phone: data.get('phone'), email: data.get('email'),
-          courier: data.get('courier'), officeId: data.get('officeId') || null, officeToken: data.get('officeToken') || '', deliveryType: data.get('deliveryType'), city: data.get('city') || '', postCode: data.get('postCode') || '', deliveryAddress: data.get('deliveryAddress'), notes: data.get('notes'),
+          courier, officeId: delivery.officeId || null, deliveryType, city: delivery.city, postCode: delivery.postCode, deliveryAddress: deliveryType === 'address' ? delivery.addressText : delivery.officeText, notes: data.get('notes'),
           items: items.map(({ productId, variantId, quantity, source }) => ({ productId, variantId, quantity, source })),
         }),
       })
@@ -160,8 +162,8 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
         window.localStorage.setItem(purchaseKey, '1')
       }
       } catch { /* The order is already committed. */ }
-      const delivery=deliveryType==='address'?[data.get('city'),data.get('postCode'),data.get('deliveryAddress')].filter(Boolean).join(', '):String(data.get('deliveryAddress')??'')
-      setConfirmation({number:result.orderNumber,total:result.total??quote.total,courier:String(data.get('courier')??courier),delivery,items:[...items]})
+      const deliveryText=deliveryType==='address'?[delivery.city,delivery.postCode,delivery.addressText].filter(Boolean).join(', '):delivery.officeText
+      setConfirmation({number:result.orderNumber,total:result.total??quote.total,courier,delivery:deliveryText,items:[...items]})
       try { writeCart([]) } catch { /* Keep showing the successful order. */ }
       setItems([])
       setOrderNumber(result.orderNumber)
@@ -183,7 +185,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
           <label>Име и фамилия<input name="customerName" autoComplete="name" required minLength={2} placeholder="Твоето име" /></label>
           <label>Телефон<input name="phone" type="tel" autoComplete="tel" required minLength={7} placeholder="+359 ..." /></label>
         </div></section>
-        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><CourierPicker settings={settings} freeShipping={subtotal >= settings.freeShippingThreshold} onDeliveryChange={(nextCourier,nextType)=>{setCourier(nextCourier);setDeliveryType(nextType)}} /></section>
+        <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><OrdyxDelivery settings={settings} freeShipping={subtotal >= settings.freeShippingThreshold} onDelivery={value=>{setDelivery(value);if(value.type){const next=value.type.split('_')[0];if(next==='econt'||next==='speedy'||next==='boxnow'){setCourier(next);setDeliveryType(value.type==='boxnow_locker'?'automat':value.type.endsWith('_address')?'address':'office')}}}} /></section>
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber}>03</span><div><h2>Плащане</h2><p>Плащаш при получаване</p></div></div><div className={styles.payment}>◉ &nbsp; Наложен платеж <span>Сигурно и удобно</span></div><label className={styles.notes}>Бележка <span>(по желание)</span><textarea name="notes" rows={2} placeholder="Нещо, което трябва да знаем?" /></label></section>
 
       </div>

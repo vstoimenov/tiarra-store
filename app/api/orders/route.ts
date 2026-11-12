@@ -1,7 +1,7 @@
 import { after, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sql } from '@/lib/db'
-import { verifyOffice } from '@/lib/office-token'
+import { getCourierOffices } from '@/lib/ordyx-offices'
 import { syncOrder } from '@/lib/ordyx-sync'
 import { promoCodeSchema, promoError } from '@/lib/promo'
 import { checkoutRateLimit } from '@/lib/rate-limit'
@@ -17,7 +17,7 @@ const requestSchema = z.object({
   customerName: z.string().trim().min(2).max(120),
   phone: z.string().trim().min(7).max(30),
   email: z.string().trim().email().max(160),
-  courier: z.enum(['econt', 'speedy']),
+  courier: z.enum(['econt', 'speedy', 'boxnow']),
   officeId: z.string().min(1).max(120).nullable(),
   officeToken: z.string().max(4000).optional().default(''),
   deliveryType: z.enum(['office','automat','address']),
@@ -43,12 +43,15 @@ export async function POST(request: Request) {
 
   try {
     const data = parsed.data
+    if (data.courier === 'boxnow' && data.deliveryType !== 'automat') return NextResponse.json({error:'BOX NOW доставя до автомат.'},{status:400})
     if (data.deliveryType === 'address') {
       if (data.officeId || !data.city || !data.postCode) return NextResponse.json({ error: 'Попълни точен адрес за доставка.' }, { status: 400 })
       data.deliveryAddress = `${data.city}, ${data.postCode}, ${data.deliveryAddress}`
     } else {
-      const office = data.officeId && verifyOffice(data.officeToken,data.courier,data.officeId,data.deliveryType)
-      if (!office) return NextResponse.json({ error: 'Изборът на офис е изтекъл. Презареди страницата и избери отново.' }, { status: 400 })
+      const office = data.officeId && (await getCourierOffices(data.courier)).find(item=>item.id===data.officeId)
+      if (!office || (data.courier==='boxnow' && !office.isAutomat)) return NextResponse.json({ error: 'Избраният офис не е намерен — изберете отново.' }, { status: 400 })
+      data.deliveryType = office.isAutomat ? 'automat' : 'office'
+      data.city = office.city; data.postCode = office.postCode
       data.deliveryAddress = `${office.city}, ${office.name}, ${office.address} [${office.code}]`
     }
     const rows = await sql.begin(async tx => {

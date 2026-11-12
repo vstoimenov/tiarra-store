@@ -10,7 +10,7 @@ const line='border-bottom:1px solid #ebe5dc'
 /** Escapes customer and product fields before placing them in email HTML. */
 export function renderOrderEmail(order:OrderEmailData, kind:'customer'|'merchant'='customer'){
  const merchant=kind==='merchant',number=esc(order.number),name=esc(order.name),delivery=esc(order.delivery)
- const courier=order.courier==='econt'?'Еконт':order.courier==='speedy'?'Спиди':order.courier
+ const courier=order.courier==='econt'?'Еконт':order.courier==='speedy'?'Спиди':order.courier==='boxnow'?'BOX NOW':order.courier
  const title=merchant?'Нова поръчка<br><em style="color:#ad8950;font-weight:normal">в магазина.</em>':'Красив избор.<br><em style="color:#ad8950;font-weight:normal">Благодарим ти.</em>'
  const intro=merchant?`Получена е нова поръчка от <strong>${name}</strong>.`:`Здравей, ${name}! Получихме твоята поръчка. Благодарим ти, че избра Tiarra Cosmetics.`
  const rows=order.items.map(item=>{

@@ -36,6 +36,15 @@ it('reuses the external ID and saved address when sending', async () => {
   expect(payload).toMatchObject({ external_id: 'tiarra-42', delivery_type: 'econt_address', city: 'София', post_code: '1000', total: 20 })
 })
 
+it('sends the BOX NOW locker ID and delivery type to Ordyx', async () => {
+  mocks.offices.mockResolvedValueOnce([{ id: 'boxnow:9133', name: 'Автомат', address: 'ул. София 6', city: 'Айдемир', postCode: '7538', isAutomat: true }])
+  mocks.tx.mockResolvedValueOnce([{ acquired: true }])
+    .mockResolvedValueOnce([{ id: 'order', order_number: '42', delivery_type: 'automat', courier: 'boxnow', office_id: 'boxnow:9133', total: 20 }])
+    .mockResolvedValueOnce([{ title: 'Продукт', quantity: 1, unit_price: 20 }]).mockResolvedValueOnce([])
+  expect(await syncOrder('42')).toBe(true)
+  expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string)).toMatchObject({ delivery_type: 'boxnow_locker', office_id: 'boxnow:9133', office_text: 'BOX NOW – автомат Автомат, ул. София 6' })
+})
+
 it('records a failed send for later retry', async () => {
   mocks.tx.mockResolvedValueOnce([{ acquired: true }])
     .mockResolvedValueOnce([{ id: 'order', order_number: '42', delivery_type: 'address', courier: 'econt', total: 20 }])
