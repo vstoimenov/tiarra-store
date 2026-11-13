@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ProductCard } from '@/components/product/ProductCard'
+import { QuizBanner } from '@/components/quiz/QuizBanner'
 import type { ProductCard as Card } from '@/lib/catalog/types'
 import type { SectionOf } from '@/lib/sections/schema'
 import { ProductsCarousel } from './ProductsCarousel'
@@ -61,6 +62,7 @@ export function ProductsSection({ section, cards, layout = 'panel' }: Props) {
           </Link>
         </p>
       )}
+      {section.id === 'perfumes' && <QuizBanner />}
     </section>
   )
 }

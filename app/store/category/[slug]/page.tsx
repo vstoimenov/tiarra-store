@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { CategoryNav } from '@/components/catalog/CategoryNav'
 import { ProductGrid } from '@/components/catalog/ProductGrid'
+import { QuizBanner } from '@/components/quiz/QuizBanner'
 import { getCategories, getCategoryBySlug, getProductCards } from '@/lib/catalog/queries'
 import { pageMetadata } from '@/lib/seo/page-metadata'
 
@@ -42,6 +43,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   return (
     <ProductGrid title={category.name} cards={cards} readQuery>
       <CategoryNav categories={categories} current={slug} />
+      {slug === 'parfimes' && <QuizBanner />}
     </ProductGrid>
   )
 }
