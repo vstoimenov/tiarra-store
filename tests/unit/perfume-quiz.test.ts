@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { matchingFamilies, recommendPerfumes, type QuizProduct } from '@/lib/quiz/perfume'
 
 function product(overrides: Partial<QuizProduct>): QuizProduct {
-  return { slug: 'perfume', title: 'Парфюм', brand: null, gender: 'female', imagePath: null, price: 20, compareAtPrice: null, hasVariants: false, inStock: true, categorySlugs: ['parfimes'], createdAt: '2026-01-01', perfume: null, ...overrides }
+  return { id: 'product-1', slug: 'perfume', title: 'Парфюм', brand: null, gender: 'female', imagePath: null, price: 20, compareAtPrice: null, hasVariants: false, inStock: true, categorySlugs: ['parfimes'], createdAt: '2026-01-01', perfume: null, ...overrides }
 }
 
 describe('perfume finder', () => {
