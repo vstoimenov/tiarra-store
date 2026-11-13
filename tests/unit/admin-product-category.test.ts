@@ -37,4 +37,11 @@ describe('product category validation', () => {
     expect(response.status).toBe(500)
     expect((await response.json()).error).toContain('Нотките не бяха записани')
   })
+  it('preserves perfume occasion, strength and existing imported variant on save', async () => {
+    query.mockResolvedValueOnce([{ id: '11111111-1111-4111-8111-111111111111', slug: 'test' }]).mockResolvedValueOnce([{ matches: true }])
+    const perfume = { top: 'Бергамот', variant: 'DORIAN', occasion: 'special', intensity: 'strong' }
+    const response = await POST(request({ ...product, hidden: true, perfume }))
+    expect(response.status).toBe(201)
+    expect(query.mock.calls[0].some((arg: unknown) => typeof arg === 'object' && arg !== null && 'perfume' in arg && JSON.stringify(arg.perfume) === JSON.stringify(perfume))).toBe(true)
+  })
 })

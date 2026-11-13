@@ -2,7 +2,10 @@ import type { Gender, Perfume, ProductCard } from '@/lib/catalog/types'
 
 export type QuizProduct = ProductCard & { id: string; perfume: Perfume | null }
 export type Family = 'fruity' | 'floral' | 'fresh' | 'sweet' | 'spicy' | 'woody'
-export type QuizAnswers = { gender: Gender | 'any'; families: Family[]; maxPrice: number | null }
+export type Occasion = 'daily' | 'special' | 'both'
+export type Intensity = 'light' | 'balanced' | 'strong'
+export type QuizAnswers = { gender: Gender | 'any'; families: Family[]; maxPrice: number | null; occasion?: Occasion; intensity?: Intensity }
+export type Preferences = Pick<QuizAnswers, 'occasion' | 'intensity'>
 
 // Recognize note names, not product names or shared descriptions that can describe other aromas.
 const terms: Record<Family, string[]> = {
@@ -42,14 +45,23 @@ export function hasFragranceNotes(perfume: Perfume | null): boolean {
 }
 
 /** A transparent heuristic, not a scientific prediction of how a fragrance smells on skin. */
-export function noteMatchPercent(perfume: Perfume | null, selected: Family[]): number | null {
+export function preferenceFactor(perfume: Perfume | null, preferences: Preferences = {}): number {
+  let factor = 1
+  if (preferences.occasion && preferences.occasion !== 'both' && perfume?.occasion && perfume.occasion !== 'both' && perfume.occasion !== preferences.occasion) factor *= 0.8
+  if (preferences.intensity && perfume?.intensity && preferences.intensity !== perfume.intensity) {
+    factor *= preferences.intensity === 'balanced' || perfume.intensity === 'balanced' ? 0.9 : 0.75
+  }
+  return factor
+}
+
+export function noteMatchPercent(perfume: Perfume | null, selected: Family[], preferences: Preferences = {}): number | null {
   if (!selected.length || !hasFragranceNotes(perfume)) return null
   const scores = profile(perfume)
   const matched = selected.filter(family => scores[family] > 0)
   if (!matched.length) return null
   const coverage = matched.length / selected.length
   const intensity = Math.min(1, matched.reduce((sum, family) => sum + scores[family], 0) / selected.length)
-  return Math.round(100 * coverage * (0.5 + 0.5 * intensity))
+  return Math.round(100 * coverage * (0.5 + 0.5 * intensity) * preferenceFactor(perfume, preferences))
 }
 
 export function matchingFamilies(perfume: Perfume | null): Family[] {
@@ -71,10 +83,10 @@ export function recommendPerfumes(products: QuizProduct[], answers: QuizAnswers)
     .map(product => {
       const scores = profile(product.perfume)
       const matched = answers.families.filter(family => scores[family] > 0)
-      return { product, matches: matched.length, strength: matched.reduce((sum, family) => sum + scores[family], 0) }
+      return { product, matches: matched.length, strength: (noteMatchPercent(product.perfume, answers.families, answers) ?? 0) }
     })
     .filter(({ matches }) => answers.families.length === 0 || matches > 0)
-    .sort((a, b) => b.matches - a.matches || b.strength - a.strength || b.product.createdAt.localeCompare(a.product.createdAt) || a.product.slug.localeCompare(b.product.slug))
+    .sort((a, b) => b.strength - a.strength || b.matches - a.matches || b.product.createdAt.localeCompare(a.product.createdAt) || a.product.slug.localeCompare(b.product.slug))
     .map(({ product }) => product)
 }
 
@@ -97,7 +109,7 @@ export function recommendRelatedPerfumes(products: QuizProduct[], answers: QuizA
       if (noteMatchPercent(product.perfume, answers.families) !== null) return []
       const scores = profile(product.perfume)
       const affinity = answers.families.reduce((sum, selected) => sum + Math.max(0, ...familyKeys.map(family => (neighbours[selected][family] ?? 0) * scores[family])), 0) / answers.families.length
-      return affinity > 0 ? [{ product, percent: Math.max(1, Math.round(49 * affinity)) }] : []
+      return affinity > 0 ? [{ product, percent: Math.max(1, Math.round(24 * affinity * preferenceFactor(product.perfume, answers))) }] : []
     })
     .sort((a, b) => b.percent - a.percent || b.product.createdAt.localeCompare(a.product.createdAt) || a.product.slug.localeCompare(b.product.slug))
 }

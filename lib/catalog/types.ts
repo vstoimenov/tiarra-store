@@ -32,6 +32,9 @@ export interface Perfume {
   base?: string
   aroma?: string
   volume?: string
+  variant?: string
+  occasion?: 'daily' | 'special' | 'both'
+  intensity?: 'light' | 'balanced' | 'strong'
 }
 
 export interface ProductCard {
