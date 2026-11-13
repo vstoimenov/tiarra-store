@@ -68,36 +68,83 @@
 }
 
 .testimonial {
-  display: flex;
-  flex-direction: column;
-  min-height: 190px;
-  padding: 20px 22px;
-  border: 1px solid #eadfcd;
-  border-radius: 18px;
-  background: #faf7f2;
+  display: block;
+  width: 100%;
+  padding: 7px;
+  border: 1px solid #d8c8b1;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 12px 28px #33231820;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+
+.testimonialList li {
+  min-width: 0;
   scroll-snap-align: start;
 }
 
-.quoteMark {
-  height: 38px;
-  color: var(--gold, #a77b38);
-  font-family: Georgia, serif;
-  font-size: 55px;
-  line-height: 1;
+.testimonial:focus-visible, .dialogClose:focus-visible {
+  outline: 2px solid var(--gold-text, #a77b38);
+  outline-offset: 3px;
 }
 
-.testimonial blockquote {
-  flex: 1;
-  margin: 10px 0 20px;
-  color: var(--ink, #222);
-  font-size: 15px;
-  line-height: 1.6;
+.cardHeader {
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px 5px;
+  color: #8d7d6a;
+  font-size: 8px;
+  letter-spacing: .12em;
 }
 
-.testimonialLabel {
-  color: var(--ink-3, #777);
-  font-size: 12px;
-  font-weight: 600;
+.cardHeader > span { display: flex; gap: 4px; }
+.cardHeader i { width: 5px; height: 5px; border-radius: 50%; background: #d4c5b1; }
+
+.testimonial img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 11px;
+}
+
+.testimonialDialog {
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  border: 1px solid #d8c8b1;
+  border-radius: 16px;
+  background: #fffdf9;
+  box-shadow: 0 30px 100px #0009;
+}
+
+.testimonialDialog::backdrop { background: #120e0bcc; }
+.dialogContent { position: relative; padding: 8px; }
+.dialogContent img {
+  display: block;
+  width: auto;
+  max-width: calc(100vw - 42px);
+  height: auto;
+  max-height: calc(100dvh - 42px);
+  border-radius: 10px;
+}
+
+.dialogClose {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #222;
+  font-size: 26px;
+  cursor: pointer;
 }
 
 .stats {
