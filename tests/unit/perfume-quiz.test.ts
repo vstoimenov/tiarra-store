@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isWearablePerfume, matchingFamilies, noteMatchPercent, recommendPerfumes, recommendRelatedPerfumes, type QuizProduct } from '@/lib/quiz/perfume'
+import { isWearablePerfume, matchingFamilies, noteMatchPercent, preferenceFactor, recommendPerfumes, recommendRelatedPerfumes, type QuizProduct } from '@/lib/quiz/perfume'
 
 function product(overrides: Partial<QuizProduct>): QuizProduct {
   return { id: 'product-1', slug: 'perfume', title: 'Парфюм', brand: null, gender: 'female', imagePath: null, price: 20, compareAtPrice: null, hasVariants: false, inStock: true, categorySlugs: ['parfimes'], createdAt: '2026-01-01', perfume: null, ...overrides }
@@ -70,5 +70,17 @@ describe('perfume finder', () => {
     expect(nearby[0].percent).toBeGreaterThan(0)
     expect(nearby[0].percent).toBeLessThan(50)
     expect(recommendRelatedPerfumes(products, { ...choices, families: [] })).toEqual([])
+  })
+  it('uses entered occasion and intensity without inventing missing attributes', () => {
+    const preferences = { occasion: 'daily' as const, intensity: 'light' as const }
+    const noTraits = { top: 'роза' }
+    const suitable = { top: 'роза', occasion: 'daily' as const, intensity: 'light' as const }
+    const unsuitable = { top: 'роза', occasion: 'special' as const, intensity: 'strong' as const }
+    expect(preferenceFactor(noTraits, preferences)).toBe(1)
+    expect(noteMatchPercent(suitable, ['floral'], preferences)).toBe(noteMatchPercent(noTraits, ['floral'], preferences))
+    expect(noteMatchPercent(unsuitable, ['floral'], preferences)).toBeLessThan(noteMatchPercent(suitable, ['floral'], preferences)!)
+    const ranked = recommendPerfumes([product({ slug:'unsuitable', perfume:unsuitable }), product({ slug:'suitable', perfume:suitable })], { gender:'any', families:['floral'], maxPrice:null, ...preferences })
+    expect(ranked.map(item => item.slug)).toEqual(['suitable', 'unsuitable'])
+    expect(preferenceFactor({ occasion:'both' }, { occasion:'daily' })).toBe(1)
   })
 })

@@ -1,6 +1,6 @@
 import type { Perfume } from '../../lib/catalog/types'
 
-type Field = keyof Perfume
+type Field = 'top' | 'heart' | 'base' | 'aroma' | 'volume'
 
 interface Label {
   field: Field
