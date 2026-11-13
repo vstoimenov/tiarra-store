@@ -3,8 +3,8 @@
 import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Flower2, Leaf, Sparkles, Gem, Wind, Orbit, Gift, UserRound, Wallet, Venus, Mars, Compass } from 'lucide-react'
-import { ProductCard } from '@/components/product/ProductCard'
-import { recommendPerfumes, type Family, type QuizProduct } from '@/lib/quiz/perfume'
+import { QuizResultCard } from '@/components/quiz/QuizResultCard'
+import { matchingFamilies, recommendPerfumes, type Family, type QuizProduct } from '@/lib/quiz/perfume'
 import type { Gender } from '@/lib/catalog/types'
 import styles from './PerfumeQuiz.module.css'
 
@@ -35,12 +35,13 @@ export function PerfumeQuiz({ products }: { products: QuizProduct[] }) {
   const [sending, setSending] = useState(false)
   const [signupError, setSignupError] = useState('')
   const [signedUp, setSignedUp] = useState(false)
+  const [visibleResults, setVisibleResults] = useState(3)
   const results = step === 5 ? recommendPerfumes(products, { gender, families: selected, maxPrice }) : []
 
   function toggleFamily(id: Family) {
     setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : current.length < 2 ? [...current, id] : current)
   }
-  function reset() { setGender('any'); setSelected([]); setMaxPrice(null); setEmail(''); setConsent(false); setSignedUp(false); setSignupError(''); setStep(0) }
+  function reset() { setGender('any'); setSelected([]); setMaxPrice(null); setEmail(''); setConsent(false); setSignedUp(false); setSignupError(''); setVisibleResults(3); setStep(0) }
   async function signUp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSignupError('')
@@ -100,7 +101,7 @@ export function PerfumeQuiz({ products }: { products: QuizProduct[] }) {
       {step === 5 && <div className={styles.results} aria-live="polite">
         <p className={styles.eyebrow}>ТВОЯТ РЕЗУЛТАТ</p><h1>Аромати за теб</h1>
         {signedUp && <p>Благодарим! Записахме имейла ти за новини и оферти.</p>}
-        {results.length ? <><p>{selected.length ? 'Подбрани по наличните ароматни нотки, твоите предпочитания и бюджет.' : 'Подбрани според избора и бюджета ти.'}</p><div className={styles.products}>{results.map((card) => <ProductCard key={card.slug} card={card} sizes="(max-width: 640px) 45vw, 300px" />)}</div></> : <p>В момента нямаме налични парфюми с такова съчетание. Опитай с други нотки или бюджет.</p>}
+        {results.length ? <><p>{selected.length ? 'Подбрани по наличните ароматни нотки, твоите предпочитания и бюджет.' : 'Подбрани според избора и бюджета ти.'}</p><div className={styles.products}>{results.slice(0, visibleResults).map((product, index) => <QuizResultCard key={product.slug} product={product} leading={index === 0 && selected.length > 0} matchedLabels={families.filter(family => selected.includes(family.id) && matchingFamilies(product.perfume).includes(family.id)).map(family => family.title)} />)}</div>{results.length > visibleResults && <button type="button" className={styles.showMore} onClick={() => setVisibleResults(count => count + 3)}>Покажи още аромати</button>}</> : <p>В момента нямаме налични парфюми с такова съчетание. Опитай с други нотки или бюджет.</p>}
         <div className={styles.resultActions}><button type="button" className={styles.primary} onClick={reset}>Направи теста отново</button><Link className={styles.textLink} href="/store/category/parfimes">Разгледай всички парфюми →</Link></div>
         {selected.length > 0 && <p className={styles.disclaimer}>Резултатите използват въведените нотки; парфюми без информация за нотките не се включват.</p>}
       </div>}

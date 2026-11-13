@@ -122,15 +122,15 @@ export async function getProductCards(
 }
 
 /** Visible perfume-category products and their structured notes for the fragrance finder. */
-export async function getPerfumeQuizProducts(): Promise<(ProductCard & { perfume: Perfume | null })[]> {
-  const rows = await sql<(CardRow & { perfume: Perfume | null })[]>`
-    select ${cardColumns}, p.perfume
+export async function getPerfumeQuizProducts(): Promise<(ProductCard & { id: string; perfume: Perfume | null })[]> {
+  const rows = await sql<(CardRow & { id: string; perfume: Perfume | null })[]>`
+    select ${cardColumns}, p.id, p.perfume
     ${cardJoins}
     where not p.is_hidden and exists (
       select 1 from store.product_categories pc join store.categories c on c.id = pc.category_id
       where pc.product_id = p.id and c.slug = 'parfimes')
     ${newestFirst}`
-  return rows.map((row) => ({ ...toCard(row), perfume: row.perfume }))
+  return rows.map((row) => ({ ...toCard(row), id: row.id, perfume: row.perfume }))
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {

@@ -1,6 +1,6 @@
 import type { Gender, Perfume, ProductCard } from '@/lib/catalog/types'
 
-export type QuizProduct = ProductCard & { perfume: Perfume | null }
+export type QuizProduct = ProductCard & { id: string; perfume: Perfume | null }
 export type Family = 'fruity' | 'floral' | 'fresh' | 'sweet' | 'spicy' | 'woody'
 export type QuizAnswers = { gender: Gender | 'any'; families: Family[]; maxPrice: number | null }
 
@@ -27,5 +27,5 @@ export function recommendPerfumes(products: QuizProduct[], answers: QuizAnswers)
     .map((product) => ({ product, score: matchingFamilies(product.perfume).filter((family) => answers.families.includes(family)).length }))
     .filter(({ score }) => answers.families.length === 0 || score > 0)
     .sort((a, b) => b.score - a.score || b.product.createdAt.localeCompare(a.product.createdAt))
-    .slice(0, 6).map(({ product }) => product)
+    .map(({ product }) => product)
 }
