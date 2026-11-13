@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { ProductCard } from '@/components/product/ProductCard'
-import { QuizBanner } from '@/components/quiz/QuizBanner'
 import type { ProductCard as Card } from '@/lib/catalog/types'
 import type { SectionOf } from '@/lib/sections/schema'
 import { ProductsCarousel } from './ProductsCarousel'
@@ -27,6 +26,8 @@ export function ProductsSection({ section, cards, layout = 'panel' }: Props) {
   const { title, subtitle, moreHref } = section.data
   const grid = layout === 'grid'
   const label = title || 'Продукти'
+  const isPerfumeSection = section.id === 'perfumes'
+  const allProductsHref = moreHref || (isPerfumeSection ? '/store/category/parfimes' : undefined)
 
   return (
     <section className={grid ? styles.grid : styles.panel} data-section={section.id} aria-label={title ? undefined : label}>
@@ -55,14 +56,14 @@ export function ProductsSection({ section, cards, layout = 'panel' }: Props) {
           ))}
         </ProductsCarousel>
       )}
-      {moreHref && (
-        <p className={styles.more}>
-          <Link href={moreHref} className={styles.moreLink}>
+      {allProductsHref && (
+        <div className={styles.more}>
+          <Link href={allProductsHref} className={styles.moreLink}>
             Виж всички продукти
           </Link>
-        </p>
+          {isPerfumeSection && <Link href="/aromat-test" className={styles.moreLink}>Открий своя аромат за под 60 секунди</Link>}
+        </div>
       )}
-      {section.id === 'perfumes' && <QuizBanner />}
     </section>
   )
 }

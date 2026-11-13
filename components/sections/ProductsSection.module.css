@@ -40,6 +40,11 @@
 }
 
 .more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
   margin: 36px 0 0;
   text-align: center;
 }
@@ -97,4 +102,9 @@
   .cards {
     gap: 28px 12px;
   }
+}
+
+@media (max-width: 520px) {
+  .more { flex-direction: column; }
+  .moreLink { width: min(100%, 360px); }
 }
