@@ -4,7 +4,7 @@ import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Flower2, Leaf, Sparkles, Gem, Wind, Orbit, Gift, UserRound, Wallet, Venus, Mars, Compass } from 'lucide-react'
 import { QuizResultCard } from '@/components/quiz/QuizResultCard'
-import { matchingFamilies, recommendPerfumes, type Family, type QuizProduct } from '@/lib/quiz/perfume'
+import { hasFragranceNotes, matchingFamilies, noteMatchPercent, recommendPerfumes, type Family, type QuizProduct } from '@/lib/quiz/perfume'
 import type { Gender } from '@/lib/catalog/types'
 import styles from './PerfumeQuiz.module.css'
 
@@ -37,6 +37,9 @@ export function PerfumeQuiz({ products }: { products: QuizProduct[] }) {
   const [signedUp, setSignedUp] = useState(false)
   const [visibleResults, setVisibleResults] = useState(3)
   const results = step === 5 ? recommendPerfumes(products, { gender, families: selected, maxPrice }) : []
+  const alternatives = step === 5 && selected.length > 0 && results.length < 3
+    ? recommendPerfumes(products, { gender, families: [], maxPrice }).filter(product => !hasFragranceNotes(product.perfume)).slice(0, 3 - results.length)
+    : []
 
   function toggleFamily(id: Family) {
     setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : current.length < 2 ? [...current, id] : current)
@@ -101,9 +104,10 @@ export function PerfumeQuiz({ products }: { products: QuizProduct[] }) {
       {step === 5 && <div className={styles.results} aria-live="polite">
         <p className={styles.eyebrow}>ТВОЯТ РЕЗУЛТАТ</p><h1>Аромати за теб</h1>
         {signedUp && <p>Благодарим! Записахме имейла ти за новини и оферти.</p>}
-        {results.length ? <><p>{selected.length ? 'Подбрани по наличните ароматни нотки, твоите предпочитания и бюджет.' : 'Подбрани според избора и бюджета ти.'}</p><div className={styles.products}>{results.slice(0, visibleResults).map((product, index) => <QuizResultCard key={product.slug} product={product} leading={index === 0 && selected.length > 0} matchedLabels={families.filter(family => selected.includes(family.id) && matchingFamilies(product.perfume).includes(family.id)).map(family => family.title)} />)}</div>{results.length > visibleResults && <button type="button" className={styles.showMore} onClick={() => setVisibleResults(count => count + 3)}>Покажи още аромати</button>}</> : <p>В момента нямаме налични парфюми с такова съчетание. Опитай с други нотки или бюджет.</p>}
+        {results.length ? <><p>{selected.length === 2 ? 'Подредени според избраните ароматни групи; някои съвпадат само с една от тях.' : selected.length === 1 ? 'Подбрани по въведените ароматни нотки, твоя избор и бюджет.' : 'Подбрани според избора и бюджета ти.'}</p><div className={styles.products}>{results.slice(0, visibleResults).map((product, index) => <QuizResultCard key={product.slug} product={product} leading={index === 0 && selected.length > 0} percent={noteMatchPercent(product.perfume, selected)} matchedLabels={families.filter(family => selected.includes(family.id) && matchingFamilies(product.perfume).includes(family.id)).map(family => family.title)} />)}</div>{results.length > visibleResults && <button type="button" className={styles.showMore} onClick={() => setVisibleResults(count => count + 3)}>Покажи още аромати</button>}</> : <p>Не открихме наличен парфюм с въведени нотки, които отговарят на избора и бюджета ти. Опитай с други предпочитания или разгледай всички парфюми.</p>}
+        {alternatives.length > 0 && <div className={styles.alternatives}><h2>Още аромати за разглеждане</h2><p>Отговарят на избрания тип и бюджет, но нямат въведени нотки, затова не можем да изчислим съвпадение.</p><div className={styles.products}>{alternatives.map(product => <QuizResultCard key={product.slug} product={product} leading={false} matchedLabels={[]} />)}</div></div>}
         <div className={styles.resultActions}><button type="button" className={styles.primary} onClick={reset}>Направи теста отново</button><Link className={styles.textLink} href="/store/category/parfimes">Разгледай всички парфюми →</Link></div>
-        {selected.length > 0 && <p className={styles.disclaimer}>Резултатите използват въведените нотки; парфюми без информация за нотките не се включват.</p>}
+        {selected.length > 0 && <p className={styles.disclaimer}>Процентът е ориентировъчен: отчита избраните ароматни групи и въведените нотки, а не трайността или как ароматът се развива върху кожата.</p>}
       </div>}
     </section>}
   </main>
