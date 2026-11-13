@@ -7,6 +7,11 @@ export type Intensity = 'light' | 'balanced' | 'strong'
 export type QuizAnswers = { gender: Gender | 'any'; families: Family[]; maxPrice: number | null; occasion?: Occasion; intensity?: Intensity }
 export type Preferences = Pick<QuizAnswers, 'occasion' | 'intensity'>
 
+/** Display scale only; raw scores remain the basis for ranking. */
+export function displayMatchPercent(score: number): number {
+  return 75 + Math.round(Math.min(100, Math.max(0, score)) / 4)
+}
+
 // Recognize note names, not product names or shared descriptions that can describe other aromas.
 const terms: Record<Family, string[]> = {
   fruity: ['прасков', 'круш', 'касис', 'малин', 'ягод', 'ябъл', 'череш', 'слив', 'ананас', 'манго', 'кайси', 'пъпеш', 'къпин', 'мараку', 'смокин', 'плодов', 'плодове', 'peach', 'pear', 'berry', 'apple', 'fruit', 'plum', 'apricot', 'melon', 'fig'],

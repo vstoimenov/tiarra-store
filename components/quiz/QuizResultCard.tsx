@@ -6,12 +6,13 @@ import { addCartItem } from '@/lib/cart'
 import { trackCommerce } from '@/lib/analytics'
 import { formatPrice, isDiscounted } from '@/lib/format'
 import { imageSrcSet, imageUrl } from '@/lib/images'
-import type { QuizProduct } from '@/lib/quiz/perfume'
+import { displayMatchPercent, type QuizProduct } from '@/lib/quiz/perfume'
 import styles from './QuizResultCard.module.css'
 
-function MatchMeter({ percent }: { percent: number }) {
+function MatchMeter({ percent: rawPercent }: { percent: number }) {
+  const percent = displayMatchPercent(rawPercent)
   const node = useRef<HTMLDivElement>(null)
-  const [value, setValue] = useState(0)
+  const [value, setValue] = useState(75)
   useEffect(() => {
     const element = node.current
     if (!element) return
@@ -23,7 +24,7 @@ function MatchMeter({ percent }: { percent: number }) {
       const started = performance.now()
       const tick = (now: number) => {
         const progress = Math.min(1, (now - started) / 1200)
-        setValue(Math.round(percent * (1 - Math.pow(1 - progress, 3))))
+        setValue(Math.round(75 + (percent - 75) * (1 - Math.pow(1 - progress, 3))))
         if (progress < 1) animation = requestAnimationFrame(tick)
       }
       animation = requestAnimationFrame(tick)
@@ -31,7 +32,7 @@ function MatchMeter({ percent }: { percent: number }) {
     observer.observe(element)
     return () => { observer.disconnect(); cancelAnimationFrame(animation) }
   }, [percent])
-  return <div ref={node} className={styles.match} role="progressbar" aria-label="Ориентировъчно съвпадение по нотки" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
+  return <div ref={node} className={styles.match} role="progressbar" aria-label="Ориентировъчно съвпадение по скала от 75 до 100 процента" aria-valuemin={75} aria-valuemax={100} aria-valuenow={percent}>
     <span className={styles.matchTrack} aria-hidden="true"><span style={{ transform: `scaleX(${value / 100})` }} /></span><strong aria-hidden="true">{value}% съвпадение</strong>
   </div>
 }
