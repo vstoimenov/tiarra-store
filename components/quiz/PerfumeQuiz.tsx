@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ArrowRight, Check, Flower2, Leaf, Sparkles, Sun, Trees, Flame, Gift, UserRound, Droplets, Wallet } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Flower2, Leaf, Sparkles, Gem, Wind, Orbit, Gift, UserRound, Wallet, Venus, Mars, Compass } from 'lucide-react'
 import { ProductCard } from '@/components/product/ProductCard'
 import { recommendPerfumes, type Family, type QuizProduct } from '@/lib/quiz/perfume'
 import type { Gender } from '@/lib/catalog/types'
@@ -10,18 +10,18 @@ import styles from './PerfumeQuiz.module.css'
 
 type GenderChoice = Gender | 'any'
 const families: { id: Family; title: string; detail: string; icon: typeof Leaf }[] = [
-  { id: 'fruity', title: 'Плодови', detail: 'круша, праскова, плодове', icon: Sun },
+  { id: 'fruity', title: 'Плодови', detail: 'круша, праскова, плодове', icon: Gem },
   { id: 'floral', title: 'Флорални', detail: 'роза, жасмин, цветя', icon: Flower2 },
-  { id: 'fresh', title: 'Свежи', detail: 'цитруси, морски и зелени нотки', icon: Droplets },
+  { id: 'fresh', title: 'Свежи', detail: 'цитруси, морски и зелени нотки', icon: Wind },
   { id: 'sweet', title: 'Сладки', detail: 'ванилия, карамел, кокос', icon: Sparkles },
-  { id: 'spicy', title: 'Пикантни и кожени', detail: 'подправки, кожа, тютюн', icon: Flame },
-  { id: 'woody', title: 'Дървесни', detail: 'кедър, сандал, пачули', icon: Trees },
+  { id: 'spicy', title: 'Пикантни и кожени', detail: 'подправки, кожа, тютюн', icon: Orbit },
+  { id: 'woody', title: 'Дървесни', detail: 'кедър, сандал, пачули', icon: Leaf },
 ]
-const genderOptions: { id: GenderChoice; title: string; detail: string }[] = [
-  { id: 'female', title: 'За нея', detail: 'Дамски и унисекс аромати' },
-  { id: 'male', title: 'За него', detail: 'Мъжки и унисекс аромати' },
-  { id: 'unisex', title: 'Унисекс', detail: 'Аромати за всеки' },
-  { id: 'any', title: 'Всички аромати', detail: 'Без предпочитание' },
+const genderOptions: { id: GenderChoice; title: string; detail: string; icon: typeof Leaf }[] = [
+  { id: 'female', title: 'За нея', detail: 'Дамски и унисекс аромати', icon: Venus },
+  { id: 'male', title: 'За него', detail: 'Мъжки и унисекс аромати', icon: Mars },
+  { id: 'unisex', title: 'Унисекс', detail: 'Аромати за всеки', icon: Orbit },
+  { id: 'any', title: 'Всички аромати', detail: 'Без предпочитание', icon: Compass },
 ]
 const budgets = [ { id: 25, title: 'До 25 €' }, { id: 50, title: 'До 50 €' }, { id: 100, title: 'До 100 €' }, { id: null, title: 'Без ограничение' } ]
 
@@ -52,16 +52,16 @@ export function PerfumeQuiz({ products }: { products: QuizProduct[] }) {
       </div>
       {step === 1 && <div className={styles.question}>
         <p className={styles.eyebrow}>ВЪПРОС 1 ОТ 3</p><h1>Какъв аромат търсиш?</h1><p>Избери за кого е парфюмът.</p>
-        <div className={styles.options}>{genderOptions.map((option) => <button type="button" className={styles.option} key={option.id} aria-pressed={gender === option.id} onClick={() => { setGender(option.id); setStep(2) }}><UserRound size={25} /><strong>{option.title}</strong><span>{option.detail}</span></button>)}</div>
+        <div className={styles.options}>{genderOptions.map((option) => <button type="button" className={styles.option} key={option.id} aria-pressed={gender === option.id} onClick={() => { setGender(option.id); setStep(2) }}><span className={styles.iconFrame}><option.icon size={25} /></span><strong>{option.title}</strong><span>{option.detail}</span></button>)}</div>
       </div>}
       {step === 2 && <div className={styles.question}>
         <p className={styles.eyebrow}>ВЪПРОС 2 ОТ 3</p><h1>Кои аромати те привличат?</h1><p>Избери до два или продължи, ако не си сигурен.</p>
-        <div className={styles.options}>{families.map(({ id, title, detail, icon: Icon }) => <button type="button" className={styles.option} key={id} aria-pressed={selected.includes(id)} onClick={() => toggleFamily(id)}><Icon size={25} /><strong>{title}</strong><span>{detail}</span>{selected.includes(id) && <Check className={styles.check} size={17} />}</button>)}</div>
+        <div className={styles.options}>{families.map(({ id, title, detail, icon: Icon }) => <button type="button" className={styles.option} key={id} aria-pressed={selected.includes(id)} onClick={() => toggleFamily(id)}><span className={styles.iconFrame}><Icon size={25} /></span><strong>{title}</strong><span>{detail}</span>{selected.includes(id) && <Check className={styles.check} size={17} />}</button>)}</div>
         <button type="button" className={styles.primary} onClick={() => setStep(3)}>Напред <ArrowRight size={18} /></button>
       </div>}
       {step === 3 && <div className={styles.question}>
         <p className={styles.eyebrow}>ВЪПРОС 3 ОТ 3</p><h1>Какъв е твоят бюджет?</h1><p>Ще се съобразим с началната цена на парфюма.</p>
-        <div className={styles.options}>{budgets.map((option) => <button type="button" className={styles.option} key={option.title} aria-pressed={maxPrice === option.id} onClick={() => { setMaxPrice(option.id); setStep(4) }}><Wallet size={25} /><strong>{option.title}</strong></button>)}</div>
+        <div className={styles.options}>{budgets.map((option) => <button type="button" className={styles.option} key={option.title} aria-pressed={maxPrice === option.id} onClick={() => { setMaxPrice(option.id); setStep(4) }}><span className={styles.iconFrame}><Wallet size={25} /></span><strong>{option.title}</strong></button>)}</div>
       </div>}
       {step === 4 && <div className={styles.results} aria-live="polite">
         <p className={styles.eyebrow}>ТВОЯТ РЕЗУЛТАТ</p><h1>Аромати за теб</h1>
