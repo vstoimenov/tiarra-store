@@ -1,16 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
 import type { SectionOf } from '@/lib/sections/schema'
 import { GlassyVideoCarousel } from '@/components/ui/glassy-video-carousel'
 import styles from './VideoReviews.module.css'
 
-const testimonials = [
-  'Топ е. Ползвам си го всеки ден.',
-  'Парфюмчето гърми. Вчера цял ден няма грешка.',
-  'Иначе жената много го хареса. Бил унисекс и тоя кокос и ванилика ще ѝ отивали на нея повече.',
-  'Много яки. Страхотни аромати!!! УНИКАЛНИ!!!',
-]
+const testimonials = [8527, 8528, 8529, 8530].map((number) => `/testimonials/IMG_${number}.png`)
 
 /** `290+` becomes the number and a smaller `+` after it, as on the live page. */
 function splitSuffix(value: string): [string, string] {
@@ -59,6 +55,8 @@ function AnimatedValue({ value }: { value: string }) {
 /** A sideways row of video reviews (thumbnails until clicked) and the two big counters under it. */
 export function VideoReviews({ section }: { section: SectionOf<'videoReviews'> }) {
   const { stats } = section.data
+  const dialog = useRef<HTMLDialogElement>(null)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
   return (
     <section className={styles.reviews} data-section={section.id} aria-label="Видео отзиви">
@@ -69,17 +67,24 @@ export function VideoReviews({ section }: { section: SectionOf<'videoReviews'> }
       <div className={styles.testimonials}>
         <div className={styles.testimonialsHeading}>
           <h2>Думи от нашите клиенти</h2>
-          <p>Споделено с нас</p>
+          <p>Споделено с нас · Натисни снимка, за да я разгледаш</p>
         </div>
         <ul className={styles.testimonialList} aria-label="Отзиви от клиенти">
-          {testimonials.map((quote) => (
-            <li className={styles.testimonial} key={quote}>
-              <span className={styles.quoteMark} aria-hidden="true">“</span>
-              <blockquote>{quote}</blockquote>
-              <span className={styles.testimonialLabel}>Отзив от клиент</span>
+          {testimonials.map((src, index) => (
+            <li key={src}>
+              <button className={styles.testimonial} type="button" aria-label={`Разгледай отзив ${index + 1}`} onClick={() => { setSelectedImage(src); dialog.current?.showModal() }}>
+                <span className={styles.cardHeader} aria-hidden="true"><span><i /><i /><i /></span> TIARRA</span>
+                <Image src={src} alt={`Снимка на отзив от клиент ${index + 1}`} width={1179} height={2556} sizes="(max-width: 640px) 72vw, 280px" />
+              </button>
             </li>
           ))}
         </ul>
+        <dialog ref={dialog} className={styles.testimonialDialog} aria-label="Снимка на клиентски отзив" onClose={() => setSelectedImage(null)} onClick={(event) => { if (event.target === event.currentTarget) dialog.current?.close() }}>
+          <div className={styles.dialogContent}>
+            <button type="button" className={styles.dialogClose} onClick={() => dialog.current?.close()} aria-label="Затвори снимката">×</button>
+            {selectedImage && <Image src={selectedImage} alt="Снимка на клиентски отзив" width={1179} height={2556} sizes="(max-width: 640px) 90vw, 600px" />}
+          </div>
+        </dialog>
       </div>
       {stats.length > 0 && (
         <ul className={styles.stats}>
