@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, Check, Flower2, Leaf, Sparkles, Gem, Wind, Orbit, Gift, UserRound, Wallet, Venus, Mars, Compass } from 'lucide-react'
 import { ProductCard } from '@/components/product/ProductCard'
@@ -30,12 +30,33 @@ export function PerfumeQuiz({ products }: { products: QuizProduct[] }) {
   const [gender, setGender] = useState<GenderChoice>('any')
   const [selected, setSelected] = useState<Family[]>([])
   const [maxPrice, setMaxPrice] = useState<number | null>(null)
-  const results = step === 4 ? recommendPerfumes(products, { gender, families: selected, maxPrice }) : []
+  const [email, setEmail] = useState('')
+  const [consent, setConsent] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [signupError, setSignupError] = useState('')
+  const [signedUp, setSignedUp] = useState(false)
+  const results = step === 5 ? recommendPerfumes(products, { gender, families: selected, maxPrice }) : []
 
   function toggleFamily(id: Family) {
     setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : current.length < 2 ? [...current, id] : current)
   }
-  function reset() { setGender('any'); setSelected([]); setMaxPrice(null); setStep(0) }
+  function reset() { setGender('any'); setSelected([]); setMaxPrice(null); setEmail(''); setConsent(false); setSignedUp(false); setSignupError(''); setStep(0) }
+  async function signUp(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSignupError('')
+    setSending(true)
+    try {
+      const response = await fetch('/api/quiz-signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, consent }) })
+      if (!response.ok) {
+        const data = await response.json().catch(() => null) as { error?: string } | null
+        setSignupError(data?.error || 'Не успяхме да запазим имейла. Опитай отново.')
+        return
+      }
+      setSignedUp(true)
+      setStep(5)
+    } catch { setSignupError('Не успяхме да запазим имейла. Провери връзката и опитай отново.') }
+    finally { setSending(false) }
+  }
 
   return <main className={styles.page}>
     {step === 0 ? <section className={styles.hero}>
@@ -63,8 +84,22 @@ export function PerfumeQuiz({ products }: { products: QuizProduct[] }) {
         <p className={styles.eyebrow}>ВЪПРОС 3 ОТ 3</p><h1>Какъв е твоят бюджет?</h1><p>Ще се съобразим с началната цена на парфюма.</p>
         <div className={styles.options}>{budgets.map((option) => <button type="button" className={styles.option} key={option.title} aria-pressed={maxPrice === option.id} onClick={() => { setMaxPrice(option.id); setStep(4) }}><span className={styles.iconFrame}><Wallet size={25} /></span><strong>{option.title}</strong></button>)}</div>
       </div>}
-      {step === 4 && <div className={styles.results} aria-live="polite">
+      {step === 4 && <div className={styles.emailCard}>
+        <p className={styles.eyebrow}>ТВОИТЕ ПРЕДЛОЖЕНИЯ СА ГОТОВИ</p><h1>Остани в течение</h1>
+        <p>Остави имейл, ако искаш да получаваш бъдещи оферти и новини от Tiarra.</p>
+        <form onSubmit={signUp}>
+          <label htmlFor="quiz-email">Имейл адрес</label>
+          <input id="quiz-email" type="email" autoComplete="email" required maxLength={254} value={email} onChange={event => setEmail(event.target.value)} placeholder="Твоят имейл" />
+          <label className={styles.consent}><input type="checkbox" required checked={consent} onChange={event => setConsent(event.target.checked)} /><span>Съгласен/съгласна съм да получавам новини и оферти по имейл. Мога да се отпиша по всяко време, като пиша на info@tiarracosmetics.com.</span></label>
+          <p className={styles.privacy}><Link href="/poveritelnost" target="_blank">Политика за поверителност</Link></p>
+          {signupError && <p role="alert" className={styles.error}>{signupError}</p>}
+          <button type="submit" className={styles.primary} disabled={sending}>{sending ? 'Запазване…' : 'Запиши ме и покажи резултатите'}</button>
+        </form>
+        <button type="button" className={styles.skip} onClick={() => { setSignupError(''); setStep(5) }}>Продължи без имейл</button>
+      </div>}
+      {step === 5 && <div className={styles.results} aria-live="polite">
         <p className={styles.eyebrow}>ТВОЯТ РЕЗУЛТАТ</p><h1>Аромати за теб</h1>
+        {signedUp && <p>Благодарим! Записахме имейла ти за новини и оферти.</p>}
         {results.length ? <><p>{selected.length ? 'Подбрани по наличните ароматни нотки, твоите предпочитания и бюджет.' : 'Подбрани според избора и бюджета ти.'}</p><div className={styles.products}>{results.map((card) => <ProductCard key={card.slug} card={card} sizes="(max-width: 640px) 45vw, 300px" />)}</div></> : <p>В момента нямаме налични парфюми с такова съчетание. Опитай с други нотки или бюджет.</p>}
         <div className={styles.resultActions}><button type="button" className={styles.primary} onClick={reset}>Направи теста отново</button><Link className={styles.textLink} href="/store/category/parfimes">Разгледай всички парфюми →</Link></div>
         {selected.length > 0 && <p className={styles.disclaimer}>Резултатите използват въведените нотки; парфюми без информация за нотките не се включват.</p>}

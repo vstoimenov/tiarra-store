@@ -1,4 +1,5 @@
 import { AnalyticsPanel } from '@/components/admin/AnalyticsPanel'
+import Link from 'next/link'
 import { sql } from '@/lib/db'
 import { GlassOverview, type DailyOrders, type RecentOrder } from '@/components/admin/GlassOverview'
 import styles from '@/components/admin/Dashboard.module.css'
@@ -19,5 +20,5 @@ export default async function AdminPage(){
  group by d.day order by d.day`,
  sql<RecentOrder[]>`select order_number::text as number,customer_name as customer,total::float8 as total,status from store.orders order by created_at desc limit 6`
  ])
- return <main className={styles.page}><GlassOverview stats={stats} daily={daily} recent={recent}/><AnalyticsPanel/></main>
+ return <main className={styles.page}><GlassOverview stats={stats} daily={daily} recent={recent}/><section className={styles.quick}><h2>Тест за аромат</h2><div><Link href="/admin/quiz-signups"><span>ДОБРОВОЛНИ ЗАПИСВАНИЯ</span><strong>Имейли за бъдещи оферти →</strong><p>Преглед и изтегляне на записаните имейли.</p></Link></div></section><AnalyticsPanel/></main>
 }
