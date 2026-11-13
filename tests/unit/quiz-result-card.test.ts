@@ -14,6 +14,12 @@ describe('quiz result cards', () => {
     const html = renderToStaticMarkup(createElement(QuizResultCard, { product: {...product,hasVariants:false}, leading:false, matchedLabels:[] }))
     expect(html).toContain('Добави в количката')
   })
+  it('renders the accessible target on the 75–100 display scale', () => {
+    const html = renderToStaticMarkup(createElement(QuizResultCard, { product, leading:false, matchedLabels:[], percent:12 }))
+    expect(html).toContain('aria-valuemin="75"')
+    expect(html).toContain('aria-valuenow="78"')
+    expect(html).toContain('75% съвпадение')
+  })
   it('keeps further matches for show-more', () => {
     const products = Array.from({length:8},(_, i) => ({...product, slug:`test-${i}`}))
     expect(recommendPerfumes(products,{ gender:'any', families:[], maxPrice:null })).toHaveLength(8)

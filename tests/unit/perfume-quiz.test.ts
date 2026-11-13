@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { isWearablePerfume, matchingFamilies, noteMatchPercent, preferenceFactor, recommendPerfumes, recommendRelatedPerfumes, type QuizProduct } from '@/lib/quiz/perfume'
+import { displayMatchPercent, isWearablePerfume, matchingFamilies, noteMatchPercent, preferenceFactor, recommendPerfumes, recommendRelatedPerfumes, type QuizProduct } from '@/lib/quiz/perfume'
 
 function product(overrides: Partial<QuizProduct>): QuizProduct {
   return { id: 'product-1', slug: 'perfume', title: 'Парфюм', brand: null, gender: 'female', imagePath: null, price: 20, compareAtPrice: null, hasVariants: false, inStock: true, categorySlugs: ['parfimes'], createdAt: '2026-01-01', perfume: null, ...overrides }
 }
 
 describe('perfume finder', () => {
+  it('displays scores on the disclosed 75–100 scale without changing their order', () => {
+    expect([0, 12, 50, 80, 100].map(displayMatchPercent)).toEqual([75, 78, 88, 95, 100])
+    expect(displayMatchPercent(-20)).toBe(75)
+    expect(displayMatchPercent(120)).toBe(100)
+  })
   it('classifies only actual structured notes, including Bulgarian and English', () => {
     expect(matchingFamilies({ top: 'Бергамот, малина', heart: 'жасмин', base: 'vanilla, sandalwood' })).toEqual(['fruity', 'floral', 'fresh', 'sweet', 'woody'])
     expect(matchingFamilies(null)).toEqual([])
