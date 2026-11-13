@@ -77,3 +77,27 @@ export function recommendPerfumes(products: QuizProduct[], answers: QuizAnswers)
     .sort((a, b) => b.matches - a.matches || b.strength - a.strength || b.product.createdAt.localeCompare(a.product.createdAt) || a.product.slug.localeCompare(b.product.slug))
     .map(({ product }) => product)
 }
+
+// Weaker, neighbouring fragrance families are presented separately from direct matches.
+const neighbours: Record<Family, Partial<Record<Family, number>>> = {
+  fruity: { floral: 0.55, fresh: 0.5, sweet: 0.45 },
+  floral: { fruity: 0.55, fresh: 0.4, sweet: 0.4 },
+  fresh: { fruity: 0.5, floral: 0.4, woody: 0.35 },
+  sweet: { fruity: 0.45, floral: 0.4, spicy: 0.45, woody: 0.3 },
+  spicy: { woody: 0.6, sweet: 0.45, floral: 0.25 },
+  woody: { spicy: 0.6, fresh: 0.35, sweet: 0.3 },
+}
+
+export function recommendRelatedPerfumes(products: QuizProduct[], answers: QuizAnswers): { product: QuizProduct; percent: number }[] {
+  if (!answers.families.length) return []
+  return products.filter(product => product.inStock && isWearablePerfume(product) &&
+    (answers.gender === 'any' || product.gender === answers.gender || product.gender === 'unisex') &&
+    (answers.maxPrice === null || product.price <= answers.maxPrice))
+    .flatMap(product => {
+      if (noteMatchPercent(product.perfume, answers.families) !== null) return []
+      const scores = profile(product.perfume)
+      const affinity = answers.families.reduce((sum, selected) => sum + Math.max(0, ...familyKeys.map(family => (neighbours[selected][family] ?? 0) * scores[family])), 0) / answers.families.length
+      return affinity > 0 ? [{ product, percent: Math.max(1, Math.round(49 * affinity)) }] : []
+    })
+    .sort((a, b) => b.percent - a.percent || b.product.createdAt.localeCompare(a.product.createdAt) || a.product.slug.localeCompare(b.product.slug))
+}

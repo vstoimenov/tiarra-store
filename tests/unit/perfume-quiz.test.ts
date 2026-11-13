@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isWearablePerfume, matchingFamilies, noteMatchPercent, recommendPerfumes, type QuizProduct } from '@/lib/quiz/perfume'
+import { isWearablePerfume, matchingFamilies, noteMatchPercent, recommendPerfumes, recommendRelatedPerfumes, type QuizProduct } from '@/lib/quiz/perfume'
 
 function product(overrides: Partial<QuizProduct>): QuizProduct {
   return { id: 'product-1', slug: 'perfume', title: 'Парфюм', brand: null, gender: 'female', imagePath: null, price: 20, compareAtPrice: null, hasVariants: false, inStock: true, categorySlugs: ['parfimes'], createdAt: '2026-01-01', perfume: null, ...overrides }
@@ -55,5 +55,20 @@ describe('perfume finder', () => {
     expect(noteMatchPercent(perfume, ['spicy'])).toBeNull()
     expect(noteMatchPercent(perfume, [])).toBeNull()
     expect(noteMatchPercent(null, ['floral'])).toBeNull()
+  })
+  it('offers only scored nearby alternatives with notes, without duplicating direct matches', () => {
+    const products = [
+      product({ slug: 'direct', perfume: { top: 'малина' } }),
+      product({ slug: 'near', perfume: { heart: 'роза' } }),
+      product({ slug: 'unknown', perfume: null }),
+      product({ slug: 'sold', inStock: false, perfume: { top: 'бергамот' } }),
+      product({ slug: 'wrong-gender', gender: 'male', perfume: { top: 'бергамот' } }),
+    ]
+    const choices = { gender: 'female' as const, families: ['fruity' as const], maxPrice: null }
+    const nearby = recommendRelatedPerfumes(products, choices)
+    expect(nearby.map(item => item.product.slug)).toEqual(['near'])
+    expect(nearby[0].percent).toBeGreaterThan(0)
+    expect(nearby[0].percent).toBeLessThan(50)
+    expect(recommendRelatedPerfumes(products, { ...choices, families: [] })).toEqual([])
   })
 })
