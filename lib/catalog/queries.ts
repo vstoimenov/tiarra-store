@@ -123,14 +123,23 @@ export async function getProductCards(
 
 /** Visible perfume-category products and their structured notes for the fragrance finder. */
 export async function getPerfumeQuizProducts(): Promise<(ProductCard & { id: string; perfume: Perfume | null })[]> {
-  const rows = await sql<(CardRow & { id: string; perfume: Perfume | null })[]>`
-    select ${cardColumns}, p.id, p.perfume
+  const rows = await sql<(CardRow & { id: string; perfume: Perfume | null; available_price: number | null; available_compare_at_price: number | null })[]>`
+    select ${cardColumns}, p.id, p.perfume, available_variant.price as available_price,
+      available_variant.compare_at_price as available_compare_at_price
     ${cardJoins}
+    left join lateral (
+      select v.price::float8 as price, v.compare_at_price::float8 as compare_at_price
+      from store.variants v where v.product_id = p.id and (v.stock is null or v.stock > 0)
+      order by v.price, v.position, v.id limit 1
+    ) available_variant on true
     where not p.is_hidden and exists (
       select 1 from store.product_categories pc join store.categories c on c.id = pc.category_id
       where pc.product_id = p.id and c.slug = 'parfimes')
     ${newestFirst}`
-  return rows.map((row) => ({ ...toCard(row), id: row.id, perfume: row.perfume }))
+  return rows.map((row) => ({ ...toCard(row),
+    price: row.variant_stocks !== null && row.available_price !== null ? row.available_price : row.price,
+    compareAtPrice: row.variant_stocks !== null && row.available_price !== null ? row.available_compare_at_price : row.compare_at_price,
+    id: row.id, perfume: row.perfume }))
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
