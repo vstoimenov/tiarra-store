@@ -1,5 +1,7 @@
 import { sql } from '@/lib/db'
 import { isAvailable } from './stock'
+import { extractDescriptionNotes, isProductSpecificDescription } from './description-fragrance'
+import { parsePerfumeNotes } from '@/scripts/import/perfume'
 import type { Category, Gender, Perfume, Product, ProductCard, ProductImage, Variant } from './types'
 
 // postgres.js returns numeric columns as strings, so prices are cast to float8 in SQL
@@ -122,9 +124,9 @@ export async function getProductCards(
 }
 
 /** Visible perfume-category products and their structured notes for the fragrance finder. */
-export async function getPerfumeQuizProducts(): Promise<(ProductCard & { id: string; perfume: Perfume | null })[]> {
-  const rows = await sql<(CardRow & { id: string; perfume: Perfume | null; available_price: number | null; available_compare_at_price: number | null })[]>`
-    select ${cardColumns}, p.id, p.perfume, available_variant.price as available_price,
+export async function getPerfumeQuizProducts(): Promise<(ProductCard & { id: string; perfume: Perfume | null; descriptionNotes: string[] })[]> {
+  const rows = await sql<(CardRow & { id: string; perfume: Perfume | null; quiz_description: string; available_price: number | null; available_compare_at_price: number | null })[]>`
+    select ${cardColumns}, p.id, p.perfume, p.description_html as quiz_description, available_variant.price as available_price,
       available_variant.compare_at_price as available_compare_at_price
     ${cardJoins}
     left join lateral (
@@ -136,10 +138,19 @@ export async function getPerfumeQuizProducts(): Promise<(ProductCard & { id: str
       select 1 from store.product_categories pc join store.categories c on c.id = pc.category_id
       where pc.product_id = p.id and c.slug = 'parfimes')
     ${newestFirst}`
-  return rows.map((row) => ({ ...toCard(row),
-    price: row.variant_stocks !== null && row.available_price !== null ? row.available_price : row.price,
-    compareAtPrice: row.variant_stocks !== null && row.available_price !== null ? row.available_compare_at_price : row.compare_at_price,
-    id: row.id, perfume: row.perfume }))
+  return rows.map((row) => {
+    // Split products may share a description of several fragrances; never assign those notes.
+    const rawDescription = row.quiz_description ?? ''
+    const description = isProductSpecificDescription(rawDescription, row.perfume?.variant) ? rawDescription : ''
+    const parsed = parsePerfumeNotes(description)
+    const perfume = parsed ? { ...row.perfume, top: row.perfume?.top || parsed.top, heart: row.perfume?.heart || parsed.heart, base: row.perfume?.base || parsed.base } : row.perfume
+    const existing = new Set([perfume?.top, perfume?.heart, perfume?.base].flatMap(text => (text ?? '').split(/[,;\n•]+/u).map(note => note.trim().toLocaleLowerCase('bg'))))
+    const descriptionNotes = extractDescriptionNotes(description).filter(note => !existing.has(note))
+    return { ...toCard(row),
+      price: row.variant_stocks !== null && row.available_price !== null ? row.available_price : row.price,
+      compareAtPrice: row.variant_stocks !== null && row.available_price !== null ? row.available_compare_at_price : row.compare_at_price,
+      id: row.id, perfume, descriptionNotes }
+  })
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
