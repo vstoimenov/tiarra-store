@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { catalogNotesByFamily, displayMatchPercent, isWearablePerfume, matchingFamilies, noteMatchPercent, preferenceFactor, recommendPerfumes, recommendRelatedPerfumes, type QuizProduct } from '@/lib/quiz/perfume'
+import { catalogNotesByFamily, displayMatchPercent, isWearablePerfume, matchingFamilies, noteMatchPercent, preferenceFactor, recommendFallbackPerfumes, recommendPerfumes, recommendRelatedPerfumes, type QuizProduct } from '@/lib/quiz/perfume'
 
 function product(overrides: Partial<QuizProduct>): QuizProduct {
   return { id: 'product-1', slug: 'perfume', title: 'Парфюм', brand: null, gender: 'female', imagePath: null, price: 20, compareAtPrice: null, hasVariants: false, inStock: true, categorySlugs: ['parfimes'], createdAt: '2026-01-01', perfume: null, ...overrides }
@@ -102,5 +102,23 @@ describe('perfume finder', () => {
     const answer = {gender:'any' as const, families:['fruity' as const], notes:['малина'], maxPrice:null}
     expect(recommendPerfumes([b,a], answer).map(item=>item.slug)).toEqual(['a','b'])
     expect(noteMatchPercent(null, ['floral'], {notes:['рози']}, ['рози'])).toBeGreaterThan(0)
+  })
+  it('fills limited results without duplicates, unavailable items, accessories or wrong-gender products', () => {
+    const products = [
+      product({id:'direct',slug:'direct',perfume:{top:'роза'}}),
+      product({id:'near',slug:'near',perfume:{top:'малина'}}),
+      product({id:'suitable',slug:'suitable',perfume:{occasion:'daily',intensity:'light'}}),
+      product({id:'unknown',slug:'unknown',perfume:null}),
+      product({id:'sold',slug:'sold',inStock:false}),
+      product({id:'accessory',slug:'case',title:'Кейс за парфюм'}),
+      product({id:'wrong',slug:'wrong',gender:'male'}),
+    ]
+    const answer = { gender:'female' as const, families:['floral' as const], maxPrice:null, occasion:'daily' as const, intensity:'light' as const }
+    const fallback = recommendFallbackPerfumes(products, answer, ['direct','near'])
+    expect(fallback.map(item=>item.id)).toEqual(['suitable','unknown'])
+  })
+  it('can suggest eligible perfumes even when no fragrance notes are classified', () => {
+    const products = [product({id:'a',slug:'a',perfume:null}), product({id:'b',slug:'b',perfume:null})]
+    expect(recommendFallbackPerfumes(products, {gender:'any',families:[],maxPrice:null}, []).map(item=>item.id)).toEqual(['a','b'])
   })
 })

@@ -37,7 +37,7 @@ function MatchMeter({ percent: rawPercent }: { percent: number }) {
   </div>
 }
 
-export function QuizResultCard({ product, leading, matchedLabels, percent = null, related = false }: { product: QuizProduct; leading: boolean; matchedLabels: string[]; percent?: number | null; related?: boolean }) {
+export function QuizResultCard({ product, leading, matchedLabels, percent = null, related = false, limited = false }: { product: QuizProduct; leading: boolean; matchedLabels: string[]; percent?: number | null; related?: boolean; limited?: boolean }) {
   const [status, setStatus] = useState('')
   const notes = [ ['Връх', product.perfume?.top], ['Сърце', product.perfume?.heart], ['База', product.perfume?.base] ] as const
   const hasNotes = notes.some(([, value]) => Boolean(value?.trim())) || Boolean(product.descriptionNotes?.length)
@@ -54,7 +54,7 @@ export function QuizResultCard({ product, leading, matchedLabels, percent = null
       {product.imagePath && <img src={imageUrl(product.imagePath, 400)} srcSet={imageSrcSet(product.imagePath)} sizes="(max-width: 600px) 38vw, 210px" alt="" loading="lazy" decoding="async" />}
     </Link>
     <div className={styles.content}>
-      <span className={styles.badge}>{leading ? 'НАЙ-БЛИЗЪК ИЗБОР' : related ? 'БЛИЗЪК АРОМАТ' : 'ПРЕДЛОЖЕНИЕ ЗА ТЕБ'}</span>
+      <span className={styles.badge}>{leading ? 'НАЙ-БЛИЗЪК ИЗБОР' : related ? 'БЛИЗЪК АРОМАТ' : limited ? 'ДРУГО ПРЕДЛОЖЕНИЕ' : 'ПРЕДЛОЖЕНИЕ ЗА ТЕБ'}</span>
       <h2><Link href={productUrl}>{product.title}</Link></h2>
       {product.brand && <p className={styles.brand}>{product.brand}</p>}
       {percent !== null && <MatchMeter percent={percent} />}

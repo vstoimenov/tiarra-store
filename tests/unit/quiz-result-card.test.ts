@@ -20,6 +20,12 @@ describe('quiz result cards', () => {
     expect(html).toContain('aria-valuenow="79"')
     expect(html).toContain('76% съвпадение')
   })
+  it('does not invent a percentage for a fallback without reliable note data', () => {
+    const html = renderToStaticMarkup(createElement(QuizResultCard, { product:{...product,perfume:null}, leading:false, matchedLabels:[], limited:true }))
+    expect(html).toContain('ДРУГО ПРЕДЛОЖЕНИЕ')
+    expect(html).toContain('Няма въведени ароматни нотки')
+    expect(html).not.toContain('съвпадение')
+  })
   it('keeps further matches for show-more', () => {
     const products = Array.from({length:8},(_, i) => ({...product, slug:`test-${i}`}))
     expect(recommendPerfumes(products,{ gender:'any', families:[], maxPrice:null })).toHaveLength(8)

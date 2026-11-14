@@ -108,10 +108,14 @@ export function isWearablePerfume(product: QuizProduct): boolean {
   return /(?:парфюм|parf[uy]m|perfume|\bedp\b|\bedt\b|olfazeta\s+by\s+chogan)/iu.test(title) || Boolean(product.descriptionNotes?.length || (product.perfume && [product.perfume.top, product.perfume.heart, product.perfume.base].some(Boolean)))
 }
 
-export function recommendPerfumes(products: QuizProduct[], answers: QuizAnswers): QuizProduct[] {
+function eligibleProducts(products: QuizProduct[], answers: QuizAnswers): QuizProduct[] {
   return products.filter(product => product.inStock && isWearablePerfume(product) &&
     (answers.gender === 'any' || product.gender === answers.gender || product.gender === 'unisex') &&
     (answers.maxPrice === null || product.price <= answers.maxPrice))
+}
+
+export function recommendPerfumes(products: QuizProduct[], answers: QuizAnswers): QuizProduct[] {
+  return eligibleProducts(products, answers)
     .map(product => {
       const scores = profile(product.perfume, product.descriptionNotes)
       const matched = answers.families.filter(family => scores[family] > 0)
@@ -136,9 +140,7 @@ const neighbours: Record<Family, Partial<Record<Family, number>>> = {
 
 export function recommendRelatedPerfumes(products: QuizProduct[], answers: QuizAnswers): { product: QuizProduct; percent: number }[] {
   if (!answers.families.length) return []
-  return products.filter(product => product.inStock && isWearablePerfume(product) &&
-    (answers.gender === 'any' || product.gender === answers.gender || product.gender === 'unisex') &&
-    (answers.maxPrice === null || product.price <= answers.maxPrice))
+  return eligibleProducts(products, answers)
     .flatMap(product => {
       if (noteMatchPercent(product.perfume, answers.families, {}, product.descriptionNotes) !== null) return []
       const scores = profile(product.perfume, product.descriptionNotes)
@@ -146,4 +148,13 @@ export function recommendRelatedPerfumes(products: QuizProduct[], answers: QuizA
       return affinity > 0 ? [{ product, percent: Math.max(1, Math.round(10 * affinity * preferenceFactor(product.perfume, answers))) }] : []
     })
     .sort((a, b) => b.percent - a.percent || b.product.createdAt.localeCompare(a.product.createdAt) || a.product.slug.localeCompare(b.product.slug))
+}
+
+/** Last resort: eligible perfumes with no reliable note-based comparison, without a fabricated score. */
+export function recommendFallbackPerfumes(products: QuizProduct[], answers: QuizAnswers, excludedIds: string[]): QuizProduct[] {
+  const excluded = new Set(excludedIds)
+  return eligibleProducts(products, answers).filter(product => !excluded.has(product.id))
+    .map(product => ({ product, factor: preferenceFactor(product.perfume, answers), known: Number(Boolean(product.perfume?.occasion)) + Number(Boolean(product.perfume?.intensity)) }))
+    .sort((a, b) => b.factor - a.factor || b.known - a.known || b.product.createdAt.localeCompare(a.product.createdAt) || a.product.slug.localeCompare(b.product.slug))
+    .map(({ product }) => product)
 }
