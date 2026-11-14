@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { displayMatchPercent, isWearablePerfume, matchingFamilies, noteMatchPercent, preferenceFactor, recommendPerfumes, recommendRelatedPerfumes, type QuizProduct } from '@/lib/quiz/perfume'
+import { catalogNotesByFamily, displayMatchPercent, isWearablePerfume, matchingFamilies, noteMatchPercent, preferenceFactor, recommendPerfumes, recommendRelatedPerfumes, type QuizProduct } from '@/lib/quiz/perfume'
 
 function product(overrides: Partial<QuizProduct>): QuizProduct {
   return { id: 'product-1', slug: 'perfume', title: 'Парфюм', brand: null, gender: 'female', imagePath: null, price: 20, compareAtPrice: null, hasVariants: false, inStock: true, categorySlugs: ['parfimes'], createdAt: '2026-01-01', perfume: null, ...overrides }
 }
 
 describe('perfume finder', () => {
-  it('displays scores on the disclosed 75–100 scale without changing their order', () => {
-    expect([0, 12, 50, 80, 100].map(displayMatchPercent)).toEqual([75, 78, 88, 95, 100])
-    expect(displayMatchPercent(-20)).toBe(75)
+  it('displays scores above 75 on the disclosed scale without changing their order', () => {
+    expect([0, 12, 50, 80, 100].map(displayMatchPercent)).toEqual([76, 79, 88, 95, 100])
+    expect(displayMatchPercent(-20)).toBe(76)
     expect(displayMatchPercent(120)).toBe(100)
   })
   it('classifies only actual structured notes, including Bulgarian and English', () => {
@@ -87,5 +87,20 @@ describe('perfume finder', () => {
     const ranked = recommendPerfumes([product({ slug:'unsuitable', perfume:unsuitable }), product({ slug:'suitable', perfume:suitable })], { gender:'any', families:['floral'], maxPrice:null, ...preferences })
     expect(ranked.map(item => item.slug)).toEqual(['suitable', 'unsuitable'])
     expect(preferenceFactor({ occasion:'both' }, { occasion:'daily' })).toBe(1)
+  })
+  it('builds note choices only from matching available perfumes, including their descriptions', () => {
+    const products = [product({slug:'a', gender:'female', perfume:{top:'Роза, ванилия'}, descriptionNotes:['дървета']}), product({slug:'b', gender:'unisex', perfume:{heart:'роза'}}), product({slug:'male',gender:'male',perfume:{top:'лимон'}}), product({slug:'sold',inStock:false,perfume:{top:'касис'}}), product({slug:'case',title:'Кейс за парфюм',perfume:{top:'лимон'}})]
+    const choices = catalogNotesByFamily(products, 'female')
+    expect(choices.floral).toEqual([{value:'роза',count:2}])
+    expect(choices.woody).toEqual([{value:'дървета',count:1}])
+    expect(choices.fresh).toEqual([])
+    expect(choices.fruity).toEqual([])
+  })
+  it('uses an optional specific note in the match score and supports description notes', () => {
+    const a = product({slug:'a',perfume:{top:'малина, круша'}})
+    const b = product({slug:'b',perfume:{top:'круша'}})
+    const answer = {gender:'any' as const, families:['fruity' as const], notes:['малина'], maxPrice:null}
+    expect(recommendPerfumes([b,a], answer).map(item=>item.slug)).toEqual(['a','b'])
+    expect(noteMatchPercent(null, ['floral'], {notes:['рози']}, ['рози'])).toBeGreaterThan(0)
   })
 })

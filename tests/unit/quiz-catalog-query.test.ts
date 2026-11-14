@@ -18,4 +18,13 @@ describe('perfume quiz catalog', () => {
     expect(card.price).toBe(20)
     expect(card.hasVariants).toBe(false)
   })
+  it('uses explicit product description notes but excludes shared split-variant descriptions', async () => {
+    const base = { slug:'scent', title:'Парфюм', brand:null, gender:'female', created_at:new Date('2026-01-01'), stock:2, image_path:null, price:20, compare_at_price:null, variant_stocks:null, category_slugs:['parfimes'], id:'p', available_price:null, available_compare_at_price:null, quiz_description:'<p>Ориенталски нотки на ценни дървета и елегантни нотки на рози, скрити в оазиса.</p>' }
+    rows.value = [{ ...base, perfume:{volume:'50 мл'} }, { ...base, slug:'other', perfume:{variant:'OTHER'} }, { ...base, slug:'specific', perfume:{variant:'OTHER'}, quiz_description:'<p>OTHER</p><p>Връхни нотки: Роза</p><p>Базови нотки: Ванилия</p>' }]
+    const [own, shared, specific] = await getPerfumeQuizProducts()
+    expect(own.descriptionNotes).toEqual(['дървета', 'рози'])
+    expect(shared.descriptionNotes).toEqual([])
+    expect(specific.perfume?.top).toBe('Роза')
+    expect(specific.perfume?.base).toBe('Ванилия')
+  })
 })

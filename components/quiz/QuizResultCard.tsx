@@ -12,7 +12,7 @@ import styles from './QuizResultCard.module.css'
 function MatchMeter({ percent: rawPercent }: { percent: number }) {
   const percent = displayMatchPercent(rawPercent)
   const node = useRef<HTMLDivElement>(null)
-  const [value, setValue] = useState(75)
+  const [value, setValue] = useState(76)
   useEffect(() => {
     const element = node.current
     if (!element) return
@@ -24,7 +24,7 @@ function MatchMeter({ percent: rawPercent }: { percent: number }) {
       const started = performance.now()
       const tick = (now: number) => {
         const progress = Math.min(1, (now - started) / 1200)
-        setValue(Math.round(75 + (percent - 75) * (1 - Math.pow(1 - progress, 3))))
+        setValue(Math.round(76 + (percent - 76) * (1 - Math.pow(1 - progress, 3))))
         if (progress < 1) animation = requestAnimationFrame(tick)
       }
       animation = requestAnimationFrame(tick)
@@ -32,7 +32,7 @@ function MatchMeter({ percent: rawPercent }: { percent: number }) {
     observer.observe(element)
     return () => { observer.disconnect(); cancelAnimationFrame(animation) }
   }, [percent])
-  return <div ref={node} className={styles.match} role="progressbar" aria-label="Ориентировъчно съвпадение по скала от 75 до 100 процента" aria-valuemin={75} aria-valuemax={100} aria-valuenow={percent}>
+  return <div ref={node} className={styles.match} role="progressbar" aria-label="Ориентировъчно съвпадение по скала от 76 до 100 процента" aria-valuemin={76} aria-valuemax={100} aria-valuenow={percent}>
     <span className={styles.matchTrack} aria-hidden="true"><span style={{ transform: `scaleX(${value / 100})` }} /></span><strong aria-hidden="true">{value}% съвпадение</strong>
   </div>
 }
@@ -40,7 +40,7 @@ function MatchMeter({ percent: rawPercent }: { percent: number }) {
 export function QuizResultCard({ product, leading, matchedLabels, percent = null, related = false }: { product: QuizProduct; leading: boolean; matchedLabels: string[]; percent?: number | null; related?: boolean }) {
   const [status, setStatus] = useState('')
   const notes = [ ['Връх', product.perfume?.top], ['Сърце', product.perfume?.heart], ['База', product.perfume?.base] ] as const
-  const hasNotes = notes.some(([, value]) => Boolean(value?.trim()))
+  const hasNotes = notes.some(([, value]) => Boolean(value?.trim())) || Boolean(product.descriptionNotes?.length)
   const productUrl = `/store/${product.slug}`
   function add() {
     try {
@@ -59,7 +59,7 @@ export function QuizResultCard({ product, leading, matchedLabels, percent = null
       {product.brand && <p className={styles.brand}>{product.brand}</p>}
       {percent !== null && <MatchMeter percent={percent} />}
       {matchedLabels.length > 0 && <div className={styles.tags}>{matchedLabels.map(label => <span key={label}>{label}</span>)}</div>}
-      {hasNotes ? <dl className={styles.notes}>{notes.map(([label, value]) => value?.trim() ? <div key={label}><dt>{label}:</dt><dd>{value}</dd></div> : null)}</dl> : <p className={styles.noNotes}>Няма въведени ароматни нотки.</p>}
+      {hasNotes ? <dl className={styles.notes}>{notes.map(([label, value]) => value?.trim() ? <div key={label}><dt>{label}:</dt><dd>{value}</dd></div> : null)}{Boolean(product.descriptionNotes?.length) && <div><dt>От описанието:</dt><dd>{product.descriptionNotes!.join(', ')}</dd></div>}</dl> : <p className={styles.noNotes}>Няма въведени ароматни нотки.</p>}
       <div className={styles.actions}><p className={styles.price}>{product.hasVariants && <small>От </small>}{formatPrice(product.price)} {isDiscounted(product.price, product.compareAtPrice) && <s>{formatPrice(product.compareAtPrice)}</s>}</p>{product.hasVariants ? <Link className={styles.buy} href={productUrl}>Избери вариант</Link> : <button type="button" className={styles.buy} onClick={add}>Добави в количката</button>}<Link className={styles.more} href={productUrl}>Виж аромата</Link></div>
       {status && <p role="status" className={styles.status}>{status}</p>}
     </div>
