@@ -4,12 +4,13 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react'
-import { ArrowUpRight, Boxes, ChartNoAxesCombined, ChevronRight, House, Layers, LogOut, Menu, Package, Palette, Search, Settings2, ShoppingBag, TicketPercent, X } from 'lucide-react'
+import { ArrowUpRight, Boxes, ChartNoAxesCombined, ChevronRight, House, Layers, LogOut, Menu, Package, Palette, Search, Settings2, ShoppingBag, TicketPercent, UsersRound, X } from 'lucide-react'
 import styles from './adjustable-glass-dashboard.module.css'
 
 const sections = [
   {href:'/admin',label:'Общ преглед',icon:ChartNoAxesCombined,group:'Магазин'},
   {href:'/admin/orders',label:'Поръчки',icon:ShoppingBag,group:'Магазин'},
+  {href:'/admin/customers',label:'Клиенти',icon:UsersRound,group:'Магазин'},
   {href:'/admin/products',label:'Продукти',icon:Package,group:'Магазин'},
   {href:'/admin/inventory',label:'Наличности',icon:Boxes,group:'Магазин'},
   {href:'/admin/home',label:'Начална страница',icon:House,group:'Съдържание'},
