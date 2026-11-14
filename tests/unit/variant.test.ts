@@ -83,10 +83,10 @@ describe('resolveVariantState', () => {
     })
   })
 
-  it('gives the image of the variant, and null when it has none', () => {
+  it('gives the variant image and falls back to the product image when absent', () => {
     expect(resolveVariantState(yodeyma, idOf('NYA')).imagePath).toBe(yodeyma.variants.find((v) => v.name === 'NYA')!.imagePath)
     const bare = yodeyma.variants.map((v) => ({ ...v, imagePath: null }))
-    expect(resolveVariantState({ ...yodeyma, variants: bare }, bare[0].id).imagePath).toBeNull()
+    expect(resolveVariantState({ ...yodeyma, variants: bare }, bare[0].id).imagePath).toBe(yodeyma.imagePath)
   })
 
   it('uses the fields of the product itself when it has no variants', () => {
