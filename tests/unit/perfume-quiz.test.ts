@@ -20,6 +20,13 @@ describe('perfume finder', () => {
     expect(matchingFamilies({ heart: 'портокалов цвят и бергамот' })).toEqual(['floral', 'fresh'])
     expect(matchingFamilies({ base: 'какао, горчив бадем' })).toEqual(['sweet'])
   })
+  it('recognizes the Bulgarian note names from the official YODEYMA catalog', () => {
+    expect(matchingFamilies({top:'Цитрон',heart:'Нероли',base:'Черен чай'})).toEqual(['floral','fresh'])
+    expect(matchingFamilies({top:'Агарово дърво (уд)',heart:'Пачули',base:'Лавандула'})).toEqual(['floral','woody'])
+    expect(matchingFamilies({top:'Липа',base:'Акигалавуд, кашмир, дъбов абсолю'})).toEqual(['floral','woody'])
+    expect(matchingFamilies({heart:'Босилек, ревен',base:'Водна нотка'})).toEqual(['fresh'])
+    expect(matchingFamilies({base:'Смирна'})).toEqual(['spicy'])
+  })
   it('ranks matching notes and excludes hidden-by-stock, gender, budget and unknown notes', () => {
     const products = [
       product({ slug: 'one', perfume: { top: 'роза' } }),

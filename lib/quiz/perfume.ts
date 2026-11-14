@@ -15,11 +15,11 @@ export function displayMatchPercent(score: number): number {
 // Recognize note names, not product names or shared descriptions that can describe other aromas.
 const terms: Record<Family, string[]> = {
   fruity: ['прасков', 'круш', 'касис', 'малин', 'ягод', 'ябъл', 'череш', 'слив', 'ананас', 'манго', 'кайси', 'пъпеш', 'къпин', 'мараку', 'смокин', 'плодов', 'плодове', 'peach', 'pear', 'berry', 'apple', 'fruit', 'plum', 'apricot', 'melon', 'fig'],
-  floral: ['роза', 'рози', 'розова вода', 'розов цвят', 'жасмин', 'тубероз', 'лили', 'момина сълза', 'ирис', 'божур', 'виолет', 'теменуж', 'лавандул', 'цвет', 'цвят', 'нероли', 'магнол', 'фрези', 'орхиде', 'гардени', 'иланг', 'хелиотроп', 'rose', 'jasmine', 'floral', 'iris', 'violet', 'peony', 'neroli', 'magnolia', 'orchid', 'tuberose'],
-  fresh: ['цитрус', 'лимон', 'лайм', 'бергамот', 'портокал', 'грейпфрут', 'мандарин', 'морск', 'водни', 'мент', 'зелен', 'водорасл', 'петигрен', 'citrus', 'lemon', 'lime', 'bergamot', 'orange', 'aquatic', 'marine', 'mint', 'grapefruit', 'mandarin'],
+  floral: ['роза', 'рози', 'розова вода', 'розов цвят', 'жасмин', 'тубероз', 'лили', 'момина сълза', 'ирис', 'божур', 'виолет', 'теменуж', 'лавандул', 'цвет', 'цвят', 'нероли', 'магнол', 'фрези', 'орхиде', 'гардени', 'иланг', 'хелиотроп', 'липа', 'rose', 'jasmine', 'floral', 'iris', 'violet', 'peony', 'neroli', 'magnolia', 'orchid', 'tuberose'],
+  fresh: ['цитрус', 'цитрон', 'лимон', 'лайм', 'бергамот', 'портокал', 'грейпфрут', 'мандарин', 'морск', 'водни', 'водна', 'чай', 'босилек', 'ревен', 'мент', 'зелен', 'водорасл', 'петигрен', 'citrus', 'lemon', 'lime', 'bergamot', 'orange', 'aquatic', 'marine', 'mint', 'grapefruit', 'mandarin'],
   sweet: ['ванил', 'карамел', 'кафе', 'шоколад', 'какао', 'мед', 'кокос', 'тонка', 'пралине', 'бадем', 'захар', 'лактон', 'кумарин', 'vanilla', 'caramel', 'coffee', 'chocolate', 'cocoa', 'coconut', 'tonka', 'praline', 'almond', 'honey'],
-  spicy: ['кож', 'тютюн', 'тамян', 'пипер', 'канел', 'кардамон', 'шафран', 'джинджифил', 'подправ', 'индийско орехче', 'leather', 'tobacco', 'incense', 'pepper', 'cinnamon', 'cardamom', 'spicy', 'saffron', 'ginger'],
-  woody: ['кедър', 'кедров', 'сандал', 'пачули', 'ветивер', 'дървес', 'дървет', 'дърво', 'мъх', 'бор', 'кипарис', 'кашмеран', 'пало санто', 'cedar', 'sandal', 'patchouli', 'vetiver', 'oud', 'wood', 'rosewood', 'moss', 'cypress'],
+  spicy: ['кож', 'тютюн', 'смирна', 'тамян', 'пипер', 'канел', 'кардамон', 'шафран', 'джинджифил', 'подправ', 'индийско орехче', 'leather', 'tobacco', 'incense', 'pepper', 'cinnamon', 'cardamom', 'spicy', 'saffron', 'ginger'],
+  woody: ['кедър', 'кедров', 'сандал', 'пачули', 'ветивер', 'дървес', 'дървет', 'дърво', 'мъх', 'бор', 'кипарис', 'кашмеран', 'кашмир', 'агаров', 'уд', 'дъб', 'акигалавуд', 'пало санто', 'cedar', 'sandal', 'patchouli', 'vetiver', 'oud', 'wood', 'rosewood', 'moss', 'cypress'],
   amber: ['амбра', 'амбър', 'бензоин', 'лабданум', 'стиракс', 'amber', 'benzoin', 'labdanum'],
   musky: ['мускус', 'амброксан', 'musk', 'ambroxan'],
 }
