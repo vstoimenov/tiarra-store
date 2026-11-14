@@ -25,6 +25,8 @@ import styles from './page.module.css'
 // Build visible products ahead of time; allow an admin to reactivate a hidden product without a deployment.
 // The old shop's addresses (`/store/reuzel`) are product slugs too, so they keep working.
 export const dynamicParams = true
+// Also refresh changes imported directly into the database. Admin saves invalidate immediately.
+export const revalidate = 60
 
 export async function generateStaticParams() {
   return (await getAllProductSlugs()).map((slug) => ({ slug }))
