@@ -32,7 +32,7 @@ export function Gallery({ images, selectedPath = null, title }: Props) {
   // Adjusting state while rendering (not in an effect) avoids painting the old picture for a frame.
   if (selectedPath !== seen) {
     setSeen(selectedPath)
-    if (selectedPath) setShown(selectedPath)
+    setShown(selectedPath ?? images[0]?.path ?? null)
   }
 
   if (shown === null) {

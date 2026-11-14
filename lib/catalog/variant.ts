@@ -48,6 +48,6 @@ export function resolveVariantState(p: Product, variantId: string | null): Varia
     discountPercent: oldPrice === null ? null : discountPercent(oldPrice, source.price),
     inStock,
     stock: source.stock,
-    imagePath: source.imagePath,
+    imagePath: source.imagePath ?? p.imagePath,
   }
 }

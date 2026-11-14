@@ -38,4 +38,19 @@ describe('adding variants to existing products', () => {
   expect(response.status).toBe(500)
   expect((await response.json()).error).toContain('актуализация на базата')
  })
+ it('saves a changed variant picture through the restricted database function', async () => {
+  const imagePath = 'https://example.com/brown.webp'
+  query.mockResolvedValueOnce([{ updated_at:'revision',slug:'test' }]).mockResolvedValueOnce([{id:black.id,imagePath:null},{id:brown.id,imagePath:null}]).mockResolvedValueOnce([{updatedAt:'next',slug:'test'}]).mockResolvedValueOnce([]).mockResolvedValueOnce([]).mockResolvedValueOnce([{available:true}]).mockResolvedValueOnce([])
+  const response = await PATCH(request({...product,variants:[black,{...brown,imagePath}]}))
+  expect(response.status).toBe(200)
+  const call = query.mock.calls.find(args=>args[0].join('').includes('select store.admin_set_variant_images('))
+  expect(call?.[2]).toEqual([{...brown,imagePath}])
+ })
+ it('preserves variant pictures for older clients that omit the image field', async () => {
+  query.mockResolvedValueOnce([{ updated_at:'revision',slug:'test' }]).mockResolvedValueOnce([{id:black.id,imagePath:'https://example.com/black.webp'},{id:brown.id,imagePath:null}]).mockResolvedValueOnce([{updatedAt:'next',slug:'test'}]).mockResolvedValueOnce([]).mockResolvedValueOnce([])
+  const response = await PATCH(request(product))
+  expect(response.status).toBe(200)
+  expect(query.mock.calls.some(args=>args[0].join('').includes('admin_set_variant_images'))).toBe(false)
+ })
+
 })
