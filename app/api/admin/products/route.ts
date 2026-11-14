@@ -24,15 +24,24 @@ export async function PATCH(request:Request){
  if(!origin(request))return NextResponse.json({error:'Невалиден произход.'},{status:403})
  const parsed=patch.safeParse(await request.json().catch(()=>null));if(!parsed.success||!valid(parsed.data))return NextResponse.json({error:'Провери данните. Видимият продукт трябва да има снимка и поне една категория.'},{status:400})
  const p=parsed.data
- if(p.variants.some(v=>v.compareAtPrice!==null&&v.compareAtPrice<=v.price))return NextResponse.json({error:'Старата цена трябва да е по-висока от текущата.'},{status:400})
+ if(p.variants.some(v=>v.compareAtPrice!==null&&v.compareAtPrice<=v.price)||new Set(p.variants.map(v=>v.name.toLocaleLowerCase('bg'))).size!==p.variants.length)return NextResponse.json({error:'Провери имената и цените на видовете. Имената трябва да са различни, а старата цена — по-висока.'},{status:400})
  try{const saved=await sql.begin(async tx=>{
   const [current]=await tx<{updated_at:string;slug:string}[]>`select updated_at::text,slug from store.products where id=${p.id} for update`
   if(!current)throw new Error('NOT_FOUND');if(current.updated_at!==p.updatedAt)throw new Error('CONFLICT')
   const variants=await tx<{id:string}[]>`select id from store.variants where product_id=${p.id} for update`
-  if(variants.length!==p.variants.length||new Set(p.variants.map(v=>v.id)).size!==variants.length||variants.some(v=>!p.variants.some(i=>i.id===v.id)))throw new Error('CONFLICT')
+  if(new Set(p.variants.map(v=>v.id)).size!==p.variants.length||variants.some(v=>!p.variants.some(i=>i.id===v.id)))throw new Error('CONFLICT')
+  const newVariants=p.variants.filter(v=>!variants.some(existing=>existing.id===v.id))
+  if(newVariants.length){
+   if(!variants.length)await tx`select store.admin_add_new_variants(${p.id},${tx.json(newVariants)})`
+   else {
+    const [capability]=await tx<{available:boolean}[]>`select to_regprocedure('store.admin_append_variants(uuid,jsonb)') is not null as available`
+    if(!capability?.available)throw new Error('VARIANTS_MIGRATION_REQUIRED')
+    await tx`select store.admin_append_variants(${p.id},${tx.json(newVariants)})`
+   }
+  }
   const [row]=await tx<{updatedAt:string;slug:string}[]>`select updated_at::text as "updatedAt",slug from store.admin_save_product(${tx.json({...p,descriptionHtml:clean(p.descriptionHtml)})})`
   if(p.perfume !== undefined){const [check]=await tx<{matches:boolean}[]>`select coalesce(perfume, 'null'::jsonb) = coalesce(${tx.json(p.perfume)}::jsonb, 'null'::jsonb) as matches from store.products where id=${p.id}`;if(!check?.matches)throw new Error('PERFUME_NOT_SAVED')}
-  for(const v of p.variants)await tx`update store.variants set name=${v.name},price=${v.price},compare_at_price=${v.compareAtPrice} where id=${v.id} and product_id=${p.id}`
+  for(const v of p.variants.filter(v=>variants.some(existing=>existing.id===v.id)))await tx`update store.variants set name=${v.name},price=${v.price},compare_at_price=${v.compareAtPrice} where id=${v.id} and product_id=${p.id}`
   return {updatedAt:row.updatedAt,slug:current.slug}
- });revalidatePath('/', 'layout');return NextResponse.json(saved)}catch(e){const message=e instanceof Error?e.message:'';if(message==='CONFLICT')return NextResponse.json({error:'Продуктът е променен от друг прозорец. Презареди страницата.'},{status:409});if(message==='PERFUME_NOT_SAVED')return NextResponse.json({error:'Нотките не бяха записани. Необходима е актуализация на базата; промените са запазени във формата.'},{status:500});if(message==='NOT_FOUND')return NextResponse.json({error:'Продуктът не е намерен.'},{status:404});console.error('Product update failed',e);return NextResponse.json({error:'Промяната не беше записана.'},{status:500})}
+ });revalidatePath('/', 'layout');revalidatePath('/store/'+saved.slug);revalidatePath('/store');return NextResponse.json(saved)}catch(e){const message=e instanceof Error?e.message:'';if(message==='VARIANTS_MIGRATION_REQUIRED')return NextResponse.json({error:'За добавяне към вече съществуващи видове е нужна актуализация на базата. Промените не са записани.'},{status:500});if(message==='CONFLICT')return NextResponse.json({error:'Продуктът е променен от друг прозорец. Презареди страницата.'},{status:409});if(message==='PERFUME_NOT_SAVED')return NextResponse.json({error:'Нотките не бяха записани. Необходима е актуализация на базата; промените са запазени във формата.'},{status:500});if(message==='NOT_FOUND')return NextResponse.json({error:'Продуктът не е намерен.'},{status:404});console.error('Product update failed',e);return NextResponse.json({error:'Промяната не беше записана.'},{status:500})}
 }
