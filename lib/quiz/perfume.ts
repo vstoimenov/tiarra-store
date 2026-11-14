@@ -70,13 +70,28 @@ export function hasFragranceNotes(perfume: Perfume | null, descriptionNotes: str
   return Boolean(descriptionNotes.length || (perfume && [perfume.top, perfume.heart, perfume.base].some(value => value?.trim())))
 }
 
-/** A transparent heuristic, not a scientific prediction of how a fragrance smells on skin. */
-export function preferenceFactor(perfume: Perfume | null, preferences: Preferences = {}): number {
+/** Explicit traits take precedence. Otherwise, scent families provide a modest, approximate tie-breaker. */
+export function preferenceFactor(perfume: Perfume | null, preferences: Preferences = {}, descriptionNotes: string[] = []): number {
   let factor = 1
-  if (preferences.occasion && preferences.occasion !== 'both' && perfume?.occasion && perfume.occasion !== 'both' && perfume.occasion !== preferences.occasion) factor *= 0.8
-  if (preferences.intensity && perfume?.intensity && preferences.intensity !== perfume.intensity) {
-    factor *= preferences.intensity === 'balanced' || perfume.intensity === 'balanced' ? 0.9 : 0.75
+  const scores = profile(perfume, descriptionNotes)
+  const recognized = familyKeys.some(family => scores[family] > 0)
+  const affinity = (families: Family[]) => Math.min(1, families.reduce((sum, family) => sum + scores[family], 0))
+  if (preferences.occasion && preferences.occasion !== 'both') {
+    if (perfume?.occasion) {
+      if (perfume.occasion !== 'both' && perfume.occasion !== preferences.occasion) factor *= 0.8
+    } else if (recognized) {
+      const families: Family[] = preferences.occasion === 'daily' ? ['fresh', 'floral', 'fruity'] : ['amber', 'spicy', 'woody', 'sweet']
+      factor *= 0.9 + 0.1 * affinity(families)
+    }
   }
+  if (preferences.intensity && preferences.intensity !== 'balanced') {
+    if (perfume?.intensity) {
+      if (preferences.intensity !== perfume.intensity) factor *= perfume.intensity === 'balanced' ? 0.9 : 0.75
+    } else if (recognized) {
+      const families: Family[] = preferences.intensity === 'light' ? ['fresh', 'floral', 'fruity'] : ['amber', 'spicy', 'woody', 'sweet', 'musky']
+      factor *= 0.9 + 0.1 * affinity(families)
+    }
+  } else if (preferences.intensity === 'balanced' && perfume?.intensity && perfume.intensity !== 'balanced') factor *= 0.9
   return factor
 }
 
@@ -93,7 +108,7 @@ export function noteMatchPercent(perfume: Perfume | null, selected: Family[], pr
     const exact = preferences.notes.filter(note => present.has(noteKey(note))).length / preferences.notes.length
     score = 0.5 * score + 50 * exact
   }
-  return Math.round(score * preferenceFactor(perfume, preferences))
+  return Math.round(score * preferenceFactor(perfume, preferences, descriptionNotes))
 }
 
 export function matchingFamilies(perfume: Perfume | null, descriptionNotes: string[] = []): Family[] {
@@ -145,7 +160,7 @@ export function recommendRelatedPerfumes(products: QuizProduct[], answers: QuizA
       if (noteMatchPercent(product.perfume, answers.families, {}, product.descriptionNotes) !== null) return []
       const scores = profile(product.perfume, product.descriptionNotes)
       const affinity = answers.families.reduce((sum, selected) => sum + Math.max(0, ...familyKeys.map(family => (neighbours[selected][family] ?? 0) * scores[family])), 0) / answers.families.length
-      return affinity > 0 ? [{ product, percent: Math.max(1, Math.round(10 * affinity * preferenceFactor(product.perfume, answers))) }] : []
+      return affinity > 0 ? [{ product, percent: Math.max(1, Math.round(10 * affinity * preferenceFactor(product.perfume, answers, product.descriptionNotes))) }] : []
     })
     .sort((a, b) => b.percent - a.percent || b.product.createdAt.localeCompare(a.product.createdAt) || a.product.slug.localeCompare(b.product.slug))
 }
@@ -154,7 +169,7 @@ export function recommendRelatedPerfumes(products: QuizProduct[], answers: QuizA
 export function recommendFallbackPerfumes(products: QuizProduct[], answers: QuizAnswers, excludedIds: string[]): QuizProduct[] {
   const excluded = new Set(excludedIds)
   return eligibleProducts(products, answers).filter(product => !excluded.has(product.id))
-    .map(product => ({ product, factor: preferenceFactor(product.perfume, answers), known: Number(Boolean(product.perfume?.occasion)) + Number(Boolean(product.perfume?.intensity)) }))
+    .map(product => ({ product, factor: preferenceFactor(product.perfume, answers, product.descriptionNotes), known: Number(Boolean(product.perfume?.occasion)) + Number(Boolean(product.perfume?.intensity)) }))
     .sort((a, b) => b.factor - a.factor || b.known - a.known || b.product.createdAt.localeCompare(a.product.createdAt) || a.product.slug.localeCompare(b.product.slug))
     .map(({ product }) => product)
 }

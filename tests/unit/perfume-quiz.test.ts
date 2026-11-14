@@ -81,12 +81,23 @@ describe('perfume finder', () => {
     const noTraits = { top: 'роза' }
     const suitable = { top: 'роза', occasion: 'daily' as const, intensity: 'light' as const }
     const unsuitable = { top: 'роза', occasion: 'special' as const, intensity: 'strong' as const }
-    expect(preferenceFactor(noTraits, preferences)).toBe(1)
-    expect(noteMatchPercent(suitable, ['floral'], preferences)).toBe(noteMatchPercent(noTraits, ['floral'], preferences))
+    expect(preferenceFactor(null, preferences)).toBe(1)
+    expect(noteMatchPercent(suitable, ['floral'], preferences)).toBeGreaterThanOrEqual(noteMatchPercent(noTraits, ['floral'], preferences)!)
     expect(noteMatchPercent(unsuitable, ['floral'], preferences)).toBeLessThan(noteMatchPercent(suitable, ['floral'], preferences)!)
     const ranked = recommendPerfumes([product({ slug:'unsuitable', perfume:unsuitable }), product({ slug:'suitable', perfume:suitable })], { gender:'any', families:['floral'], maxPrice:null, ...preferences })
     expect(ranked.map(item => item.slug)).toEqual(['suitable', 'unsuitable'])
     expect(preferenceFactor({ occasion:'both' }, { occasion:'daily' })).toBe(1)
+  })
+  it('uses notes as a modest guide to occasion and intensity when explicit traits are absent', () => {
+    const fresh = { top: 'бергамот' }
+    const spicy = { base: 'тамян' }
+    const dailyLight = { occasion: 'daily' as const, intensity: 'light' as const }
+    const eveningStrong = { occasion: 'special' as const, intensity: 'strong' as const }
+    expect(preferenceFactor(fresh, dailyLight)).toBeGreaterThan(preferenceFactor(spicy, dailyLight))
+    expect(preferenceFactor(spicy, eveningStrong)).toBeGreaterThan(preferenceFactor(fresh, eveningStrong))
+    expect(preferenceFactor(null, dailyLight, ['бергамот'])).toBeGreaterThan(preferenceFactor(null, dailyLight, ['тамян']))
+    expect(preferenceFactor({ ...spicy, occasion:'daily', intensity:'light' }, dailyLight)).toBe(1)
+    expect(preferenceFactor(null, dailyLight)).toBe(1)
   })
   it('builds note choices only from matching available perfumes, including their descriptions', () => {
     const products = [product({slug:'a', gender:'female', perfume:{top:'Роза, ванилия'}, descriptionNotes:['дървета']}), product({slug:'b', gender:'unisex', perfume:{heart:'роза'}}), product({slug:'male',gender:'male',perfume:{top:'лимон'}}), product({slug:'sold',inStock:false,perfume:{top:'касис'}}), product({slug:'case',title:'Кейс за парфюм',perfume:{top:'лимон'}})]
