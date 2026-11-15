@@ -4,7 +4,7 @@ import type { ProductCard } from '@/lib/catalog/types'
 import type { CommerceSettings } from '@/lib/commerce-settings-schema'
 import { formatPrice } from '@/lib/format'
 export const guides:Record<GuideSlug,{title:string;question:string;label:string;description:string}> = {
- 'olfazeta-chogan-dostavka': {title:'OLFazeta by CHOGAN с доставка до дома в България',question:'Къде да купя OLFazeta by CHOGAN парфюми с доставка до дома?',label:'Парфюми CHOGAN с доставка',description:'Парфюми OLFazeta by CHOGAN от Tiarra Cosmetics: актуални цени, наличности, доставка до адрес и помощ при избор на аромат.'},
+ 'olfazeta-chogan-dostavka': {title:'OLFazeta by CHOGAN: парфюми и доставка в България',question:'Къде да купя OLFazeta by CHOGAN парфюми с доставка до дома?',label:'Парфюми CHOGAN с доставка',description:'Парфюми OLFazeta by CHOGAN от Tiarra Cosmetics: актуални цени, наличности, условия за доставка и помощ при избор на аромат.'},
  'podarak-za-mazh-s-brada-do-50-euro':{title:'Подарък за мъж с брада до 50 €',question:'Какъв подарък за мъж с брада до 50 евро да избера?',label:'Подарък за мъж с брада до 50 €',description:'Подборка на налични подаръчни комплекти за брада до 50 евро от Tiarra Cosmetics. Сравни продуктите, съдържанието в заглавията и текущите цени.'},
  'nish-lady-komplekti-za-kosa':{title:'NISH LADY: комплект шампоан, балсам и маска',question:'Къде да намеря NISH LADY комплект шампоан, балсам и маска в България?',label:'Комплекти NISH LADY за коса',description:'Комплекти NISH LADY от Tiarra Cosmetics: шампоан, балсам и маска. Избор според серията, актуални цени и помощ за боядисана коса.'}
 } as const
