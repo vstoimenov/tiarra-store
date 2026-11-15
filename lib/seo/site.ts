@@ -1,3 +1,4 @@
+import { guideSlugs } from '../geo/routes'
 import type { MetadataRoute } from 'next'
 // Relative, not `@/…`: next.config.ts imports this file, and the config is loaded before Next
 // knows the tsconfig paths.
@@ -41,6 +42,7 @@ export function sitemapEntries(input: SitemapInput, base: string = SITE_URL): Me
   const at = (path: string) => absoluteUrl(path, base)
   return [
     ...['/', '/store', '/promo', '/promo/za-nas', '/promo/kontakti'].map((path) => ({ url: at(path) })),
+    ...guideSlugs.map(slug=>({url:at('/saveti/'+slug)})),
     ...input.categories.map(({ slug }) => ({ url: at(`/store/category/${encodeURIComponent(slug)}`) })),
     ...input.products.map(({ slug, updatedAt }) => ({
       url: at(`/store/${encodeURIComponent(slug)}`),

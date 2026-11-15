@@ -54,6 +54,10 @@ export function productJsonLd(p: Product, url: string): JsonLd[] {
       ...(p.brand && { brand: { '@type': 'Brand', name: p.brand } }),
       url,
       offers: offersOf(p, url),
+      ...(p.perfume && [p.perfume.top,p.perfume.heart,p.perfume.base,p.perfume.volume].some(value=>value?.trim()) ? {
+        additionalProperty: ([['Връхни нотки',p.perfume.top],['Средни нотки',p.perfume.heart],['Базови нотки',p.perfume.base],['Количество',p.perfume.volume]] as const)
+          .filter(([,value])=>value?.trim()).map(([name,value])=>({'@type':'PropertyValue',name,value})),
+      }:{}),
     },
     {
       '@context': 'https://schema.org',

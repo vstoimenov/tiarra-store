@@ -105,7 +105,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
 }
 
 export async function getProductCards(
-  opts: { categorySlug?: string; onSale?: boolean } = {},
+  opts: { categorySlug?: string; onSale?: boolean; availableVariantPrice?: boolean } = {},
 ): Promise<ProductCard[]> {
   const inCategory = opts.categorySlug
     ? sql`and exists (
@@ -115,12 +115,17 @@ export async function getProductCards(
   // An old price only counts when it is above the price (ruling R7), the same test the card uses.
   const onSale = opts.onSale ? sql`and eff.compare_at_price > eff.price` : sql``
 
-  const rows = await sql<CardRow[]>`
-    select ${cardColumns}
-    ${cardJoins}
+  const availableJoin=opts.availableVariantPrice?sql`left join lateral (
+    select v.price::float8 as price,v.compare_at_price::float8 as compare_at_price from store.variants v
+    where v.product_id=p.id and (v.stock is null or v.stock>0) order by v.price,v.position,v.id limit 1
+  ) available_variant on true`:sql``
+  const availableColumns=opts.availableVariantPrice?sql`,available_variant.price as available_price,available_variant.compare_at_price as available_compare_at_price`:sql``
+  const rows = await sql<(CardRow & {available_price?:number|null;available_compare_at_price?:number|null})[]>`
+    select ${cardColumns}${availableColumns}
+    ${cardJoins} ${availableJoin}
     where not p.is_hidden ${inCategory} ${onSale}
     ${newestFirst}`
-  return rows.map(toCard)
+  return rows.map(row=>toCard(opts.availableVariantPrice&&row.variant_stocks!==null&&row.available_price!=null?{...row,price:row.available_price,compare_at_price:row.available_compare_at_price??null}:row))
 }
 
 /** Visible perfume-category products and their structured notes for the fragrance finder. */

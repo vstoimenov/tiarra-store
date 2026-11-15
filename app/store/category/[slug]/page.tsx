@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { CategoryNav } from '@/components/catalog/CategoryNav'
 import { ProductGrid } from '@/components/catalog/ProductGrid'
+import Link from 'next/link'
 import { QuizBanner } from '@/components/quiz/QuizBanner'
 import { getCategories, getCategoryBySlug, getProductCards } from '@/lib/catalog/queries'
 import { pageMetadata } from '@/lib/seo/page-metadata'
@@ -43,7 +44,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   return (
     <ProductGrid title={category.name} cards={cards} readQuery>
       <CategoryNav categories={categories} current={slug} />
-      {slug === 'parfimes' && <QuizBanner />}
+      {slug === 'parfimes' && <><QuizBanner /><p style={{padding:'0 20px 20px',textAlign:'center'}}><Link href="/saveti/olfazeta-chogan-dostavka">OLFazeta by CHOGAN: парфюми с доставка до дома в България →</Link></p></>}
     </ProductGrid>
   )
 }
