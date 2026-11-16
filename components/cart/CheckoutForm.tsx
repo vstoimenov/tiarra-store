@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { TruckOrderButton,type TruckPhase } from './TruckOrderButton'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { analyticsAllowed, trackCommerce } from '@/lib/analytics'
 import { type CartItem, readCart, writeCart } from '@/lib/cart'
@@ -29,6 +30,8 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
   const [contactComplete, setContactComplete] = useState(false)
   const formRef = useRef<HTMLFormElement>(null)
   const [pending, setPending] = useState(false)
+  const [truckPhase,setTruckPhase]=useState<TruckPhase>('idle')
+  const submissionLock=useRef(false)
   const [error, setError] = useState('')
   const [orderNumber, setOrderNumber] = useState('')
   const [confirmation,setConfirmation]=useState<Confirmation|null>(null)
@@ -151,9 +154,12 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (pending || quotePending || !quote || quote.promoCode !== promoCode) return
+    if (submissionLock.current || pending || quotePending || !quote || quote.promoCode !== promoCode) return
     if (!delivery || delivery.error || !delivery.type) { setError(delivery?.error || 'Избери начин на доставка.'); return }
+    submissionLock.current=true
     setPending(true)
+    setTruckPhase('packing')
+    const animationStarted=performance.now()
     setError('')
     const data = new FormData(event.currentTarget)
     if (!requestId.current) requestId.current = crypto.randomUUID()
@@ -182,12 +188,27 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
       const deliveryText=deliveryType==='address'?[delivery.city,delivery.postCode,delivery.addressText].filter(Boolean).join(', '):delivery.officeText
       setConfirmation({number:result.orderNumber,total:result.total??quote.total,courier,delivery:deliveryText,items:[...items]})
       try { writeCart([]) } catch { /* Keep showing the successful order. */ }
+      // A success state is allowed only after the server returned the saved order number.
+      // Animation cannot turn an already committed order into an error.
+      try {
+        if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+          const wait=(ms:number)=>new Promise<void>(resolve=>window.setTimeout(resolve,ms))
+          await wait(Math.max(0,1000-(performance.now()-animationStarted)))
+          setTruckPhase('truck')
+          await wait(1150)
+          setTruckPhase('driving')
+          await wait(1050)
+          setTruckPhase('done')
+          await wait(250)
+        }else setTruckPhase('done')
+      }catch { /* The order is already committed. */ }
       setItems([])
       setOrderNumber(result.orderNumber)
       requestId.current = ''
     } catch (reason) {
+      setTruckPhase('idle')
       setError(reason instanceof Error ? reason.message : 'Поръчката не беше записана.')
-    } finally { setPending(false) }
+    } finally { submissionLock.current=false;setPending(false) }
   }
 
   if (!ready) return <p>Зареждане…</p>
@@ -196,7 +217,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
 
   return (
     <><div className={styles.intro}><span>TIARRA COSMETICS / CHECKOUT</span><h1>Завърши поръчката</h1><p>Избери удобна доставка. Плати при получаване.</p></div><form ref={formRef} className={styles.form} onSubmit={submit} onInput={updateContactStatus} onChange={updateContactStatus}>
-      <div className={styles.fields}>
+      <fieldset className={styles.fields} disabled={pending} style={{border:0,padding:0,margin:0,minWidth:0}}>
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber} data-complete={contactComplete || undefined}>01</span><div><h2>Контакт</h2><p>За да потвърдим поръчката ти</p></div></div><div className={styles.fieldGrid}>
           <label className={styles.full}>Имейл<input name="email" type="email" autoComplete="email" required maxLength={160} placeholder="Име@пример.бг" /></label>
           <label>Име и фамилия<input name="customerName" autoComplete="name" required minLength={2} placeholder="Твоето име" /></label>
@@ -205,7 +226,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber} data-complete={Boolean(delivery?.type && !delivery.error) || undefined}>02</span><div><h2>Доставка</h2><p>Избери куриер и място за получаване</p></div></div><OrdyxDelivery settings={settings} freeShipping={subtotal >= settings.freeShippingThreshold} onDelivery={value=>{setDelivery(value);if(value.type){const next=value.type.split('_')[0];if(next==='econt'||next==='speedy'||next==='boxnow'){setCourier(next);setDeliveryType(value.type==='boxnow_locker'?'automat':value.type.endsWith('_address')?'address':'office')}}}} /></section>
         <section className={styles.step}><div className={styles.stepHead}><span className={styles.stepNumber} data-complete={contactComplete && Boolean(delivery?.type && !delivery.error) || undefined}>03</span><div><h2>Плащане</h2><p>Плащаш при получаване</p></div></div><div className={styles.payment}>◉ &nbsp; Наложен платеж <span>Сигурно и удобно</span></div><p className={controls.inspection}>Всяка доставка е с опция за преглед при получаване.</p><label className={styles.notes}>Бележка <span>(по желание)</span><textarea name="notes" rows={2} placeholder="Нещо, което трябва да знаем?" /></label></section>
 
-      </div>
+      </fieldset>
       <aside className={styles.summary} aria-labelledby="order-summary-title">
         <div className={styles.summaryTop}>
           <span>TIARRA COSMETICS</span>
@@ -231,7 +252,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
                 {item.variantName && <span>{item.variantName}</span>}
                 <b>{formatPrice(price * item.quantity)}</b>
               </div>
-              <button type="button" className={controls.removeLine} aria-label={`Премахни ${item.title} от поръчката`} onClick={() => removeItem(item.key)}>Премахни</button>
+              <button type="button" className={controls.removeLine} disabled={pending} aria-label={`Премахни ${item.title} от поръчката`} onClick={() => removeItem(item.key)}>Премахни</button>
             </div>
           })}
         </div>
@@ -245,7 +266,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
           {bumps.filter(bump => !items.some(item => item.productId === bump.productId)).slice(0, 2).map(bump => <div key={bump.productId} className={styles.bump}>
             <div className={styles.bumpThumb}>{bump.imagePath && <img src={imageUrl(bump.imagePath, 400)} alt="" width={48} height={48} loading="lazy" />}</div>
             <div><Link href={`/store/${encodeURIComponent(bump.slug)}`} title={bump.title}><strong>{bump.title}</strong></Link><span>{formatPrice(bump.unitPrice)}</span></div>
-            <button type="button" onClick={() => toggleBump(bump)} aria-label={`Добави ${bump.title}`}><span aria-hidden="true">+</span> Добави</button>
+            <button type="button" disabled={pending} onClick={() => toggleBump(bump)} aria-label={`Добави ${bump.title}`}><span aria-hidden="true">+</span> Добави</button>
           </div>)}
         </section>}
         <div className={styles.promo}>
@@ -262,10 +283,8 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
         <p className={styles.quoteStatus} role="status">{quotePending ? 'Проверяваме цените и наличностите…' : quoteError ? 'Необходима е проверка на поръчката.' : !quote ? 'Изчакваме потвърждение на цените.' : priceChanged ? 'Цените са актуализирани спрямо текущата оферта.' : '✓ Цените и наличностите са потвърдени'}</p>
         {quoteError && <p role="alert" className={styles.error}>{quoteError}</p>}
         {error && <p role="alert" className={styles.error}>{error}</p>}
-        <p className={styles.orderNotice}>С натискането на „Потвърди поръчката“ приемаш <Link href="/obshti-usloviya" target="_blank" rel="noopener noreferrer">общите условия</Link>. Информация за обработката на личните данни ще намериш в <Link href="/poveritelnost" target="_blank" rel="noopener noreferrer">политиката за поверителност</Link>.</p>
-        <button className={styles.submit} type="submit" disabled={pending || quotePending || !quote}>
-          <span>{pending ? 'Изпращане…' : 'Потвърди поръчката'}</span><span aria-hidden="true">→</span>
-        </button>
+        <p className={styles.orderNotice}>С натискането на „Купи сега“ приемаш <Link href="/obshti-usloviya" target="_blank" rel="noopener noreferrer">общите условия</Link>. Информация за обработката на личните данни ще намериш в <Link href="/poveritelnost" target="_blank" rel="noopener noreferrer">политиката за поверителност</Link>.</p>
+        <TruckOrderButton phase={truckPhase} disabled={pending || quotePending || !quote}/>
         <div className={styles.safe}><span>Преглед при доставка</span><span>Плащаш при получаване</span></div>
       </aside>
     </form></>
