@@ -1,6 +1,8 @@
 'use client'
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAdminLiveRefresh } from '@/lib/admin/use-live-refresh'
 import { ArrowUpRight, Package, Plus, ShoppingBag, Sparkles } from 'lucide-react'
 import { formatPrice } from '@/lib/format'
 import styles from './GlassOverview.module.css'
@@ -9,6 +11,8 @@ export type DailyOrders={day:string;value:number;count:number}
 export type RecentOrder={number:string;customer:string;total:number;status:string}
 const statuses:Record<string,string>={new:'Нова',confirmed:'Потвърдена',shipped:'Изпратена',completed:'Завършена',delivered:'Доставена',cancelled:'Отказана'}
 export function GlassOverview({stats,daily,recent}:{stats:OverviewStats;daily:DailyOrders[];recent:RecentOrder[]}){
+ const router=useRouter()
+ useAdminLiveRefresh(()=>router.refresh())
  const [period,setPeriod]=useState(7)
  const shown=daily.slice(-period),max=Math.max(1,...shown.map(d=>d.value)),sum=shown.reduce((n,d)=>n+d.value,0)
  return <>

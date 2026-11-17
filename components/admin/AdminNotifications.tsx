@@ -48,7 +48,7 @@ export function AdminNotifications(){
     if(cancelled)return
     const notices=newOrderNotices(data.orders,seen);seen=notices.seen
     try{localStorage.setItem('tiarra-admin-orders-seen-v1',JSON.stringify(seen))}catch{}
-    if(notices.fresh.length){setNewCount(count=>count+notices.fresh.length);setToast(notices.fresh.length===1?`Нова поръчка №${notices.fresh[0].orderNumber}`:`Има ${notices.fresh.length} нови поръчки`)}
+    if(notices.fresh.length){setNewCount(count=>count+notices.fresh.length);setToast(notices.fresh.length===1?`Нова поръчка №${notices.fresh[0].orderNumber}`:`Има ${notices.fresh.length} нови поръчки`);window.dispatchEvent(new Event('tiarra-orders-changed'))}
    }catch{/* Poll again when connection returns. */}finally{inFlight=false}
   }
   void poll();const timer=setInterval(()=>void poll(),30000)
