@@ -6,8 +6,10 @@ import { syncOrder } from '@/lib/ordyx-sync'
 import { promoCodeSchema, promoError } from '@/lib/promo'
 import { checkoutRateLimit } from '@/lib/rate-limit'
 import { sendOrderEmails } from '@/lib/order-email-queue'
+import { sendAdminOrderPush } from '@/lib/admin/push'
 
 export const runtime = 'nodejs'
+export const maxDuration = 60
 
 const requestSchema = z.object({
   visitSessionId: z.string().uuid().nullable().optional(),
@@ -70,6 +72,7 @@ export async function POST(request: Request) {
     const orderNumber=rows[0].order_number
     after(async () => {
       const tasks:Promise<unknown>[] = [sendOrderEmails(orderNumber).catch(error=>console.error('Order email queue failed',error))]
+      if(rows[0].is_new) tasks.push(sendAdminOrderPush(orderNumber).catch(()=>console.error('Admin push dispatch failed')))
       if(rows[0].is_new) tasks.push(Promise.resolve(sql`select store.attach_order_attribution(${orderNumber}, ${data.visitSessionId ?? null}, ${sql.json(data.items)})`).catch(error=>console.error('Order attribution failed',error)))
       await Promise.all(tasks)
       try { await syncOrder(orderNumber) } catch(error) { console.error('Ordyx sync failed after order creation',error) }
