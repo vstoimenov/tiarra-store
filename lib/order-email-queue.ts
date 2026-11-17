@@ -5,10 +5,10 @@ import { sendTransactionalEmail } from '@/lib/brevo'
 type Pending = { id: string; kind: 'customer' | 'merchant'; order_id: string; order_number: string; email: string | null; customer_name: string; phone: string; courier: string; total: number; subtotal: number; shipping: number; discount: number; delivery_address: string }
 type Item = { product_id: string | null; title: string; variant_name: string | null; quantity: number; line_total: number }
 
-/** A row lock prevents concurrent workers from sending the same message at once. */
+/** Lock the queue entry and order so an admin edit cannot mix old totals with new items. */
 export async function sendQueuedOrderEmail(queueId: string): Promise<boolean> {
   return sql.begin(async tx => {
-    const [entry] = await tx<Pending[]>`select q.id,q.kind,o.id as order_id,o.order_number::text,o.email,o.customer_name,o.phone,o.courier,o.total::float8,o.subtotal::float8,o.shipping::float8,coalesce(o.discount_amount,0)::float8 as discount,o.delivery_address from store.order_email_queue q join store.orders o on o.id=q.order_id where q.id=${queueId} and q.status in ('pending','failed') for update of q skip locked`
+    const [entry] = await tx<Pending[]>`select q.id,q.kind,o.id as order_id,o.order_number::text,o.email,o.customer_name,o.phone,o.courier,o.total::float8,o.subtotal::float8,o.shipping::float8,coalesce(o.discount_amount,0)::float8 as discount,o.delivery_address from store.order_email_queue q join store.orders o on o.id=q.order_id where q.id=${queueId} and q.status in ('pending','failed') for update of q,o skip locked`
     if (!entry) return false
     const items = await tx<Item[]>`select product_id,title,variant_name,quantity,line_total::float8 from store.order_items where order_id=${entry.order_id} order by id`
     const data = renderOrderEmail({number:entry.order_number,name:entry.customer_name,phone:entry.phone,email:entry.email,courier:entry.courier,total:entry.total,subtotal:entry.subtotal,shipping:entry.shipping,discount:entry.discount,delivery:entry.delivery_address,items:items.map(item=>({productId:item.product_id,title:item.title,variant:item.variant_name,quantity:item.quantity,total:item.line_total}))},entry.kind)

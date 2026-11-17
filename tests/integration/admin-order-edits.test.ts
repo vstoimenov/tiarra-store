@@ -19,7 +19,9 @@ async function fixture(){
 }
 it('reserves only the additional quantity and calculates the final total in the same transaction',async()=>{
  const f=await fixture();const draft=await f.read();draft.items[0].quantity=3;draft.customerName='Мария Петрова';draft.shipping=2.49;draft.discountAmount=2
+ await sql`update store.order_items set attribution='bump' where id=${draft.items[0].id}`
  await f.save(draft)
+ expect((await sql<{attribution:string}[]>`select attribution from store.order_items where id=${draft.items[0].id}`)[0].attribution).toBe('bump')
  expect(await f.stock()).toBe(7)
  const [order]=await sql<{customer_name:string;total:number}[]>`select customer_name,total::float8 from store.orders where order_number=${f.number}`
  expect(order).toEqual({customer_name:'Мария Петрова',total:30.49})

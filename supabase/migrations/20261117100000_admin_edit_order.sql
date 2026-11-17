@@ -7,7 +7,7 @@ declare
  entry jsonb; desired jsonb := '[]'::jsonb;
  product record; delta record; available integer;
  row_id uuid; v_product_id uuid; v_variant_id uuid; quantity integer;
- title text; variant_name text; unit_price numeric(10,2);
+ title text; variant_name text; item_attribution text; unit_price numeric(10,2);
  new_subtotal numeric(10,2) := 0; new_shipping numeric(10,2); new_discount numeric(10,2);
 begin
  select * into saved from store.orders where order_number=p_order_number for update;
@@ -38,7 +38,7 @@ begin
    select * into old_item from store.order_items where id=row_id and order_id=saved.id;
    if not found then raise exception 'INVALID_ORDER_ITEM'; end if;
    v_product_id := old_item.product_id; v_variant_id := old_item.variant_id;
-   title := old_item.title; variant_name := old_item.variant_name;
+   title := old_item.title; variant_name := old_item.variant_name; item_attribution := old_item.attribution;
    -- Deleted catalog rows can remain on an order, but cannot reserve extra stock.
    if (v_product_id is null or (v_variant_id is null and variant_name is not null)) and quantity>old_item.quantity then raise exception 'PRODUCT_NOT_FOUND'; end if;
   else
@@ -48,10 +48,10 @@ begin
    where p.id=v_product_id and not p.is_hidden
     and ((v_variant_id is not null and v.id is not null) or (v_variant_id is null and not exists(select 1 from store.variants v2 where v2.product_id=p.id)));
    if not found then raise exception 'PRODUCT_NOT_FOUND'; end if;
-   row_id := gen_random_uuid(); title := product.title; variant_name := product.variant_name;
+   row_id := gen_random_uuid(); title := product.title; variant_name := product.variant_name; item_attribution := 'direct';
   end if;
   if exists(select 1 from jsonb_array_elements(desired) x where (x->>'id')::uuid=row_id) then raise exception 'INVALID_ORDER_ITEM'; end if;
-  desired := desired || jsonb_build_array(jsonb_build_object('id',row_id,'productId',v_product_id,'variantId',v_variant_id,'title',title,'variantName',variant_name,'quantity',quantity,'unitPrice',unit_price));
+  desired := desired || jsonb_build_array(jsonb_build_object('id',row_id,'productId',v_product_id,'variantId',v_variant_id,'title',title,'variantName',variant_name,'quantity',quantity,'unitPrice',unit_price,'attribution',item_attribution));
   new_subtotal := new_subtotal+unit_price*quantity;
  end loop;
  if new_discount>new_subtotal then raise exception 'INVALID_DISCOUNT'; end if;
@@ -78,8 +78,8 @@ begin
   end if;
  end loop;
  delete from store.order_items where order_id=saved.id;
- insert into store.order_items(id,order_id,product_id,variant_id,title,variant_name,unit_price,quantity,line_total)
- select (x->>'id')::uuid,saved.id,(x->>'productId')::uuid,(x->>'variantId')::uuid,x->>'title',x->>'variantName',(x->>'unitPrice')::numeric,(x->>'quantity')::integer,(x->>'unitPrice')::numeric*(x->>'quantity')::integer
+ insert into store.order_items(id,order_id,product_id,variant_id,title,variant_name,unit_price,quantity,line_total,attribution)
+ select (x->>'id')::uuid,saved.id,(x->>'productId')::uuid,(x->>'variantId')::uuid,x->>'title',x->>'variantName',(x->>'unitPrice')::numeric,(x->>'quantity')::integer,(x->>'unitPrice')::numeric*(x->>'quantity')::integer,x->>'attribution'
  from jsonb_array_elements(desired) x;
  update store.orders set customer_name=trim(p_data->>'customerName'),phone=trim(p_data->>'phone'),email=nullif(trim(p_data->>'email'),''),
   courier=p_data->>'courier',delivery_type=p_data->>'deliveryType',office_id=nullif(p_data->>'officeId',''),city=nullif(trim(p_data->>'city'),''),post_code=nullif(trim(p_data->>'postCode'),''),
