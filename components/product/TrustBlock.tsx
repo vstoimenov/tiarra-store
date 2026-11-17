@@ -12,6 +12,7 @@ interface Props {
   deliveryEstimate?:string
   dispatchHours?:number
   couriersLabel?:string
+  freeShippingDescription?:string
 }
 
 /** „20 €“ for a whole number, „19,90 €“ otherwise: how the copy writes a limit. */
@@ -29,7 +30,7 @@ const strokeIcon = {
   'aria-hidden': true,
 } as const
 
-export function TrustBlock({ freeShippingThreshold, giftThreshold,deliveryEstimate='1–2 работни дни',dispatchHours=24,couriersLabel='Еконт или Спиди' }: Props) {
+export function TrustBlock({ freeShippingThreshold, giftThreshold,deliveryEstimate='1–2 работни дни',dispatchHours=24,couriersLabel='Еконт или Спиди',freeShippingDescription }: Props) {
   return (
     <section className={styles.trust} data-testid="trust" aria-label="Гаранции">
       <div className={styles.row}>
@@ -58,7 +59,7 @@ export function TrustBlock({ freeShippingThreshold, giftThreshold,deliveryEstima
         <div>
           <b className={styles.head}>Доставка {deliveryEstimate}</b>
           <span className={styles.text}>
-            Изпращаме до {dispatchHours} часа с {couriersLabel}. Безплатна доставка над {limit(freeShippingThreshold)}.
+            Изпращаме до {dispatchHours} часа с {couriersLabel}. {freeShippingDescription??`Безплатна доставка над ${limit(freeShippingThreshold)}.`}
           </span>
         </div>
       </div>

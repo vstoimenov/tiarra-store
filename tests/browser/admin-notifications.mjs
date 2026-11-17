@@ -18,7 +18,7 @@ const server=createServer(async(req,res)=>{
 })
 let browser
 try{
- await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import GlassDashboard from '${root}components/ui/adjustable-glass-dashboard';createRoot(document.getElementById('root')).render(<GlassDashboard><main><h1>Поръчки</h1></main></GlassDashboard>);`,loader:'tsx',resolveDir:root},bundle:true,jsx:'automatic',tsconfig:join(root,'tsconfig.json'),outfile:join(folder,'bundle.js'),define:{'process.env.NODE_ENV':'"test"'},alias:{react:join(root,'node_modules/react'),'@':root},plugins:[{name:'next-fixture',setup(build){build.onResolve({filter:/^next\/(link|navigation)$/},args=>({path:args.path,namespace:'fixture'}));build.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:args.path==='next/navigation'?"export function usePathname(){return '/admin/orders'}":"import React from 'react';export default function Link({href,children,...props}){return <a href={href} {...props}>{children}</a>}",loader:'jsx',resolveDir:root}))}}]})
+ await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import GlassDashboard from '${root}components/ui/adjustable-glass-dashboard';import {SettingsAdmin} from '${root}components/admin/SettingsAdmin';const settings={googleAnalyticsId:null,googleTagManagerId:null,metaPixelId:null,freeShippingThreshold:39,econtEnabled:true,econtAddressEnabled:true,econtOfficePrice:4.5,econtAddressPrice:6.5,speedyEnabled:true,speedyAddressEnabled:true,speedyOfficePrice:3.5,speedyAddressPrice:5.5,boxnowEnabled:true,boxnowPrice:2.49,deliveryEstimate:'1–2 работни дни',dispatchHours:24,econtFreeShipping:false,speedyFreeShipping:true,boxnowFreeShipping:true};createRoot(document.getElementById('root')).render(<GlassDashboard><main><SettingsAdmin initial={settings} connections={{ordyx:true,storage:true,stripe:false}}/></main></GlassDashboard>);`,loader:'tsx',resolveDir:root},bundle:true,jsx:'automatic',tsconfig:join(root,'tsconfig.json'),outfile:join(folder,'bundle.js'),define:{'process.env.NODE_ENV':'"test"'},alias:{react:join(root,'node_modules/react'),'@':root},plugins:[{name:'next-fixture',setup(build){build.onResolve({filter:/^next\/(link|navigation)$/},args=>({path:args.path,namespace:'fixture'}));build.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:args.path==='next/navigation'?"export function usePathname(){return '/admin/orders'}":"import React from 'react';export default function Link({href,children,...props}){return <a href={href} {...props}>{children}</a>}",loader:'jsx',resolveDir:root}))}}]})
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve))
  browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH??(existsSync('/usr/bin/chromium')?'/usr/bin/chromium':undefined),args:['--no-sandbox']})
  for(const [width,ios,installed,available] of [[360,true,true,true],[1280,false,false,true],[390,true,false,true],[390,false,false,false]]){
@@ -43,7 +43,7 @@ try{
   await page.route('**/api/admin/notifications/push/test',route=>{tests++;return route.fulfill({json:{ok:true}})})
   await page.goto(`http://127.0.0.1:${server.address().port}`)
   await page.waitForFunction(()=>localStorage.getItem('tiarra-admin-orders-seen-v1')?.includes('1'))
-  await page.locator('button[aria-controls=admin-notifications]').click()
+  if(width===360)await page.getByRole('button',{name:/Настрой известията на този телефон/}).click();else await page.locator('button[aria-controls=admin-notifications]').click()
   assert.equal((await page.evaluate(()=>window.testCalls)).includes('permission'),false)
   if(ios&&!installed){await expect(page.getByText(/На iPhone отвори админ панела в Safari/)).toBeVisible()}
   else if(!available){await expect(page.getByRole('link',{name:'SQL за активиране'})).toBeVisible()}
@@ -63,6 +63,15 @@ try{
   await page.evaluate(()=>window.dispatchEvent(new Event('online')))
   await expect(page.locator('button[aria-controls=admin-notifications]')).toHaveAttribute('aria-label','Известия: 1 нова поръчка')
   await page.getByRole('button',{name:'Скрий съобщението'}).click();await expect(page.getByText('Нова поръчка №2',{exact:true})).toHaveCount(0)
+  let savedSettings
+  await page.route('**/api/admin/settings',route=>{savedSettings=route.request().postDataJSON();return route.fulfill({json:{settings:savedSettings}})})
+  const econt=page.getByRole('checkbox',{name:'Безплатна доставка над прага — Еконт',exact:true})
+  const speedy=page.getByRole('checkbox',{name:'Безплатна доставка над прага — Спиди',exact:true})
+  await expect(econt).not.toBeChecked();await expect(speedy).toBeChecked();await expect(page.getByRole('checkbox',{name:'Безплатна доставка над прага — BOX NOW',exact:true})).toBeChecked()
+  await econt.check();await speedy.uncheck()
+  await page.getByRole('button',{name:'Запази настройките',exact:true}).last().click()
+  await page.getByText('Настройките са записани и магазинът е обновен.',{exact:true}).first().waitFor()
+  assert.equal(savedSettings.econtFreeShipping,true);assert.equal(savedSettings.speedyFreeShipping,false);assert.equal(savedSettings.boxnowFreeShipping,true)
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.deepEqual(errors,[])
   console.log(`PASS ${width}px iOS=${ios} installed=${installed} activated=${available}: permission only on tap, setup states, foreground alerts without duplicates, no overflow`)
   await context.close()

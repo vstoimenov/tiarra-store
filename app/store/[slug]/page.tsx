@@ -18,6 +18,7 @@ import { imageUrl } from '@/lib/images'
 import { metaDescription } from '@/lib/seo/meta-description'
 import { productJsonLd, serializeJsonLd } from '@/lib/seo/product-jsonld'
 import { getSiteDocument } from '@/lib/site/documents'
+import { freeShippingText } from '@/lib/commerce-settings-schema'
 import { getCommerceSettings } from '@/lib/commerce-settings'
 import { siteUrl } from '@/lib/site/url'
 import styles from './page.module.css'
@@ -95,10 +96,11 @@ export default async function ProductPage({ params }: Params) {
           perfume={pyramidNotes(product.perfume) ? <PerfumePyramid perfume={product.perfume} /> : undefined}
           delivery={<TrustBlock
             freeShippingThreshold={commerce.freeShippingThreshold}
+            freeShippingDescription={freeShippingText(commerce)}
             giftThreshold={settings.giftThreshold}
             deliveryEstimate={commerce.deliveryEstimate}
             dispatchHours={commerce.dispatchHours}
-            couriersLabel={[commerce.econtEnabled&&'Еконт',commerce.speedyEnabled&&'Спиди'].filter(Boolean).join(' или ')}
+            couriersLabel={[commerce.econtEnabled&&'Еконт',commerce.speedyEnabled&&'Спиди',commerce.boxnowEnabled&&'BOX NOW'].filter(Boolean).join(' или ')}
           />}
         />
         <ShareButtons />

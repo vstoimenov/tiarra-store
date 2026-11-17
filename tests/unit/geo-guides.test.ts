@@ -20,7 +20,7 @@ describe('factual buying guides',()=>{
   const faq=guideFaq('olfazeta-chogan-dostavka',shipping,[card({})])
   expect(faq.find(f=>f.q==='Колко струва доставката?')?.a).toContain('6,00 € с Еконт')
   expect(faq.find(f=>f.q==='Колко струва доставката?')?.a).not.toContain('7,00')
-  expect(guideFaq('olfazeta-chogan-dostavka',{...shipping,freeShippingThreshold:0},[])[2].a).toContain('Доставката е безплатна')
+  expect(guideFaq('olfazeta-chogan-dostavka',{...shipping,freeShippingThreshold:0},[])[2].a).toContain('Безплатна доставка с Еконт и Спиди')
  })
  it('handles empty selections without inventing prices or products',()=>{
   expect(guideFaq('nish-lady-komplekti-za-kosa',shipping,[])[1].a).toContain('няма налични')

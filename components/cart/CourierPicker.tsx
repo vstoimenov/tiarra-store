@@ -85,7 +85,7 @@ export function CourierPicker({settings, freeShipping = false, onDeliveryChange 
             <strong>{active && placeType === 'address' ? 'До адрес с ' : 'До офис или автомат на '}<b>{option.name}</b></strong>
             <span>{settings.deliveryEstimate}</span>
           </span>
-          <span className={`${styles.price} ${freeShipping ? styles.free : ''}`}>{freeShipping ? 'Безплатна' : formatPrice(placeType==='address'?option.addressPrice:option.officePrice)}</span>
+          <span className={`${styles.price} ${freeShipping&&settings[`${option.value}FreeShipping`]!==false ? styles.free : ''}`}>{freeShipping&&settings[`${option.value}FreeShipping`]!==false ? 'Безплатна' : formatPrice(placeType==='address'?option.addressPrice:option.officePrice)}</span>
         </label>
       </div>
     })}

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { imageSrcSet, imageUrl } from '@/lib/images'
 import { CartLink } from '@/components/cart/CartLink'
+import type { CommerceSettings } from '@/lib/commerce-settings-schema'
 import type { Navigation } from '@/lib/site/schema'
 import styles from './Header.module.css'
 import { MobileMenu } from './MobileMenu'
@@ -11,7 +12,7 @@ import { SearchForm } from './SearchForm'
  * The black header. On desktop it sits under the gold topbar; on mobile the topbar sits under
  * it, so both are rendered here and CSS orders them. Below 1180px the menu moves into the drawer.
  */
-export function Header({ menu, topbar }: { menu: Navigation['menu']; topbar: ReactNode }) {
+export function Header({ menu, topbar, settings }: { settings:CommerceSettings; menu: Navigation['menu']; topbar: ReactNode }) {
   return (
     <div className={styles.top}>
       <header className={styles.header}>
@@ -41,7 +42,7 @@ export function Header({ menu, topbar }: { menu: Navigation['menu']; topbar: Rea
           <div className={styles.search}>
             <SearchForm />
           </div>
-          <CartLink className={styles.cart} textClassName={styles.cartText} badgeClassName={styles.cartBadge} />
+          <CartLink settings={settings} className={styles.cart} textClassName={styles.cartText} badgeClassName={styles.cartBadge} />
         </div>
       </header>
       {topbar}

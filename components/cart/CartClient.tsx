@@ -6,9 +6,10 @@ import { type CartItem, readCart, writeCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import { imageUrl } from '@/lib/images'
 import { CartRecommendations } from './CartRecommendations'
+import { freeShippingCouriers,type CommerceSettings } from '@/lib/commerce-settings-schema'
 import styles from './CartClient.module.css'
 
-export function CartClient({ compact = false }: { compact?: boolean }) {
+export function CartClient({ compact = false, settings }: { compact?: boolean; settings:CommerceSettings }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [ready, setReady] = useState(false)
 
@@ -18,7 +19,9 @@ export function CartClient({ compact = false }: { compact?: boolean }) {
   }, [])
 
   const total = useMemo(() => items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [items])
-  const freeShippingRemaining = Math.max(0, 39 - total)
+  const freeShippingRemaining = Math.max(0, Math.round((settings.freeShippingThreshold-total)*100)/100)
+  const freeCouriers=freeShippingCouriers(settings)
+  const freeLabel=freeCouriers.join(' и ')
 
   function update(next: CartItem[]) {
     setItems(next)
@@ -73,8 +76,8 @@ export function CartClient({ compact = false }: { compact?: boolean }) {
       <aside className={styles.summary}>
         <h2>Общо</h2>
         <p><span>Продукти</span><strong>{formatPrice(total)}</strong></p>
-        <p className={styles.delivery}>{freeShippingRemaining > 0 ? `Добави още ${formatPrice(freeShippingRemaining)} за безплатна доставка.` : 'Имаш безплатна доставка.'}</p>
-        <progress className={styles.progress} max={39} value={Math.min(total,39)} aria-label="Напредък към безплатна доставка" />
+        <p className={styles.delivery}>{freeCouriers.length?(freeShippingRemaining > 0 ? `Добави още ${formatPrice(freeShippingRemaining)} за безплатна доставка с ${freeLabel}.` : `Имаш безплатна доставка с ${freeLabel}.`):'Цената за доставка се изчислява в следващата стъпка.'}</p>
+        {freeCouriers.length>0&&<progress className={styles.progress} max={settings.freeShippingThreshold||1} value={settings.freeShippingThreshold===0?1:Math.min(total,settings.freeShippingThreshold)} aria-label="Напредък към безплатна доставка" />}
         <CartRecommendations items={items} onAdded={() => setItems(readCart())} />
         <Link href="/store/checkout" className={styles.primary}>Продължи към поръчка</Link>
         <p className={styles.note}>Ще потвърдим наличността и доставката с теб.</p>

@@ -2,3 +2,4 @@
 .connections a{display:inline-block;margin-top:8px;color:#6e5520;font-size:12px;font-weight:700;text-decoration:underline}
 
 .couriers .deliveryToggle{display:flex;align-items:center;min-height:44px;gap:8px}
+.noticeAction,.footerSave button{min-height:44px;padding:12px 18px;border:1px solid #36553d;border-radius:10px;background:#36553d;color:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer}.noticeAction{width:100%;text-align:left}.activation{padding:14px;border:1px solid #dbc18d;border-radius:10px;background:#fff5dd;color:#72541a;font-size:13px;line-height:1.7}.activation a{text-decoration:underline;font-weight:700}.policyHelp{font-size:13px;line-height:1.7;color:#59664f}.footerSave{display:flex;align-items:center;flex-wrap:wrap;gap:14px;margin-top:18px}.footerSave span{font-size:13px}.footerSave button:disabled{opacity:.5;cursor:wait}

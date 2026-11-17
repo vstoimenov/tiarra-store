@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { CART_UPDATED_EVENT, cartQuantity, readCart } from '@/lib/cart'
+import type { CommerceSettings } from '@/lib/commerce-settings-schema'
 import { CartClient } from './CartClient'
 import styles from './CartDrawer.module.css'
 import { BagIcon } from '@/components/layout/icons'
 
-export function CartLink({ className, textClassName, badgeClassName }: { className: string; textClassName: string; badgeClassName: string }) {
+export function CartLink({ className, textClassName, badgeClassName, settings }: { settings:CommerceSettings; className: string; textClassName: string; badgeClassName: string }) {
   const dialog = useRef<HTMLDialogElement>(null)
   const [open, setOpen] = useState(false)
   useEffect(() => {
@@ -34,6 +35,6 @@ export function CartLink({ className, textClassName, badgeClassName }: { classNa
       <BagIcon />
       <span className={textClassName}>Количка</span>
       {quantity > 0 && <span className={badgeClassName}>{quantity > 99 ? '99+' : quantity}</span>}
-    </Link><dialog ref={dialog} className={styles.drawer} aria-labelledby="cart-drawer-title" onClose={() => setOpen(false)} onClick={e => {if(e.target === e.currentTarget) dialog.current?.close()}}><div className={styles.content}><header><h2 id="cart-drawer-title">Твоята количка</h2><button type="button" aria-label="Затвори количката" onClick={() => dialog.current?.close()}>×</button></header><div onClick={e => {if((e.target as HTMLElement).closest('a')) dialog.current?.close()}}>{open && <CartClient compact />}</div></div></dialog></>
+    </Link><dialog ref={dialog} className={styles.drawer} aria-labelledby="cart-drawer-title" onClose={() => setOpen(false)} onClick={e => {if(e.target === e.currentTarget) dialog.current?.close()}}><div className={styles.content}><header><h2 id="cart-drawer-title">Твоята количка</h2><button type="button" aria-label="Затвори количката" onClick={() => dialog.current?.close()}>×</button></header><div onClick={e => {if((e.target as HTMLElement).closest('a')) dialog.current?.close()}}>{open && <CartClient compact settings={settings}/>}</div></div></dialog></>
   )
 }

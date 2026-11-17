@@ -12,6 +12,7 @@ export function AdminNotifications(){
  const [enabled,setEnabled]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState('')
  const [platform,setPlatform]=useState<'loading'|'supported'|'install'|'unsupported'>('loading')
  const container=useRef<HTMLDivElement>(null)
+ useEffect(()=>{const show=(event:Event)=>{event.preventDefault();setOpen(true)};if(new URLSearchParams(window.location.search).get('notifications')==='1')setOpen(true);window.addEventListener('tiarra-open-notifications',show);return()=>window.removeEventListener('tiarra-open-notifications',show)},[])
  useEffect(()=>{
   const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)
   const standalone=window.matchMedia('(display-mode: standalone)').matches||(navigator as Navigator&{standalone?:boolean}).standalone

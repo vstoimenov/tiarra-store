@@ -3,8 +3,8 @@ import { z } from 'zod'
 import { sql } from '@/lib/db'
 import { promoCodeSchema, promoError } from '@/lib/promo'
 import { checkoutRateLimit } from '@/lib/rate-limit'
-import { getCommerceSettings } from '@/lib/commerce-settings'
-import { courierPrice } from '@/lib/commerce-settings-schema'
+import { readCommerceSettings } from '@/lib/commerce-settings'
+import { deliveryPrice } from '@/lib/commerce-settings-schema'
 
 export const runtime = 'nodejs'
 
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: 'Невалидна количка.' }, { status: 400 })
   const { courier,deliveryType, items, promoCode } = parsed.data
   if(courier==='boxnow' && deliveryType!=='automat')return NextResponse.json({error:'BOX NOW доставя до автомат.'},{status:400})
-  const settings=await getCommerceSettings()
+  const settings=await readCommerceSettings()
   if(deliveryType==='address' && ((courier==='econt'&&!settings.econtAddressEnabled)||(courier==='speedy'&&!settings.speedyAddressEnabled)))return NextResponse.json({error:'Доставката до адрес не е достъпна.'},{status:422})
   if((courier==='econt'&&!settings.econtEnabled)||(courier==='speedy'&&!settings.speedyEnabled)||(courier==='boxnow'&&!settings.boxnowEnabled))return NextResponse.json({error:'Избраният куриер временно не е достъпен.'},{status:422})
 
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
   }
 
   const subtotal = rows.reduce((sum, row) => sum + row.unit_price * row.quantity, 0)
-  const shipping = subtotal >= settings.freeShippingThreshold ? 0 : courierPrice(settings,courier,deliveryType)
+  const shipping = deliveryPrice(settings,courier,deliveryType,subtotal)
   let discount = 0
   if (promoCode) {
     try {
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     }
   }
   return NextResponse.json({
-    promoCode, discount,
+    promoCode, discount, shippingSettings:settings,
     lines: rows.map((row) => ({
       productId: row.product_id,
       variantId: row.variant_id,

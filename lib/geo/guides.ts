@@ -1,7 +1,7 @@
 import { type GuideSlug } from './routes'
 export { guideSlugs,type GuideSlug } from './routes'
 import type { ProductCard } from '@/lib/catalog/types'
-import type { CommerceSettings } from '@/lib/commerce-settings-schema'
+import { freeShippingText,type CommerceSettings } from '@/lib/commerce-settings-schema'
 import { formatPrice } from '@/lib/format'
 export const guides:Record<GuideSlug,{title:string;question:string;label:string;description:string}> = {
  'olfazeta-chogan-dostavka': {title:'OLFazeta by CHOGAN: парфюми и доставка в България',question:'Къде да купя OLFazeta by CHOGAN парфюми с доставка до дома?',label:'Парфюми CHOGAN с доставка',description:'Парфюми OLFazeta by CHOGAN от Tiarra Cosmetics: актуални цени, наличности, условия за доставка и помощ при избор на аромат.'},
@@ -35,7 +35,7 @@ export function guideFaq(slug:GuideSlug,s:CommerceSettings,cards:ProductCard[]){
  return [
   {q:guides[slug].question,a:primary},
   {q:'Какви са текущите цени и наличности?',a:priceText},
-  {q:'Колко струва доставката?',a:`${s.freeShippingThreshold===0?'Доставката е безплатна.':`Безплатна доставка над ${formatPrice(s.freeShippingThreshold)}.`} ${s.freeShippingThreshold!==0&&homeDeliveryOptions(s).length?`Под този праг доставката до адрес е ${homeDeliveryOptions(s).map(o=>`${formatPrice(o.price)} с ${o.name}`).join(' или ')}.`:''} Крайната сума се показва в обобщението на поръчката.`},
+  {q:'Колко струва доставката?',a:`${freeShippingText(s)} ${s.freeShippingThreshold!==0&&homeDeliveryOptions(s).length?`Стандартната доставка до адрес е ${homeDeliveryOptions(s).map(o=>`${formatPrice(o.price)} с ${o.name}`).join(' или ')}.`:''} Крайната сума се показва в обобщението на поръчката.`},
   {q:'Кога изпращате поръчката?',a:`Изпращане до ${s.dispatchHours} часа. Посоченият срок за доставка е ${s.deliveryEstimate}. Сроковете се отнасят за налични продукти; при промяна ще се свържем с теб.`},
   ...(slug==='olfazeta-chogan-dostavka'?[{q:'Как да избера подходящия аромат?',a:'Използвай теста за аромат на Tiarra. Той подрежда наличните парфюми според избраните нотки и предпочитания. Препоръките са ориентировъчни; показаните нотки са в страницата на всеки продукт.'}]:[]),
   ...(slug==='nish-lady-komplekti-za-kosa'?[{q:'Как да избера комплект за боядисана коса?',a:'Започни със серията „Защита на цвета“, когато е налична, и прочети описанието на конкретния комплект. При изсветлена, къдрава или суха коса изборът зависи и от състоянието ѝ. Пиши ни какъв е типът на косата ти, за да помогнем с избора. За употреба и честота следвай указанията върху продуктите.'}]:[])

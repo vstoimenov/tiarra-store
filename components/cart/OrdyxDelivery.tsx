@@ -2,7 +2,7 @@
 
 import Script from 'next/script'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CommerceSettings } from '@/lib/commerce-settings-schema'
+import { courierPrices,type CommerceSettings } from '@/lib/commerce-settings-schema'
 import { formatPrice } from '@/lib/format'
 
 export type DeliverySelection = { type: string; officeId: string; officeText: string; city: string; postCode: string; addressText: string; error: string }
@@ -10,7 +10,7 @@ type PickerHandle = { setPrices: (prices: Record<string, string>) => void; destr
 type Picker = { mount: (target: HTMLElement, options: { api: string; host: string; cards: boolean; types: string[]; prices: Record<string, string>; onChange: (value: DeliverySelection) => void }) => PickerHandle }
 declare global { interface Window { OrdyxPicker?: Picker } }
 
-export function OrdyxDelivery({ settings, freeShipping, onDelivery }: { settings: CommerceSettings; freeShipping: boolean; onDelivery: (value: DeliverySelection) => void }) {
+export function OrdyxDelivery({ settings, subtotal, onDelivery }: { settings: CommerceSettings; subtotal: number; onDelivery: (value: DeliverySelection) => void }) {
   const container = useRef<HTMLDivElement>(null)
   const picker = useRef<PickerHandle | null>(null)
   const callback = useRef(onDelivery)
@@ -19,9 +19,8 @@ export function OrdyxDelivery({ settings, freeShipping, onDelivery }: { settings
   const [failed, setFailed] = useState(false)
   const types = useMemo(() => [...(settings.econtEnabled ? ['econt_office', ...(settings.econtAddressEnabled ? ['econt_address'] : [])] : []), ...(settings.speedyEnabled ? ['speedy_office', ...(settings.speedyAddressEnabled ? ['speedy_address'] : [])] : []), ...(settings.boxnowEnabled ? ['boxnow_locker'] : [])], [settings.econtEnabled, settings.speedyEnabled, settings.boxnowEnabled, settings.econtAddressEnabled, settings.speedyAddressEnabled])
   const prices = useMemo(() => {
-    const display = (amount: number) => freeShipping ? 'Безплатна' : formatPrice(amount)
-    return { econt_office: display(settings.econtOfficePrice), econt_address: display(settings.econtAddressPrice), speedy_office: display(settings.speedyOfficePrice), speedy_address: display(settings.speedyAddressPrice), boxnow_locker: display(settings.boxnowPrice) }
-  }, [freeShipping, settings])
+    return Object.fromEntries(Object.entries(courierPrices(settings,subtotal)).map(([method,price])=>[method,price===0?'Безплатна':formatPrice(price)]))
+  }, [subtotal, settings])
   const currentPrices = useRef(prices)
   currentPrices.current = prices
   useEffect(() => {
