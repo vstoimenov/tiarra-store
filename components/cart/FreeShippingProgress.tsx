@@ -13,7 +13,7 @@ export function FreeShippingProgress({subtotal,threshold,couriers,selectedEligib
  return <section className={styles.card} data-complete={complete||undefined} aria-label="Безплатна доставка">
   <div className={styles.content} aria-live="polite" aria-atomic="true">
    <span className={styles.icon} aria-hidden="true">{complete?<CircleCheck size={25} strokeWidth={2}/>:<Truck size={25} strokeWidth={2}/>}</span>
-   <div className={styles.copy}>{complete?<><strong className={styles.success}>{selectedEligible?'Доставката е безплатна!':'Безплатна доставка с друг куриер'}</strong><span>{label}</span></>:<><span className={styles.amount}>Още <strong>{formatPrice(remaining)}</strong></span><span>до безплатна доставка{couriers?.length?` с ${couriers.join(' и ')}`:''}</span></>}</div>
+   <div className={styles.copy}>{complete?<><strong className={styles.success}>{selectedEligible?'Доставката е безплатна!':'ОТКЛЮЧИ БЕЗПЛАТНА ДОСТАВКА'}</strong><span>{label}</span></>:<><span className={styles.amount}>Още <strong>{formatPrice(remaining)}</strong></span><span>до безплатна доставка{couriers?.length?` с ${couriers.join(' и ')}`:''}</span></>}</div>
   </div>
   <div className={styles.track} role="progressbar" aria-label="Напредък до безплатна доставка" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)} aria-valuetext={complete?`Прагът за безплатна доставка е достигнат. ${label}`:`Остават ${formatPrice(remaining)} до безплатна доставка`}><span style={{width:`${progress}%`}}/></div>
  </section>

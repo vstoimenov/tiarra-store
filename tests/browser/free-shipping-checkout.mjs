@@ -33,7 +33,7 @@ try{
   const delivery=page.locator('p').filter({has:page.getByText('Доставка',{exact:true})})
   await expect(delivery).toContainText('4,50 €')
   const progress=page.locator('section[aria-label="Безплатна доставка"]')
-  if(subtotal>=39){await expect(progress).toContainText('Безплатна доставка с друг куриер');await expect(page.getByRole('button',{name:'Спиди · Безплатна',exact:true})).toBeVisible()}
+  if(subtotal>=39){await expect(progress).toContainText('ОТКЛЮЧИ БЕЗПЛАТНА ДОСТАВКА');await expect(page.getByRole('button',{name:'Спиди · Безплатна',exact:true})).toBeVisible()}
   else await expect(progress).toContainText('19,00 €')
   await page.locator('[data-method=speedy_office]').click();await expect(delivery).toContainText(subtotal>=39?'Безплатна':'3,50 €')
   await page.locator('[data-method=boxnow_locker]').click();await expect(delivery).toContainText(subtotal>=39?'Безплатна':'2,49 €')
