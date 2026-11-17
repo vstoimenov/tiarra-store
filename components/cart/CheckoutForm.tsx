@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { FreeShippingProgress } from './FreeShippingProgress'
 import { TruckOrderButton,type TruckPhase } from './TruckOrderButton'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { analyticsAllowed, trackCommerce } from '@/lib/analytics'
@@ -256,10 +257,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
             </div>
           })}
         </div>
-        <p className={styles.shippingStatus}>
-          <span aria-hidden="true">{subtotal >= 39 ? '✓' : '↗'}</span>
-          {subtotal >= settings.freeShippingThreshold ? 'Безплатна доставка за твоята поръчка' : `Още ${formatPrice(settings.freeShippingThreshold - subtotal)} до безплатна доставка`}
-        </p>
+        <FreeShippingProgress subtotal={subtotal} threshold={settings.freeShippingThreshold}/>
         {bumps.some(bump => !items.some(item => item.productId === bump.productId)) && <section className={styles.bumps} aria-labelledby="checkout-bumps-title">
           <span className={styles.eyebrow}>ПОДБРАНО ЗА ТЕБ</span>
           <h3 id="checkout-bumps-title">Добави финалния щрих</h3>
