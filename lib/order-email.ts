@@ -36,15 +36,15 @@ function renderCustomerOrderEmail(order:OrderEmailData){
  const courier=order.courier==='econt'?'Еконт':order.courier==='speedy'?'Спиди':order.courier==='boxnow'?'BOX NOW':order.courier
  const greeting=name?`Здравей, ${name}!`:'Здравей!'
  const message='Усмихни се! Получихме твоята поръчка и скоро ще подготвим избраните от теб продукти за изпращане.'
- const label='font:700 10px/1.5 Arial,Helvetica,sans-serif;letter-spacing:1.8px;text-transform:uppercase;color:#80622f'
- const copy='font:14px/1.7 Arial,Helvetica,sans-serif;color:#625b52'
- const detail=(title:string,value:string)=>`<tr><td class="detail-label" valign="top" width="100" style="padding:8px 12px 8px 0;border-bottom:1px solid #e6dfd3;font:13px/1.6 Arial,Helvetica,sans-serif;color:#746b5f">${title}</td><td valign="top" style="padding:8px 0;border-bottom:1px solid #e6dfd3;font:600 13px/1.6 Arial,Helvetica,sans-serif;color:#2c2923;word-break:break-word">${value}</td></tr>`
+ const label='font:700 10px/1.5 Manrope,Arial,Helvetica,sans-serif;letter-spacing:1.8px;text-transform:uppercase;color:#80622f'
+ const copy='font:14px/1.7 Manrope,Arial,Helvetica,sans-serif;color:#625b52'
+ const detail=(title:string,value:string)=>`<tr><td class="detail-label" valign="top" width="100" style="padding:8px 12px 8px 0;border-bottom:1px solid #e6dfd3;font:13px/1.6 Manrope,Arial,Helvetica,sans-serif;color:#746b5f">${title}</td><td valign="top" style="padding:8px 0;border-bottom:1px solid #e6dfd3;font:600 13px/1.6 Manrope,Arial,Helvetica,sans-serif;color:#2c2923;word-break:break-word">${value}</td></tr>`
  const deliveryDetails=detail('Куриер',esc(courier))+detail('Получаване',esc(order.delivery))+(name?detail('Получател',name):'')+(order.phone?detail('Телефон',esc(order.phone)):'')+detail('Плащане','Наложен платеж')
  const rows=order.items.map(item=>{
   const picture=item.productId&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.productId)?`<td width="80" valign="top" style="width:80px;padding:20px 12px 20px 0;${line}"><img src="https://tiarracosmetics.com/api/email/product-image/${item.productId}" width="68" height="68" alt="${esc(item.title)}" style="display:block;width:68px;height:68px;border:0;background:#ffffff"></td>`:''
-  return `<tr>${picture}<td${picture?'':' colspan="2"'} valign="top" style="padding:20px 0;${line};word-break:break-word"><p style="margin:0;font:600 14px/1.6 Arial,Helvetica,sans-serif;color:#27231f">${esc(item.title)}</p>${item.variant?`<p style="margin:4px 0 0;font:12px/1.6 Arial,Helvetica,sans-serif;color:#746b5f">${esc(item.variant)}</p>`:''}<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td style="padding:10px 8px 0 0;font:12px/1.5 Arial,Helvetica,sans-serif;color:#746b5f">${item.quantity} бр.</td><td align="right" style="padding:10px 0 0;font:700 15px/1.5 Arial,Helvetica,sans-serif;color:#27231f;white-space:nowrap">${money(item.total)}</td></tr></table></td></tr>`
+  return `<tr>${picture}<td${picture?'':' colspan="2"'} valign="top" style="padding:20px 0;${line};word-break:break-word"><p style="margin:0;font:600 14px/1.6 Manrope,Arial,Helvetica,sans-serif;color:#27231f">${esc(item.title)}</p>${item.variant?`<p style="margin:4px 0 0;font:12px/1.6 Manrope,Arial,Helvetica,sans-serif;color:#746b5f">${esc(item.variant)}</p>`:''}<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr><td style="padding:10px 8px 0 0;font:12px/1.5 Manrope,Arial,Helvetica,sans-serif;color:#746b5f">${item.quantity} бр.</td><td align="right" style="padding:10px 0 0;font:700 15px/1.5 Manrope,Arial,Helvetica,sans-serif;color:#27231f;white-space:nowrap">${money(item.total)}</td></tr></table></td></tr>`
  }).join('')
- const summaryRow=(title:string,value:string)=>`<tr><td style="padding:6px 0;font:13px/1.5 Arial,Helvetica,sans-serif;color:#625b52">${title}</td><td align="right" style="padding:6px 0;font:600 13px/1.5 Arial,Helvetica,sans-serif;color:#2c2923">${value}</td></tr>`
+ const summaryRow=(title:string,value:string)=>`<tr><td style="padding:6px 0;font:13px/1.5 Manrope,Arial,Helvetica,sans-serif;color:#625b52">${title}</td><td align="right" style="padding:6px 0;font:600 13px/1.5 Manrope,Arial,Helvetica,sans-serif;color:#2c2923">${value}</td></tr>`
  const discount=order.discount>0?summaryRow('Отстъпка',`− ${money(order.discount)}`):''
  const shipping=order.shipping===0?'Безплатна':money(order.shipping)
  const html=`<!doctype html>
@@ -55,6 +55,9 @@ function renderCustomerOrderEmail(order:OrderEmailData){
 <meta name="format-detection" content="telephone=no,address=no,email=no,date=no">
 <title>${esc(subject)}</title>
 <style>
+@font-face{font-family:Manrope;font-style:normal;font-weight:400;src:url('https://tiarracosmetics.com/email-fonts/manrope-400.ttf') format('truetype');mso-font-alt:Arial;}
+@font-face{font-family:Manrope;font-style:normal;font-weight:600;src:url('https://tiarracosmetics.com/email-fonts/manrope-600.ttf') format('truetype');mso-font-alt:Arial;}
+@font-face{font-family:Manrope;font-style:normal;font-weight:700;src:url('https://tiarracosmetics.com/email-fonts/manrope-700.ttf') format('truetype');mso-font-alt:Arial;}
 @media only screen and (max-width:600px){
  .outer-pad{padding:16px 8px!important}
  .pad{padding-left:24px!important;padding-right:24px!important}
@@ -63,38 +66,39 @@ function renderCustomerOrderEmail(order:OrderEmailData){
  .detail-label{width:80px!important}
 }
 </style>
+<!--[if mso]><style>body,table,td,p,a,h1,h2,em,span{font-family:Arial,Helvetica,sans-serif!important;}</style><![endif]-->
 </head>
-<body style="margin:0;padding:0;background:#f3f0e9;color:#211e1a;-webkit-text-size-adjust:100%">
+<body style="margin:0;padding:0;background:#f3f0e9;color:#211e1a;font-family:Manrope,Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;font-size:1px;line-height:1px;mso-hide:all">${esc(preheader)}</div>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f0e9"><tr><td class="outer-pad" align="center" style="padding:32px 12px">
 <table role="presentation" width="600" cellspacing="0" cellpadding="0" style="width:100%;max-width:600px;background:#fffdf9;border:1px solid #e8e0d4">
- <tr><td align="center" style="padding:25px 24px;background:#050505"><a href="https://tiarracosmetics.com" style="color:#ffffff;text-decoration:none;font:18px Arial,Helvetica,sans-serif"><img src="https://tiarracosmetics.com/site/email-logo.png" width="180" alt="Tiarra Cosmetics" style="display:block;width:180px;max-width:100%;height:auto;border:0"></a></td></tr>
+ <tr><td align="center" style="padding:25px 24px;background:#050505"><a href="https://tiarracosmetics.com" style="color:#ffffff;text-decoration:none;font:18px Manrope,Arial,Helvetica,sans-serif"><img src="https://tiarracosmetics.com/site/email-logo.png" width="180" alt="Tiarra Cosmetics" style="display:block;width:180px;max-width:100%;height:auto;border:0"></a></td></tr>
  <tr><td class="pad" style="padding:40px 40px 28px">
   <p style="margin:0 0 14px;${label}">ТВОЯТА ПОРЪЧКА Е ПОЛУЧЕНА</p>
-  <h1 class="hero-title" style="margin:0 0 24px;font:normal 40px/1.18 Georgia,'Times New Roman',serif;color:#211e1a">Благодарим ти<br><em style="font-weight:normal;color:#97733a">за доверието.</em></h1>
-  <p style="margin:0 0 10px;font:600 15px/1.7 Arial,Helvetica,sans-serif;color:#2c2923">${greeting}</p>
+  <h1 class="hero-title" style="margin:0 0 24px;font:normal 40px/1.18 Manrope,Arial,Helvetica,sans-serif;color:#211e1a">Благодарим ти<br><em style="font-weight:normal;color:#97733a">за доверието.</em></h1>
+  <p style="margin:0 0 10px;font:600 15px/1.7 Manrope,Arial,Helvetica,sans-serif;color:#2c2923">${greeting}</p>
   <p style="margin:0;${copy}">${message}</p>
  </td></tr>
  <tr><td class="pad" style="padding:0 40px 30px">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f1e9"><tr><td class="delivery-pad" style="padding:22px 24px">
-   <h2 style="margin:0 0 12px;font:normal 23px/1.3 Georgia,'Times New Roman',serif;color:#2c2923">Детайли за доставката</h2>
+   <h2 style="margin:0 0 12px;font:normal 23px/1.3 Manrope,Arial,Helvetica,sans-serif;color:#2c2923">Детайли за доставката</h2>
    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed">${deliveryDetails}</table>
   </td></tr></table>
  </td></tr>
  <tr><td class="pad" style="padding:0 40px">
-  <h2 style="margin:0;font:normal 25px/1.3 Georgia,'Times New Roman',serif;color:#2c2923">Избрано от теб</h2>
+  <h2 style="margin:0;font:normal 25px/1.3 Manrope,Arial,Helvetica,sans-serif;color:#2c2923">Избрано от теб</h2>
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed">${rows}</table>
  </td></tr>
  <tr><td class="pad" style="padding:20px 40px 32px">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0">${summaryRow('Продукти',money(order.subtotal))}${discount}${summaryRow('Доставка',shipping)}
-   <tr><td colspan="2" style="padding:14px 0 0"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #bfa36e"><tr><td valign="middle" style="padding:18px 12px 0 0;font:600 15px/1.5 Arial,Helvetica,sans-serif;color:#2c2923">Общо за плащане</td><td align="right" valign="middle" style="padding:18px 0 0;font:700 25px/1.2 Georgia,'Times New Roman',serif;color:#2c2923;white-space:nowrap">${money(order.total)}</td></tr></table></td></tr>
+   <tr><td colspan="2" style="padding:14px 0 0"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #bfa36e"><tr><td valign="middle" style="padding:18px 12px 0 0;font:600 15px/1.5 Manrope,Arial,Helvetica,sans-serif;color:#2c2923">Общо за плащане</td><td align="right" valign="middle" style="padding:18px 0 0;font:700 25px/1.2 Manrope,Arial,Helvetica,sans-serif;color:#2c2923;white-space:nowrap">${money(order.total)}</td></tr></table></td></tr>
   </table>
  </td></tr>
  <tr><td class="pad" style="padding:24px 40px 30px;border-top:1px solid #e8e0d4">
-  <p style="margin:0 0 8px;font:600 14px/1.6 Arial,Helvetica,sans-serif;color:#2c2923">Благодарим ти, че избра Tiarra Cosmetics.</p>
+  <p style="margin:0 0 8px;font:600 14px/1.6 Manrope,Arial,Helvetica,sans-serif;color:#2c2923">Благодарим ти, че избра Tiarra Cosmetics.</p>
   <p style="margin:0;${copy}">Имаш въпрос за поръчката? Отговори на този имейл или ни пиши на <a href="mailto:info@tiarracosmetics.com" style="color:#80622f;text-decoration:underline">info@tiarracosmetics.com</a>.</p>
  </td></tr>
- <tr><td class="pad" style="padding:20px 40px;background:#eee9e0;font:11px/1.7 Arial,Helvetica,sans-serif;color:#6b6358">TIARRA COSMETICS<br>Съобщение във връзка с твоята поръчка.</td></tr>
+ <tr><td class="pad" style="padding:20px 40px;background:#eee9e0;font:11px/1.7 Manrope,Arial,Helvetica,sans-serif;color:#6b6358">TIARRA COSMETICS<br>Съобщение във връзка с твоята поръчка.</td></tr>
 </table>
 </td></tr></table>
 </body></html>`

@@ -29,8 +29,13 @@ const nextConfig: NextConfig = {
   // Everything but production tells crawlers to stay away (read when the config loads, so a
   // build or server started with SITE_ENV=production sends nothing).
   async headers() {
-    if (isProduction()) return []
-    return [{ source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }]
+    // Email clients fetch the site's font from their own origin.
+    const fontHeaders = { source: '/email-fonts/:path*', headers: [
+      { key: 'Access-Control-Allow-Origin', value: '*' },
+      { key: 'Cache-Control', value: 'public, max-age=86400' },
+    ] }
+    if (isProduction()) return [fontHeaders]
+    return [fontHeaders, { source: '/:path*', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }]
   },
 }
 

@@ -130,15 +130,15 @@ describe('X-Robots-Tag header', () => {
   it('is sent on every path outside production', async () => {
     for (const env of ['preview', 'development']) {
       vi.stubEnv('SITE_ENV', env)
-      expect(await nextConfig.headers?.()).toEqual(noindex)
+      expect((await nextConfig.headers?.())?.filter(rule => rule.headers.some(header => header.key === 'X-Robots-Tag'))).toEqual(noindex)
     }
     vi.stubEnv('SITE_ENV', undefined)
-    expect(await nextConfig.headers?.()).toEqual(noindex)
+    expect((await nextConfig.headers?.())?.filter(rule => rule.headers.some(header => header.key === 'X-Robots-Tag'))).toEqual(noindex)
   })
 
   it('is not sent in production', async () => {
     vi.stubEnv('SITE_ENV', 'production')
-    expect(await nextConfig.headers?.()).toEqual([])
+    expect((await nextConfig.headers?.())?.filter(rule => rule.headers.some(header => header.key === 'X-Robots-Tag'))).toEqual([])
   })
 })
 
