@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { FreeShippingProgress } from './FreeShippingProgress'
 import { TruckOrderButton,type TruckPhase } from './TruckOrderButton'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { analyticsAllowed, trackCommerce } from '@/lib/analytics'
+import { analyticsAllowed, trackCommerce, metaCheckoutContext } from '@/lib/analytics'
 import { type CartItem, readCart, writeCart } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import styles from './CheckoutForm.module.css'
@@ -171,7 +171,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          requestId: requestId.current, expectedTotal:quote.total, promoCode, visitSessionId: currentVisitSession(),
+          requestId: requestId.current, expectedTotal:quote.total, promoCode, visitSessionId: currentVisitSession(), meta: metaCheckoutContext(),
           customerName: data.get('customerName'), phone: data.get('phone'), email: data.get('email'),
           courier, officeId: delivery.officeId || null, deliveryType, city: delivery.city, postCode: delivery.postCode, deliveryAddress: deliveryType === 'address' ? delivery.addressText : delivery.officeText, notes: data.get('notes'),
           items: items.map(({ productId, variantId, quantity, source }) => ({ productId, variantId, quantity, source })),

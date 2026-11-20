@@ -18,7 +18,7 @@ const server=createServer(async(req,res)=>{
 })
 let browser
 try{
- await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import GlassDashboard from '${root}components/ui/adjustable-glass-dashboard';import {SettingsAdmin} from '${root}components/admin/SettingsAdmin';const settings={googleAnalyticsId:null,googleTagManagerId:null,metaPixelId:null,freeShippingThreshold:39,econtEnabled:true,econtAddressEnabled:true,econtOfficePrice:4.5,econtAddressPrice:6.5,speedyEnabled:true,speedyAddressEnabled:true,speedyOfficePrice:3.5,speedyAddressPrice:5.5,boxnowEnabled:true,boxnowPrice:2.49,deliveryEstimate:'1–2 работни дни',dispatchHours:24,econtFreeShipping:false,speedyFreeShipping:true,boxnowFreeShipping:true};createRoot(document.getElementById('root')).render(<GlassDashboard><main><SettingsAdmin initial={settings} connections={{ordyx:true,storage:true,stripe:false}}/></main></GlassDashboard>);`,loader:'tsx',resolveDir:root},bundle:true,jsx:'automatic',tsconfig:join(root,'tsconfig.json'),outfile:join(folder,'bundle.js'),define:{'process.env.NODE_ENV':'"test"'},alias:{react:join(root,'node_modules/react'),'@':root},plugins:[{name:'next-fixture',setup(build){build.onResolve({filter:/^next\/(link|navigation)$/},args=>({path:args.path,namespace:'fixture'}));build.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:args.path==='next/navigation'?"export function usePathname(){return '/admin/orders'}":"import React from 'react';export default function Link({href,children,...props}){return <a href={href} {...props}>{children}</a>}",loader:'jsx',resolveDir:root}))}}]})
+ await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import GlassDashboard from '${root}components/ui/adjustable-glass-dashboard';import {SettingsAdmin} from '${root}components/admin/SettingsAdmin';const settings={googleAnalyticsId:null,googleTagManagerId:null,metaPixelId:'123456789',freeShippingThreshold:39,econtEnabled:true,econtAddressEnabled:true,econtOfficePrice:4.5,econtAddressPrice:6.5,speedyEnabled:true,speedyAddressEnabled:true,speedyOfficePrice:3.5,speedyAddressPrice:5.5,boxnowEnabled:true,boxnowPrice:2.49,deliveryEstimate:'1–2 работни дни',dispatchHours:24,econtFreeShipping:false,speedyFreeShipping:true,boxnowFreeShipping:true};createRoot(document.getElementById('root')).render(<GlassDashboard><main><SettingsAdmin initial={settings} connections={{ordyx:true,storage:true,stripe:false}} metaStatus={{tokenConfigured:true,queueAvailable:true,environmentAllowed:true,testMode:true,pending:0,failed:0,sent:0,lastSentAt:null,lastError:null}}/></main></GlassDashboard>);`,loader:'tsx',resolveDir:root},bundle:true,jsx:'automatic',tsconfig:join(root,'tsconfig.json'),outfile:join(folder,'bundle.js'),define:{'process.env.NODE_ENV':'"test"'},alias:{react:join(root,'node_modules/react'),'@':root},plugins:[{name:'next-fixture',setup(build){build.onResolve({filter:/^next\/(link|navigation)$/},args=>({path:args.path,namespace:'fixture'}));build.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:args.path==='next/navigation'?"export function usePathname(){return '/admin/orders'}":"import React from 'react';export default function Link({href,children,...props}){return <a href={href} {...props}>{children}</a>}",loader:'jsx',resolveDir:root}))}}]})
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve))
  browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH??(existsSync('/usr/bin/chromium')?'/usr/bin/chromium':undefined),args:['--no-sandbox']})
  for(const [width,ios,installed,available] of [[360,true,true,true],[1280,false,false,true],[390,true,false,true],[390,false,false,false]]){
@@ -32,7 +32,7 @@ try{
    Object.defineProperty(window,'Notification',{configurable:true,value:class{static permission='default';static async requestPermission(){window.testCalls.push('permission');this.permission='granted';return 'granted'}}})
    const match=window.matchMedia.bind(window);window.matchMedia=query=>query==='(display-mode: standalone)'?{matches:installed,media:query,addEventListener(){},removeEventListener(){}}:match(query)
   },{installed})
-  const page=await context.newPage();let rows=[{orderNumber:'1',status:'new'}],registrations=0,tests=0,deletes=0
+  const page=await context.newPage();let rows=[{orderNumber:'1',status:'new'}],registrations=0,tests=0,deletes=0,metaTests=0
   const errors=[];page.on('pageerror',error=>errors.push(error.message))
   await page.route('**/api/admin/orders/notifications',route=>route.fulfill({json:{orders:rows}}))
   await page.route('**/api/admin/notifications/push',route=>{
@@ -41,6 +41,7 @@ try{
    return route.fulfill({json:{available,publicKey:Buffer.alloc(65,4).toString('base64url')}})
   })
   await page.route('**/api/admin/notifications/push/test',route=>{tests++;return route.fulfill({json:{ok:true}})})
+  await page.route('**/api/admin/meta/test',route=>{metaTests++;return route.fulfill({json:{ok:true}})})
   await page.goto(`http://127.0.0.1:${server.address().port}`)
   await page.waitForFunction(()=>localStorage.getItem('tiarra-admin-orders-seen-v1')?.includes('1'))
   if(width===360)await page.getByRole('button',{name:/Настрой известията на този телефон/}).click();else await page.locator('button[aria-controls=admin-notifications]').click()
@@ -72,6 +73,8 @@ try{
   await page.getByRole('button',{name:'Запази настройките',exact:true}).last().click()
   await page.getByText('Настройките са записани и магазинът е обновен.',{exact:true}).first().waitFor()
   assert.equal(savedSettings.econtFreeShipping,true);assert.equal(savedSettings.speedyFreeShipping,false);assert.equal(savedSettings.boxnowFreeShipping,true)
+  await page.getByRole('button',{name:'Изпрати тест към Meta',exact:true}).click()
+  await expect(page.getByText('Тестът е приет от Meta. Провери Events Manager → Test Events. Не е създадена поръчка в магазина.',{exact:true})).toBeVisible();assert.equal(metaTests,1)
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);assert.deepEqual(errors,[])
   console.log(`PASS ${width}px iOS=${ios} installed=${installed} activated=${available}: permission only on tap, setup states, foreground alerts without duplicates, no overflow`)
   await context.close()

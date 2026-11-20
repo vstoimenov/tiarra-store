@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Script from 'next/script'
 import { useEffect, useState } from 'react'
 import styles from './Analytics.module.css'
+import { captureMetaClick } from '@/lib/analytics'
 
 type Consent = 'accepted' | 'essential'
 const KEY = 'tiarra-consent-v1'
@@ -11,6 +12,7 @@ const KEY = 'tiarra-consent-v1'
 export function Analytics({googleAnalyticsId,googleTagManagerId,metaPixelId}:{googleAnalyticsId:string|null;googleTagManagerId:string|null;metaPixelId:string|null}) {
   const [consent, setConsent] = useState<Consent | null>(null)
   useEffect(() => { setConsent(window.localStorage.getItem(KEY) as Consent | null) }, [])
+  useEffect(() => { if (consent === 'accepted') captureMetaClick() }, [consent])
   function choose(value: Consent) {
     window.localStorage.setItem(KEY, value); setConsent(value); window.dispatchEvent(new Event('tiarra-consent-updated'))
     window.dataLayer = window.dataLayer ?? []
