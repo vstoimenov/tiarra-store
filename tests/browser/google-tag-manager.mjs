@@ -28,6 +28,7 @@ try{
    assert.equal(requests.length,1)
    assert.ok(states[0].some(command=>command[0]==='consent'&&command[1]==='default'&&command[2].ad_storage==='denied'))
    assert.ok(states[0].some(command=>command[0]==='consent'&&command[1]==='update'&&['analytics_storage','ad_storage','ad_user_data','ad_personalization'].every(key=>command[2][key]==='granted')))
+   if(choice==='first-accept'){const grant=states[0].findIndex(command=>command[0]==='consent'&&command[1]==='update');const trigger=states[0].findIndex(command=>command.event==='consent_update');assert.ok(grant<trigger)}
    if(choice==='ga4'){assert.ok(requests[0].includes('/gtag/js?id=G-TEST12345'));assert.ok(!requests[0].includes('/gtm.js'))}
    else{assert.equal(requests[0],'https://www.googletagmanager.com/gtm.js?id=GTM-MXBFWH5L');assert.equal(await page.locator('head script[src="https://www.googletagmanager.com/gtm.js?id=GTM-MXBFWH5L"]').count(),1);await page.evaluate(()=>{window.repeatBootstrap();window.repeatBootstrap()});await page.waitForTimeout(100);assert.equal(requests.length,1);assert.equal(await page.locator('script[src*="/gtag/js"]').count(),0)}
   }

@@ -19,8 +19,8 @@ export function Analytics({googleAnalyticsId,googleTagManagerId,metaPixelId}:{go
     window.dataLayer = window.dataLayer ?? []
     const state = value === 'accepted' ? 'granted' : 'denied'
     const update = { analytics_storage: state, ad_storage: state, ad_user_data: state, ad_personalization: state }
-    window.dataLayer.push({ event: 'consent_update', ...update })
     window.gtag?.('consent', 'update', update)
+    window.dataLayer.push({ event: 'consent_update', ...update })
   }
   return <>
     {consent === 'accepted' && googleTagManagerId ? <Script id="google-tag-manager" strategy="afterInteractive">{googleTagManagerScript(googleTagManagerId)}</Script> : consent === 'accepted' && googleAnalyticsId ? <><Script src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`} strategy="afterInteractive" /><Script id="ga4" strategy="afterInteractive">{`${GOOGLE_CONSENT_GRANTED}gtag('js',new Date());gtag('config','${googleAnalyticsId}');`}</Script></> : null}
