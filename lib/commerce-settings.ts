@@ -1,5 +1,6 @@
 import { unstable_cache } from 'next/cache'
 import { sql } from '@/lib/db'
+import { resolveGoogleTagManagerId } from '@/lib/google-tags'
 import { CommerceSettingsSchema,type CommerceSettings } from '@/lib/commerce-settings-schema'
 
 export async function readCommerceSettings():Promise<CommerceSettings>{
@@ -8,9 +9,10 @@ export async function readCommerceSettings():Promise<CommerceSettings>{
  boxnow_enabled as "boxnowEnabled",boxnow_price::float8 as "boxnowPrice",speedy_enabled as "speedyEnabled",speedy_address_enabled as "speedyAddressEnabled",speedy_office_price::float8 as "speedyOfficePrice",speedy_address_price::float8 as "speedyAddressPrice",delivery_estimate as "deliveryEstimate",dispatch_hours as "dispatchHours"
  from store.commerce_settings s where singleton`
  if(!row)throw new Error('Commerce settings are missing')
- return CommerceSettingsSchema.parse(row)
+ const settings=CommerceSettingsSchema.parse(row)
+ return {...settings,googleTagManagerId:resolveGoogleTagManagerId(settings.googleTagManagerId,process.env.NEXT_PUBLIC_GTM_ID)}
 }
-const cached=unstable_cache(readCommerceSettings,['commerce-settings-v2'],{tags:['commerce-settings'],revalidate:60})
+const cached=unstable_cache(readCommerceSettings,['commerce-settings-v3'],{tags:['commerce-settings'],revalidate:60})
 export function getCommerceSettings(){return cached()}
 
 export async function freeShippingSettingsAvailable():Promise<boolean>{

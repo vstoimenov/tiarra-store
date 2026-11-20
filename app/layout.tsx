@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
+import Script from 'next/script'
+import { GOOGLE_CONSENT_DEFAULT } from '@/lib/google-tags'
 import type { ReactNode } from 'react'
 import { StorefrontChrome } from '@/components/layout/StorefrontChrome'
 import { VisitTracker } from '@/components/analytics/VisitTracker'
@@ -45,7 +47,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="bg" className={`${manrope.variable} ${archivo.variable}`}>
       {/* No `crossOrigin`: <img> requests are plain, and a preconnect with it would open a different socket. */}
-      <head>{pictures && <link rel="preconnect" href={pictures} />}</head>
+      <head><Script id="consent-default" strategy="beforeInteractive">{GOOGLE_CONSENT_DEFAULT}</Script>{pictures && <link rel="preconnect" href={pictures} />}</head>
       <body>
         <StorefrontChrome theme={home.theme ?? 'classic'} header={<Header settings={commerce} menu={navigation.menu} topbar={<Topbar messages={settings.topbarMessages.map(message=>message.startsWith('Безплатна доставка')?freeShippingText(commerce):message)} />} />} footer={<Footer settings={settings} groups={navigation.footer} />} analytics={<><Analytics googleAnalyticsId={commerce.googleAnalyticsId??process.env.NEXT_PUBLIC_GA_ID??null} googleTagManagerId={commerce.googleTagManagerId??process.env.NEXT_PUBLIC_GTM_ID??null} metaPixelId={commerce.metaPixelId??process.env.NEXT_PUBLIC_META_PIXEL_ID??null}/><VisitTracker /></>}>{children}</StorefrontChrome>
       </body>

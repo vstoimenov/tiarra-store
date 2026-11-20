@@ -3,6 +3,7 @@ export type CommerceItem = { item_id: string; item_name: string; price: number; 
 
 declare global {
   interface Window {
+    gtag?: (...args: unknown[]) => void
     dataLayer?: unknown[]
     fbq?: (...args: unknown[]) => void
   }
