@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAdminLiveRefresh } from '@/lib/admin/use-live-refresh'
 import type { AdminPromo } from '@/lib/admin/promos'
 import { formatPrice } from '@/lib/format'
 import styles from './PromoAdmin.module.css'
@@ -18,6 +20,9 @@ export function PromoAdmin({ initialPromos, brands }: { initialPromos: AdminProm
   const [editing, setEditing] = useState(false)
   const [pending, setPending] = useState(false)
   const [message, setMessage] = useState('')
+  const router = useRouter()
+  useEffect(() => { setPromos(initialPromos) }, [initialPromos])
+  useAdminLiveRefresh(() => { if (!pending) router.refresh() })
   function edit(p: AdminPromo) {
     setDraft({ code:p.code, kind:p.kind, value:String(p.value), minSubtotal:String(p.minSubtotal), expiresAt:localDate(p.expiresAt), maxUses:p.maxUses === null ? '' : String(p.maxUses), active:p.active, brands:p.brands ?? [] })
     setEditing(true); setMessage(''); document.getElementById('promo-editor')?.scrollIntoView({ block:'start', behavior:'smooth' })
@@ -28,7 +33,7 @@ export function PromoAdmin({ initialPromos, brands }: { initialPromos: AdminProm
       const response = await fetch('/api/admin/promos', { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ ...draft, value:Number(draft.value), minSubtotal:Number(draft.minSubtotal), maxUses:draft.maxUses ? Number(draft.maxUses) : null, expiresAt:draft.expiresAt ? new Date(draft.expiresAt).toISOString() : null }) })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Кодът не беше записан.')
-      setPromos(data.promos); setMessage('Промокодът е записан.'); setDraft(empty); setEditing(false)
+      setPromos(data.promos); setMessage('Промокодът е записан.'); setDraft(empty); setEditing(false); router.refresh()
     } catch (error) { setMessage(error instanceof Error ? error.message : 'Няма връзка. Опитай отново.') }
     finally { setPending(false) }
   }
@@ -45,12 +50,12 @@ export function PromoAdmin({ initialPromos, brands }: { initialPromos: AdminProm
       </div>
       <fieldset className={styles.brands}><legend>Марки за промокода</legend><p>Ако не избереш марки, кодът важи за всички продукти.</p>{[...new Set([...brands,...draft.brands])].map(brand => <label key={brand}><input type="checkbox" disabled={pending} checked={draft.brands.includes(brand)} onChange={e=>setDraft({...draft,brands:e.target.checked?[...draft.brands,brand]:draft.brands.filter(b=>b!==brand)})}/>{brand}</label>)}</fieldset>
       <label className={styles.toggle}><input type="checkbox" disabled={pending} checked={draft.active} onChange={e=>setDraft({...draft,active:e.target.checked})} />Активен код</label>
-      <p className={styles.help}>Един код на поръчка. Отстъпката се прилага върху продуктите, включително намалените, без доставката. Прагът за безплатна доставка се изчислява преди промокода. Анулирането на поръчка не възстановява използването на кода.</p>
+      <p className={styles.help}>Един код на поръчка. Отстъпката се прилага върху продуктите, включително намалените, без доставката. Прагът за безплатна доставка се изчислява преди промокода.</p>
       <div className={styles.actions}><button disabled={pending} type="submit">{pending ? 'Записване…' : 'Запази промокода'}</button>{editing && <button type="button" disabled={pending} onClick={()=>{setDraft(empty);setEditing(false);setMessage('')}}>Откажи редакцията</button>}</div>
       <p role="status">{message}</p>
     </form>
-    <div className={styles.list}><h2>Създадени кодове</h2>{!promos.length && <p>Все още няма промокодове. Създай първия от формата по-горе.</p>}
-      {promos.map(p=><article key={p.code}><div><strong>{p.code}</strong><span>{p.kind==='percent' ? `${p.value}%` : formatPrice(p.value)} отстъпка · Минимум {formatPrice(p.minSubtotal)}</span><small>{p.brands?.length ? `Марки: ${p.brands.join(', ')} · ` : 'Всички марки · '}{p.active ? 'Включен' : 'Спрян'} · Използван {p.uses}{p.maxUses === null ? ' пъти' : ` / ${p.maxUses}`} · {p.expiresAt ? `Валиден до ${new Date(p.expiresAt).toLocaleString('bg-BG')}` : 'Без срок'}</small></div><button type="button" disabled={pending} onClick={()=>edit(p)}>Редактирай</button></article>)}
+    <div className={styles.list}><h2>Създадени кодове</h2><p className={styles.usageHelp}>Използванията се обновяват автоматично на всеки 30 секунди. Броят се записаните поръчки с кода, включително анулираните.</p>{!promos.length && <p>Все още няма промокодове. Създай първия от формата по-горе.</p>}
+      {promos.map(p=><article key={p.code} aria-label={`Промокод ${p.code}`}><div className={styles.info}><strong>{p.code}</strong><span>{p.kind==='percent' ? `${p.value}%` : formatPrice(p.value)} отстъпка · Минимум {formatPrice(p.minSubtotal)}</span><small>{p.brands?.length ? `Марки: ${p.brands.join(', ')} · ` : 'Всички марки · '}{p.active ? 'Включен' : 'Спрян'} · {p.expiresAt ? `Валиден до ${new Date(p.expiresAt).toLocaleString('bg-BG')}` : 'Без срок'}</small></div><div className={styles.usage} role="group" aria-label={`Използвания за ${p.code}`}><span>Използвания</span><strong>{p.uses.toLocaleString('bg-BG')}</strong><small>{p.maxUses===null?'Без лимит':`Лимит: ${p.maxUses.toLocaleString('bg-BG')}`}</small></div><button type="button" disabled={pending} onClick={()=>edit(p)}>Редактирай</button></article>)}
     </div>
   </section>
 }
