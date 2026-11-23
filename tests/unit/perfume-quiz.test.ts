@@ -6,6 +6,15 @@ function product(overrides: Partial<QuizProduct>): QuizProduct {
 }
 
 describe('perfume finder', () => {
+  it.each(['NISH MAN 5в1 Подаръчен Комплект New Yellow', 'Подаръчен комплект парфюми', 'Комплект 3 в 1', 'Perfume Gift Set'])('excludes sets from notes, exact matches, alternatives and fallback: %s', title => {
+    const kit = product({ title, perfume: { top: 'Лимон', base: 'Мускус' } })
+    const answers = { gender: 'any' as const, families: ['fresh' as const], maxPrice: null }
+    expect(isWearablePerfume(kit)).toBe(false)
+    expect(catalogNotesByFamily([kit], 'any').fresh).toEqual([])
+    expect(recommendPerfumes([kit], answers)).toEqual([])
+    expect(recommendRelatedPerfumes([kit], { ...answers, families: ['woody'] })).toEqual([])
+    expect(recommendFallbackPerfumes([kit], answers, [])).toEqual([])
+  })
   it('displays scores above 75 on the disclosed scale without changing their order', () => {
     expect([0, 12, 50, 80, 100].map(displayMatchPercent)).toEqual([76, 79, 88, 95, 100])
     expect(displayMatchPercent(-20)).toBe(76)

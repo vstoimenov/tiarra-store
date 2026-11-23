@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, type ReactNode } from 'react'
-import { trackCommerce } from '@/lib/analytics'
+import { analyticsAllowed, trackCommerce } from '@/lib/analytics'
 import { addCartItem } from '@/lib/cart'
 import { initialVariantId, resolveVariantState } from '@/lib/catalog/variant'
 import type { Product } from '@/lib/catalog/types'
@@ -27,7 +27,15 @@ export function ProductView({ product, breadcrumbs, bump = null }: Props) {
   const state = resolveVariantState(product, variantId)
 
   useEffect(() => {
-    trackCommerce('view_item', { currency: 'EUR', value: state.price, items: [{ item_id: product.id, item_name: product.title, price: state.price, quantity: 1 }] })
+    let counted = false
+    const track = () => {
+      if (counted || !analyticsAllowed()) return
+      counted = true
+      trackCommerce('view_item', { currency: 'EUR', value: state.price, items: [{ item_id: product.id, item_name: product.title, price: state.price, quantity: 1 }] })
+    }
+    track()
+    window.addEventListener('tiarra-consent-updated', track)
+    return () => window.removeEventListener('tiarra-consent-updated', track)
   // The product view is counted once; variant changes must not duplicate it.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.id])

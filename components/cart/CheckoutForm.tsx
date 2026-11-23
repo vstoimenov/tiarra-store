@@ -5,7 +5,7 @@ import { FreeShippingProgress } from './FreeShippingProgress'
 import { TruckOrderButton,type TruckPhase } from './TruckOrderButton'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { analyticsAllowed, trackCommerce, metaCheckoutContext } from '@/lib/analytics'
-import { type CartItem, readCart, writeCart } from '@/lib/cart'
+import { type CartItem, readCart, writeCart, removePurchasedCartItems, CART_UPDATED_EVENT, CART_STORAGE_KEY } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import styles from './CheckoutForm.module.css'
 import controls from './CheckoutControls.module.css'
@@ -45,6 +45,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
   const [quoteRevision,setQuoteRevision]=useState(0)
   const [bumps, setBumps] = useState<Bump[]>([])
   const requestId = useRef('')
+  const cartSignature = useRef('')
   const checkoutTracked = useRef(false)
   const [courier, setCourier] = useState<'econt' | 'speedy' | 'boxnow'>(settings.econtEnabled?'econt':settings.speedyEnabled?'speedy':'boxnow')
   const [delivery, setDelivery] = useState<DeliverySelection | null>(null)
@@ -59,7 +60,17 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
     return cartItem !== undefined && cartItem.unitPrice !== line.unitPrice
   }) ?? false
 
-  useEffect(() => { setItems(readCart()); setReady(true) }, [])
+  useEffect(() => {
+    const sync = () => {
+      if (submissionLock.current || orderNumber) return
+      const next = readCart(), signature = JSON.stringify(next)
+      if (signature !== cartSignature.current) { cartSignature.current = signature; setItems(next); setQuote(null); setQuoteError(''); requestId.current = '' }
+      setReady(true)
+    }
+    const storage = (event: StorageEvent) => { if (event.key === CART_STORAGE_KEY || event.key === null) sync() }
+    sync(); window.addEventListener(CART_UPDATED_EVENT, sync); window.addEventListener('storage', storage); window.addEventListener('focus', sync)
+    return () => { window.removeEventListener(CART_UPDATED_EVENT, sync); window.removeEventListener('storage', storage); window.removeEventListener('focus', sync) }
+  }, [orderNumber])
 
   useEffect(() => {
     if (!ready || items.length === 0) return
@@ -102,6 +113,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
   }, [items, ready])
 
   function updateItems(next: CartItem[]) {
+    cartSignature.current = JSON.stringify(next)
     setItems(next)
     writeCart(next)
     setQuote(null)
@@ -190,7 +202,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
       } catch { /* The order is already committed. */ }
       const deliveryText=deliveryType==='address'?[delivery.city,delivery.postCode,delivery.addressText].filter(Boolean).join(', '):delivery.officeText
       setConfirmation({number:result.orderNumber,total:result.total??quote.total,courier,delivery:deliveryText,items:[...items]})
-      try { writeCart([]) } catch { /* Keep showing the successful order. */ }
+      try { removePurchasedCartItems(items) } catch { /* Keep showing the successful order. */ }
       // A success state is allowed only after the server returned the saved order number.
       // Animation cannot turn an already committed order into an error.
       try {

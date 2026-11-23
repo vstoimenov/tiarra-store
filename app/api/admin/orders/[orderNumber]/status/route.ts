@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { sql } from '@/lib/db'
+import { updateAdminOrderStatus } from '@/lib/admin/order-status'
 import { cancelOrderInOrdyx } from '@/lib/ordyx-sync'
 
 const schema = z.object({ status: z.enum(['confirmed', 'sent', 'completed', 'cancelled']) })
@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ o
   const parsed = schema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
   try {
-    const [result] = await sql<{ status: string; changed: boolean; stock_released: boolean; ordyx_cancel_required: boolean }[]>`select * from store.update_order_status(${orderNumber}::bigint, ${parsed.data.status})`
+    const result = await updateAdminOrderStatus(orderNumber, parsed.data.status)
     let ordyxWarning = false
     if (result.ordyx_cancel_required) ordyxWarning = !(await cancelOrderInOrdyx(orderNumber))
     return NextResponse.json({ ok: true, ...result, ordyxWarning })

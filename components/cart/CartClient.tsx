@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { type CartItem, readCart, writeCart } from '@/lib/cart'
+import { type CartItem, readCart, writeCart, CART_STORAGE_KEY, CART_UPDATED_EVENT } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import { imageUrl } from '@/lib/images'
 import { CartRecommendations } from './CartRecommendations'
@@ -14,8 +14,11 @@ export function CartClient({ compact = false, settings }: { compact?: boolean; s
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    setItems(readCart())
-    setReady(true)
+    const sync = () => setItems(readCart())
+    const storage = (event: StorageEvent) => { if (event.key === CART_STORAGE_KEY || event.key === null) sync() }
+    sync(); setReady(true)
+    window.addEventListener(CART_UPDATED_EVENT, sync); window.addEventListener('storage', storage); window.addEventListener('focus', sync)
+    return () => { window.removeEventListener(CART_UPDATED_EVENT, sync); window.removeEventListener('storage', storage); window.removeEventListener('focus', sync) }
   }, [])
 
   const total = useMemo(() => items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0), [items])

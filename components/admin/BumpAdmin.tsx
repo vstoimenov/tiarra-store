@@ -34,20 +34,22 @@ export function BumpAdmin({
   function save() {
     startTransition(async () => {
       setMessage('')
-      const response = await fetch('/api/admin/bumps', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, bumpProductId: bumpId || null, label }),
-      })
-      if (!response.ok) {
-        setMessage('Промяната не беше записана. Опитай отново.')
-        return
-      }
-      setMappings((previous) => {
-        const rest = previous.filter((entry) => entry.productId !== productId)
-        return bumpId ? [...rest, { productId, bumpProductId: bumpId, label }] : rest
-      })
-      setMessage(bumpId ? 'Препоръката е записана.' : 'Включен е автоматичният избор.')
+      try {
+        const response = await fetch('/api/admin/bumps', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productId, bumpProductId: bumpId || null, label }),
+        })
+        if (!response.ok) {
+          setMessage('Промяната не беше записана. Опитай отново.')
+          return
+        }
+        setMappings((previous) => {
+          const rest = previous.filter((entry) => entry.productId !== productId)
+          return bumpId ? [...rest, { productId, bumpProductId: bumpId, label }] : rest
+        })
+        setMessage(bumpId ? 'Препоръката е записана.' : 'Включен е автоматичният избор.')
+      } catch { setMessage('Няма връзка със сървъра. Опитай отново — изборът ти е запазен тук.') }
     })
   }
 
@@ -57,8 +59,8 @@ export function BumpAdmin({
         <span className={styles.number}>1</span>
         <div>
           <label htmlFor="product-search">Намери основния продукт</label>
-          <input id="product-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Търси по име..." />
-          <select value={productId} onChange={(event) => selectProduct(event.target.value)} size={Math.min(7, Math.max(3, filtered.length))}>
+          <input disabled={pending} id="product-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Търси по име..." />
+          <select disabled={pending} value={productId} onChange={(event) => selectProduct(event.target.value)} size={Math.min(7, Math.max(3, filtered.length))}>
             {filtered.map((product) => <option key={product.id} value={product.id}>{product.title}</option>)}
           </select>
         </div>
@@ -68,7 +70,7 @@ export function BumpAdmin({
         <span className={styles.number}>2</span>
         <div>
           <label htmlFor="bump-product">Избери подходящ bump</label>
-          <select id="bump-product" value={bumpId} onChange={(event) => setBumpId(event.target.value)}>
+          <select disabled={pending} id="bump-product" value={bumpId} onChange={(event) => setBumpId(event.target.value)}>
             <option value="">Автоматичен релевантен продукт</option>
             {initialProducts.filter((product) => product.id !== productId).map((product) => (
               <option key={product.id} value={product.id}>{product.title}</option>
@@ -82,7 +84,7 @@ export function BumpAdmin({
         <span className={styles.number}>3</span>
         <div>
           <label htmlFor="bump-label">Текст над предложението</label>
-          <input id="bump-label" value={label} maxLength={60} onChange={(event) => setLabel(event.target.value)} />
+          <input disabled={pending} id="bump-label" value={label} maxLength={60} onChange={(event) => setLabel(event.target.value)} />
         </div>
       </div>
 

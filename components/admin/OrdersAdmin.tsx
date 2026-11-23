@@ -19,15 +19,31 @@ function OrderCard({ order, editingAvailable, onStatus, onSaved, onDirty }: { or
   const dirty = editing || pending || notes !== order.internalNotes || trackingNumber !== order.trackingNumber || trackingUrl !== order.trackingUrl
   useEffect(() => { onDirty(order.orderNumber, dirty); return () => onDirty(order.orderNumber, false) }, [onDirty, order.orderNumber, dirty])
   useEffect(() => { setNotes(order.internalNotes); setTrackingNumber(order.trackingNumber); setTrackingUrl(order.trackingUrl) }, [order.internalNotes, order.trackingNumber, order.trackingUrl])
-  function save() { startTransition(async () => { const response = await fetch(`/api/admin/orders/${order.orderNumber}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ internalNotes: notes, trackingNumber, trackingUrl }) }); onSaved(response.ok ? { internalNotes: notes, trackingNumber, trackingUrl } : {}, response.ok ? 'Данните са записани.' : 'Данните не бяха записани.') }) }
-  function retryOrdyx() { startTransition(async () => { const response = await fetch(`/api/admin/orders/${order.orderNumber}/ordyx`, { method: 'POST' }); const data = await response.json().catch(() => ({})); onSaved({}, response.ok && data.ok ? 'Ordyx синхронизацията е успешна.' : 'Ordyx не прие заявката. Опитай отново.') }) }
+  function save() {
+    startTransition(async () => {
+      try {
+        const response = await fetch(`/api/admin/orders/${order.orderNumber}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ internalNotes: notes, trackingNumber, trackingUrl }) })
+        const data = await response.json().catch(() => ({}))
+        onSaved(response.ok ? { internalNotes: notes, trackingNumber, trackingUrl, ...(data.updatedAt ? { updatedAt: data.updatedAt } : {}) } : {}, response.ok ? 'Данните са записани.' : 'Данните не бяха записани.')
+      } catch { onSaved({}, 'Няма връзка със сървъра. Опитай отново — въведените данни са запазени тук.') }
+    })
+  }
+  function retryOrdyx() {
+    startTransition(async () => {
+      try {
+        const response = await fetch(`/api/admin/orders/${order.orderNumber}/ordyx`, { method: 'POST' })
+        const data = await response.json().catch(() => ({}))
+        onSaved({}, response.ok && data.ok ? 'Ordyx синхронизацията е успешна.' : 'Ordyx не прие заявката. Опитай отново.')
+      } catch { onSaved({}, 'Няма връзка със сървъра. Опитай Ordyx отново.') }
+    })
+  }
   return <article className={styles.order}>
     <div className={styles.top}><div><span className={styles.eyebrow}>ПОРЪЧКА #{order.orderNumber}</span><h2>{order.customerName}</h2><time>{new Intl.DateTimeFormat('bg-BG', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Sofia' }).format(new Date(order.createdAt))}</time></div><span className={`${styles.status} ${styles[order.status]}`}>{labels[order.status]}</span></div>
     {!editing && ['new','confirmed'].includes(order.status) && <button type="button" className={styles.editButton} disabled={pending || !editingAvailable} onClick={() => setEditing(true)}>Редактирай поръчката</button>}
     {editing && <OrderEditor order={order} onClose={() => setEditing(false)} onSaved={(updated, message) => { setEditing(false); onSaved(updated, message) }}/>}
     {!editing && <details className={styles.details} open={order.status === 'new'}><summary>Детайли и управление</summary>
       <div className={styles.grid}><div><b>Контакт</b><a href={`tel:${order.phone}`}>{order.phone}</a>{order.email ? <a href={`mailto:${order.email}`}>{order.email}</a> : null}</div><div><b>Доставка · {order.courier === 'boxnow' ? 'BOX NOW' : order.courier.toUpperCase()}</b><span>{order.deliveryAddress}</span></div><div><b>Продукти</b>{order.items.map((item, index) => <span key={`${item.title}-${index}`}>{item.quantity} × {item.title}{item.variantName ? ` · ${item.variantName}` : ''}</span>)}</div></div>
-      <div className={styles.operations}><label>Вътрешна бележка<textarea rows={3} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Вижда се само в администрацията" /></label><label>Номер за проследяване<input value={trackingNumber} onChange={(event) => setTrackingNumber(event.target.value)} placeholder="Товарителница / tracking номер" /></label><label>Линк за проследяване<input type="url" value={trackingUrl} onChange={(event) => setTrackingUrl(event.target.value)} placeholder="https://…" /></label><button type="button" disabled={pending} onClick={save}>Запази данните</button></div>
+      <div className={styles.operations}><label>Вътрешна бележка<textarea disabled={pending} rows={3} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Вижда се само в администрацията" /></label><label>Номер за проследяване<input disabled={pending} value={trackingNumber} onChange={(event) => setTrackingNumber(event.target.value)} placeholder="Товарителница / tracking номер" /></label><label>Линк за проследяване<input disabled={pending} type="url" value={trackingUrl} onChange={(event) => setTrackingUrl(event.target.value)} placeholder="https://…" /></label><button type="button" disabled={pending} onClick={save}>Запази данните</button></div>
     </details>}
     {!editing && order.notes && <p className={styles.customerNote}>Бележка: {order.notes}</p>}
     {order.promoCode && <p>Промокод: <b>{order.promoCode}</b> · Отстъпка: {order.discountAmount.toFixed(2)} €</p>}
@@ -49,7 +65,16 @@ export function OrdersAdmin({ initialOrders, editingAvailable = true, initialQue
   const visible = useMemo(() => { const needle = query.trim().toLocaleLowerCase('bg'); return orders.filter((order) => (status === 'all' || order.status === status) && (!needle || (initialQuery && needle === initialQuery ? order.orderNumber === initialQuery : `${order.orderNumber} ${order.customerName} ${order.phone} ${order.email ?? ''} ${order.trackingNumber}`.toLocaleLowerCase('bg').includes(needle)))) }, [orders, query, status, initialQuery])
   function update(orderNumber: string, nextStatus: OrderStatus) {
     if (nextStatus === 'cancelled' && !window.confirm('Да анулирам ли поръчката? Наличността ще бъде върната автоматично.')) return
-    startTransition(async () => { setMessage(''); const response = await fetch(`/api/admin/orders/${orderNumber}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: nextStatus }) }); const data = await response.json().catch(() => ({})); if (!response.ok) { setMessage(response.status === 409 ? 'Този преход на статус не е разрешен.' : 'Промяната не беше записана.'); return } setOrders((current) => current.map((order) => order.orderNumber === orderNumber ? { ...order, status: nextStatus, ordyxStatus: nextStatus === 'cancelled' ? (data.ordyxWarning ? 'failed' : 'cancelled') : order.ordyxStatus } : order)); setMessage(data.ordyxWarning ? 'Статусът е записан. Ordyx ще опита отново.' : 'Статусът е записан.') })
+    startTransition(async () => {
+      setMessage('')
+      try {
+        const response = await fetch(`/api/admin/orders/${orderNumber}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: nextStatus }) })
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok) { setMessage(response.status === 409 ? 'Този преход на статус не е разрешен.' : 'Промяната не беше записана.'); return }
+        setOrders(current => current.map(order => order.orderNumber === orderNumber ? { ...order, status: nextStatus, ...(data.updatedAt ? { updatedAt: data.updatedAt } : {}), ordyxStatus: nextStatus === 'cancelled' ? (data.ordyxWarning ? 'failed' : 'cancelled') : order.ordyxStatus } : order))
+        setMessage(data.ordyxWarning ? 'Статусът е записан. Ordyx ще опита отново.' : 'Статусът е записан.')
+      } catch { setMessage('Няма връзка със сървъра. Презареди, за да провериш статуса, или опитай отново.') }
+    })
   }
   function saved(orderNumber: string, patch: Partial<AdminOrder>, note: string) { setOrders((current) => current.map((order) => order.orderNumber === orderNumber ? { ...order, ...patch } : order)); setMessage(note) }
   return <section className={styles.list}>{!editingAvailable && <div className={styles.activation}><strong>Редакцията на поръчки очаква активиране.</strong><p>Изпълни SQL файла в Supabase → SQL Editor, след което презареди страницата.</p><a href="https://github.com/vstoimenov/tiarra-store/blob/main/supabase/migrations/20261117100000_admin_edit_order.sql" target="_blank" rel="noopener noreferrer">Отвори SQL за активиране</a></div>}<div className={styles.filters}><label>Търсене<input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="№, име, телефон, tracking…" /></label><label>Статус<select value={status} onChange={(event) => setStatus(event.target.value as 'all' | OrderStatus)}><option value="all">Всички</option>{Object.entries(labels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><span>{visible.length} поръчки</span></div><p className={styles.message} role="status">{pending ? 'Записване…' : message}</p>{!orders.length ? <div className={styles.empty}><strong>Все още няма поръчки.</strong><span>Новите поръчки ще се появят тук автоматично.</span></div> : null}{orders.length > 0 && !visible.length ? <div className={styles.empty}><strong>Няма намерени поръчки.</strong><span>Промени търсенето или филтъра.</span></div> : null}{visible.map((order) => <OrderCard order={order} onDirty={onDirty} editingAvailable={editingAvailable} key={order.orderNumber} onStatus={(nextStatus) => update(order.orderNumber, nextStatus)} onSaved={(patch, note) => saved(order.orderNumber, patch, note)} />)}</section>

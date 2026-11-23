@@ -50,6 +50,13 @@ export interface TestProductInput {
 export async function resetCatalog(): Promise<void> {
   assertTestDatabase(process.env.DATABASE_URL)
   await sql`truncate store.product_images, store.variants, store.product_categories, store.products, store.categories cascade`
+  // Suites change courier availability/prices. Restore their shared fixture so test order
+  // cannot disable delivery methods for an unrelated order or notification test.
+  await sql`update store.commerce_settings set econt_enabled=true,econt_address_enabled=true,
+    speedy_enabled=true,speedy_address_enabled=true,boxnow_enabled=false,
+    econt_free_shipping=true,speedy_free_shipping=true,boxnow_free_shipping=true,
+    free_shipping_threshold=39,econt_office_price=4.5,econt_address_price=6.5,
+    speedy_office_price=3.5,speedy_address_price=5.5,boxnow_price=2.49 where singleton`
 }
 
 /** Inserts a product with its categories, variants and images; returns its slug. */

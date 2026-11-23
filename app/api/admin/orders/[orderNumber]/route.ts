@@ -19,12 +19,12 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ o
   if (!/^\d+$/.test(orderNumber)) return NextResponse.json({ error: 'Invalid order' }, { status: 400 })
   const parsed = schema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid data' }, { status: 400 })
-  const rows = await sql<{ order_number: string }[]>`
+  const rows = await sql<{ order_number: string; updated_at: string }[]>`
     update store.orders set internal_notes = ${parsed.data.internalNotes},
       tracking_number = ${parsed.data.trackingNumber || null}, tracking_url = ${parsed.data.trackingUrl || null}, updated_at = now()
-    where order_number = ${orderNumber}::bigint returning order_number`
+    where order_number = ${orderNumber}::bigint returning order_number, updated_at::text`
   if (!rows.length) return NextResponse.json({ error: 'Order not found' }, { status: 404 })
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, updatedAt: rows[0].updated_at })
 }
 
 export async function PUT(request: NextRequest, context: { params: Promise<{ orderNumber: string }> }) {

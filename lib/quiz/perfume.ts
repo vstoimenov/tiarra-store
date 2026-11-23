@@ -119,7 +119,7 @@ export function matchingFamilies(perfume: Perfume | null, descriptionNotes: stri
 /** The source category also contains accessories, aftershaves, hair and beard products. */
 export function isWearablePerfume(product: QuizProduct): boolean {
   const title = product.title.toLocaleLowerCase('bg')
-  if (/(?:кейс|калъф|калъв|аксесоар|флакон за парфюм|кутия за парфюм|подаръчн\p{L}* комплект|за брада|за коса|брада|дезодорант|афтършейв|след бръснене|спрей за тяло|мист за тяло|body\s*mist|body\s*spray|after\s*shave|aftershave|deodorant|beard|mustache|hair\s*parf|hair\s*perf|shower|душ гел|лосьон за тяло)/iu.test(title)) return false
+  if (/(?:кейс|калъф|калъв|аксесоар|флакон за парфюм|кутия за парфюм|комплект|gift\s*set|за брада|за коса|брада|дезодорант|афтършейв|след бръснене|спрей за тяло|мист за тяло|body\s*mist|body\s*spray|after\s*shave|aftershave|deodorant|beard|mustache|hair\s*parf|hair\s*perf|shower|душ гел|лосьон за тяло)/iu.test(title)) return false
   return /(?:парфюм|parf[uy]m|perfume|\bedp\b|\bedt\b|olfazeta\s+by\s+chogan)/iu.test(title) || Boolean(product.descriptionNotes?.length || (product.perfume && [product.perfume.top, product.perfume.heart, product.perfume.base].some(Boolean)))
 }
 

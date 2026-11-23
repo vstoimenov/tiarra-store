@@ -48,3 +48,27 @@ test('respects reduced motion and opens confirmation without animation delays',a
  await page.getByRole('button',{name:'Купи сега',exact:true}).click()
  await expect(page.locator('#order-confirmation-heading')).toBeVisible({timeout:1500})
 })
+test('requotes changes from another tab and preserves additions made while submitting',async({page})=>{
+ await page.emulateMedia({reducedMotion:'reduce'})
+ let release:()=>void=()=>{};const accepted=new Promise<void>(resolve=>{release=resolve})
+ let submitted: {items:{quantity:number}[];expectedTotal:number}|null=null
+ await page.route('**/api/orders',async route=>{submitted=route.request().postDataJSON();await accepted;await route.fulfill({json:{orderNumber:'TEST-TABS',total:45}})})
+ await setup(page)
+ await page.route('**/api/orders/quote',route=>{
+  const {items}=route.request().postDataJSON();const subtotal=items.reduce((sum:number,item:{quantity:number})=>sum+20*item.quantity,0)
+  return route.fulfill({json:{promoCode:'',discount:0,subtotal,shipping:5,total:subtotal+5,lines:items.map((item:object)=>({...item,unitPrice:20}))}})
+ })
+ await page.evaluate(()=>{
+  const cart=JSON.parse(localStorage.getItem('tiarra-cart-v1')!);cart[0].quantity=2;localStorage.setItem('tiarra-cart-v1',JSON.stringify(cart));window.dispatchEvent(new StorageEvent('storage',{key:'tiarra-cart-v1'}))
+ })
+ await contacts(page);await page.getByRole('button',{name:'Избери тестова доставка'}).click()
+ await expect(page.getByRole('button',{name:'Купи сега',exact:true})).toBeEnabled()
+ await page.getByRole('button',{name:'Купи сега',exact:true}).click()
+ await expect.poll(()=>submitted?.items[0].quantity).toBe(2)
+ expect(submitted!.expectedTotal).toBe(45)
+ await page.evaluate(()=>{
+  const cart=JSON.parse(localStorage.getItem('tiarra-cart-v1')!);cart[0].quantity=3;cart.push({...cart[0],key:'other:default',productId:'22222222-2222-4222-8222-222222222222',quantity:1});localStorage.setItem('tiarra-cart-v1',JSON.stringify(cart));window.dispatchEvent(new StorageEvent('storage',{key:'tiarra-cart-v1'}))
+ })
+ release();await expect(page.locator('#order-confirmation-heading')).toBeVisible()
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('tiarra-cart-v1')!).map((item:{quantity:number})=>item.quantity))).toEqual([1,1])
+})

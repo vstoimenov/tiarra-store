@@ -2,8 +2,9 @@ const VISITOR='tiarra-visitor-v1'
 const SESSION='tiarra-visit-session-v1'
 const LAST='tiarra-visit-last-v1'
 export function currentVisitSession():string|null{
- if(typeof window==='undefined'||window.localStorage.getItem('tiarra-consent-v1')!=='accepted')return null
+ if(typeof window==='undefined')return null
  try{
+  if(window.localStorage.getItem('tiarra-consent-v1')!=='accepted')return null
   const now=Date.now();let session=window.sessionStorage.getItem(SESSION)
   const last=Number(window.sessionStorage.getItem(LAST))
   if(!session||!Number.isFinite(last)||now-last>30*60*1000){session=crypto.randomUUID();window.sessionStorage.setItem(SESSION,session)}

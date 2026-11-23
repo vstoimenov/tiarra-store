@@ -14,13 +14,25 @@ export function analyticsAllowed() {
   catch { return false }
 }
 
+let pendingMetaEvents: unknown[][] = []
+/** Consent can be accepted before the pixel bootstrap has mounted. */
+export function flushMetaCommerceEvents() {
+  if (!analyticsAllowed()) { pendingMetaEvents = []; return }
+  if (!window.fbq) return
+  const events = pendingMetaEvents
+  pendingMetaEvents = []
+  for (const args of events) {
+    try { window.fbq(...args) } catch { /* Tracking must never interrupt shopping. */ }
+  }
+}
+
 export function trackCommerce(event: 'view_item' | 'add_to_cart' | 'begin_checkout' | 'purchase', data: { currency: 'EUR'; value: number; items: CommerceItem[]; transaction_id?: string }) {
-  if (!analyticsAllowed()) return
-  try {
-  window.dataLayer?.push({ event, ecommerce: data })
+  if (!analyticsAllowed()) { pendingMetaEvents = []; return }
+  try { window.dataLayer?.push({ event, ecommerce: data }) } catch { /* Trackers fail independently. */ }
   const metaEvent = { view_item: 'ViewContent', add_to_cart: 'AddToCart', begin_checkout: 'InitiateCheckout', purchase: 'Purchase' }[event]
-  window.fbq?.('track', metaEvent, { value: data.value, currency: data.currency, content_ids: data.items.map((item) => item.item_id), contents: data.items.map((item) => ({ id: item.item_id, quantity: item.quantity, item_price: item.price })) }, data.transaction_id ? { eventID: metaPurchaseEventId(data.transaction_id) } : undefined)
-  } catch { /* Third-party tracking must not interrupt shopping. */ }
+  const args = ['track', metaEvent, { value: data.value, currency: data.currency, content_ids: data.items.map((item) => item.item_id), contents: data.items.map((item) => ({ id: item.item_id, quantity: item.quantity, item_price: item.price })) }, data.transaction_id ? { eventID: metaPurchaseEventId(data.transaction_id) } : undefined]
+  if (!window.fbq) { pendingMetaEvents.push(args); pendingMetaEvents = pendingMetaEvents.slice(-50); return }
+  try { window.fbq(...args) } catch { /* Third-party tracking must not interrupt shopping. */ }
 }
 
 function metaCookie(name: string) {
