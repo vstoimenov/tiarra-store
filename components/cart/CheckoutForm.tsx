@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { analyticsAllowed, trackCommerce, metaCheckoutContext } from '@/lib/analytics'
 import { type CartItem, readCart, writeCart, removePurchasedCartItems, CART_UPDATED_EVENT, CART_STORAGE_KEY } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
+import { PRODUCT_BUMP_LABEL } from '@/lib/catalog/bump-rules'
 import styles from './CheckoutForm.module.css'
 import controls from './CheckoutControls.module.css'
 import { OrdyxDelivery, type DeliverySelection } from './OrdyxDelivery'
@@ -274,7 +275,7 @@ export function CheckoutForm({settings}:{settings:CommerceSettings}) {
         <FreeShippingProgress subtotal={subtotal} threshold={currentSettings.freeShippingThreshold} couriers={freeShippingCouriers(currentSettings)} selectedEligible={shipping===0}/>
         {bumps.some(bump => !items.some(item => item.productId === bump.productId)) && <section className={styles.bumps} aria-labelledby="checkout-bumps-title">
           <span className={styles.eyebrow}>ПОДБРАНО ЗА ТЕБ</span>
-          <h3 id="checkout-bumps-title">Добави финалния щрих</h3>
+          <h3 id="checkout-bumps-title">{PRODUCT_BUMP_LABEL}</h3>
           {bumps.filter(bump => !items.some(item => item.productId === bump.productId)).slice(0, 2).map(bump => <div key={bump.productId} className={styles.bump}>
             <div className={styles.bumpThumb}>{bump.imagePath && <img src={imageUrl(bump.imagePath, 400)} alt="" width={48} height={48} loading="lazy" />}</div>
             <div><Link href={`/store/${encodeURIComponent(bump.slug)}`} title={bump.title}><strong>{bump.title}</strong></Link><span>{formatPrice(bump.unitPrice)}</span></div>

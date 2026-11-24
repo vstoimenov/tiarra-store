@@ -8,9 +8,10 @@ import type { Product } from '@/lib/catalog/types'
 import { formatPrice } from '@/lib/format'
 import { imageUrl } from '@/lib/images'
 import { Savings } from './Savings'
+import { PRODUCT_BUMP_LABEL } from '@/lib/catalog/bump-rules'
 import styles from './ProductBump.module.css'
 
-export function ProductBump({ product, label }: { product: Product; label: string }) {
+export function ProductBump({ product }: { product: Product; label: string }) {
   const [added, setAdded] = useState(false)
   const canQuickAdd = product.variants.length === 0 && product.inStock
   const imagePath = product.images[0]?.path ?? null
@@ -36,7 +37,7 @@ export function ProductBump({ product, label }: { product: Product; label: strin
 
   return (
     <aside className={styles.bump} aria-labelledby="product-bump-title">
-      <p className={styles.eyebrow}>{label}</p>
+      <p className={styles.eyebrow}>{PRODUCT_BUMP_LABEL}</p>
       <div className={styles.row}>
         <Link href={`/store/${product.slug}`} className={styles.product}>
           <span className={styles.media}>

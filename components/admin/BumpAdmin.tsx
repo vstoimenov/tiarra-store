@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react'
 import type { AdminBumpMapping, AdminProductOption } from '@/lib/admin/bumps'
+import { isChogan15MlCase, isChoganPerfume, PRODUCT_BUMP_LABEL } from '@/lib/catalog/bump-rules'
 import styles from './BumpAdmin.module.css'
 
 export function BumpAdmin({
@@ -16,18 +17,22 @@ export function BumpAdmin({
   const [query, setQuery] = useState('')
   const [message, setMessage] = useState('')
   const [pending, startTransition] = useTransition()
-  const current = mappings.find((entry) => entry.productId === productId)
-  const [bumpId, setBumpId] = useState(current?.bumpProductId ?? '')
-  const [label, setLabel] = useState(current?.label ?? 'Добави към ритуала си')
+  function permittedBump(sourceId: string, targetId: string) {
+    const source = initialProducts.find(product => product.id === sourceId)
+    const target = initialProducts.find(product => product.id === targetId)
+    return source && isChoganPerfume(source) && (!target || !isChogan15MlCase(target)) ? '' : targetId
+  }
+  const [bumpId, setBumpId] = useState(() => permittedBump(productId, initialMappings.find(entry => entry.productId === productId)?.bumpProductId ?? ''))
+  const label = PRODUCT_BUMP_LABEL
 
   const productMap = useMemo(() => new Map(initialProducts.map((product) => [product.id, product])), [initialProducts])
   const filtered = initialProducts.filter((product) => product.title.toLocaleLowerCase('bg').includes(query.toLocaleLowerCase('bg')))
+  const chogan = isChoganPerfume(productMap.get(productId) ?? { title: '' })
 
   function selectProduct(nextId: string) {
     setProductId(nextId)
     const mapping = mappings.find((entry) => entry.productId === nextId)
-    setBumpId(mapping?.bumpProductId ?? '')
-    setLabel(mapping?.label ?? 'Добави към ритуала си')
+    setBumpId(permittedBump(nextId, mapping?.bumpProductId ?? ''))
     setMessage('')
   }
 
@@ -71,11 +76,12 @@ export function BumpAdmin({
         <div>
           <label htmlFor="bump-product">Избери подходящ bump</label>
           <select disabled={pending} id="bump-product" value={bumpId} onChange={(event) => setBumpId(event.target.value)}>
-            <option value="">Автоматичен релевантен продукт</option>
-            {initialProducts.filter((product) => product.id !== productId).map((product) => (
+            <option value="">{chogan ? 'Автоматично — OLFazeta кейс 15 мл' : 'Автоматичен релевантен продукт'}</option>
+            {initialProducts.filter((product) => product.id !== productId && (!chogan || isChogan15MlCase(product))).map((product) => (
               <option key={product.id} value={product.id}>{product.title}</option>
             ))}
           </select>
+          {chogan && <p>За парфюмите CHOGAN се предлага наличен OLFazeta кейс за 15 мл.</p>}
           {bumpId ? <a href={`/store/${productMap.get(bumpId)?.slug}`} target="_blank" rel="noreferrer">Преглед на избрания продукт ↗</a> : null}
         </div>
       </div>
@@ -84,7 +90,7 @@ export function BumpAdmin({
         <span className={styles.number}>3</span>
         <div>
           <label htmlFor="bump-label">Текст над предложението</label>
-          <input disabled={pending} id="bump-label" value={label} maxLength={60} onChange={(event) => setLabel(event.target.value)} />
+          <input readOnly id="bump-label" value={label} />
         </div>
       </div>
 

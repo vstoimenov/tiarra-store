@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { type CartItem, addCartItem } from '@/lib/cart'
 import { formatPrice } from '@/lib/format'
 import { imageUrl } from '@/lib/images'
+import { PRODUCT_BUMP_LABEL } from '@/lib/catalog/bump-rules'
 import styles from './CartClient.module.css'
 type Bump = {productId: string;slug: string;title: string;imagePath: string|null;unitPrice:number}
 export function CartRecommendations({items,onAdded}:{items:CartItem[];onAdded:()=>void}) {
@@ -16,5 +17,5 @@ export function CartRecommendations({items,onAdded}:{items:CartItem[];onAdded:()
   },[ids])
   const choices=bumps.filter(b=>!items.some(i=>i.productId===b.productId))
   if(!choices.length)return null
-  return <section className={styles.recommendations}><h3>Подходящо допълнение</h3>{choices.map(b=><div key={b.productId}>{b.imagePath&&<img src={imageUrl(b.imagePath,400)} width={48} height={48} alt="" loading="lazy"/>}<span>{b.title}<strong>{formatPrice(b.unitPrice)}</strong></span><button type="button" onClick={()=>{addCartItem({...b,key:`${b.productId}:default`,variantId:null,variantName:null,quantity:1,source:'bump'});onAdded()}} aria-label={`Добави ${b.title}`}>+ Добави</button></div>)}</section>
+  return <section className={styles.recommendations}><h3>{PRODUCT_BUMP_LABEL}</h3>{choices.map(b=><div key={b.productId}>{b.imagePath&&<img src={imageUrl(b.imagePath,400)} width={48} height={48} alt="" loading="lazy"/>}<span>{b.title}<strong>{formatPrice(b.unitPrice)}</strong></span><button type="button" onClick={()=>{addCartItem({...b,key:`${b.productId}:default`,variantId:null,variantName:null,quantity:1,source:'bump'});onAdded()}} aria-label={`Добави ${b.title}`}>+ Добави</button></div>)}</section>
 }

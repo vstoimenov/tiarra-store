@@ -1,9 +1,13 @@
 import { sql } from '@/lib/db'
+import type { Perfume } from '@/lib/catalog/types'
+import { PRODUCT_BUMP_LABEL } from '@/lib/catalog/bump-rules'
 
 export interface AdminProductOption {
   id: string
   slug: string
   title: string
+  brand?: string | null
+  perfume?: Perfume | null
 }
 
 export interface AdminBumpMapping {
@@ -18,7 +22,7 @@ export async function getBumpAdminData(): Promise<{
 }> {
   const [products, mappings] = await Promise.all([
     sql<AdminProductOption[]>`
-      select id, slug, title
+      select id, slug, title, brand, perfume
       from store.products
       where not is_hidden
       order by title, slug`,
@@ -33,7 +37,7 @@ export async function getBumpAdminData(): Promise<{
     mappings: mappings.map((row) => ({
       productId: row.product_id,
       bumpProductId: row.bump_product_id,
-      label: row.label,
+      label: PRODUCT_BUMP_LABEL,
     })),
   }
 }
