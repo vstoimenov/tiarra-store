@@ -6,7 +6,7 @@ export type AdminCategory={id:string;name:string}
 export async function getAdminCategories():Promise<AdminCategory[]>{return sql<AdminCategory[]>`select id,name from store.categories order by position,legacy_id nulls last,name`}
 export async function getAdminProducts():Promise<AdminProduct[]>{
  return sql<AdminProduct[]>`select p.id,p.title,p.slug,p.brand,p.gender,p.price::float8 as price,p.compare_at_price::float8 as "compareAtPrice",p.stock,p.description_html as "descriptionHtml",p.perfume,p.is_hidden as hidden,p.updated_at::text as "updatedAt",
- coalesce((select jsonb_agg(jsonb_build_object('id',v.id,'name',v.name,'price',v.price,'compareAtPrice',v.compare_at_price,'imagePath',v.image_path) order by v.position) from store.variants v where v.product_id=p.id),'[]') as variants,
+ coalesce((select jsonb_agg(jsonb_build_object('id',v.id,'name',v.name,'price',v.price,'compareAtPrice',v.compare_at_price,'stock',v.stock,'imagePath',v.image_path) order by v.position) from store.variants v where v.product_id=p.id),'[]') as variants,
  coalesce((select jsonb_agg(jsonb_build_object('id',i.id,'path',i.path,'alt',i.alt,'width',i.width,'height',i.height) order by i.position,i.id) from store.product_images i where i.product_id=p.id),'[]') as images,
  coalesce((select jsonb_agg(pc.category_id) from store.product_categories pc where pc.product_id=p.id),'[]') as "categoryIds" from store.products p order by p.title`
 }

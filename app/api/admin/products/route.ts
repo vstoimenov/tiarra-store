@@ -5,7 +5,7 @@ import sanitizeHtml from 'sanitize-html'
 import { sql } from '@/lib/db'
 const price=z.number().min(0.01).max(999999).multipleOf(0.01)
 const image=z.object({id:z.string().uuid().optional(),path:z.string().min(1).max(600),alt:z.string().max(300),width:z.number().int().positive().max(10000),height:z.number().int().positive().max(10000)})
-const variant=z.object({imagePath:z.string().min(1).max(600).nullable().optional(),id:z.string().uuid(),name:z.string().trim().min(1).max(200),price,compareAtPrice:price.nullable(),stock:z.number().int().min(0).max(99999).nullable().optional()})
+const variant=z.object({expectedStock:z.number().int().min(0).max(99999).nullable().optional(),imagePath:z.string().min(1).max(600).nullable().optional(),id:z.string().uuid(),name:z.string().trim().min(1).max(200),price,compareAtPrice:price.nullable(),stock:z.number().int().min(0).max(99999).nullable().optional()})
 const perfume=z.object({top:z.string().trim().max(500).optional(),heart:z.string().trim().max(500).optional(),base:z.string().trim().max(500).optional(),aroma:z.string().trim().max(500).optional(),volume:z.string().trim().max(100).optional(),variant:z.string().trim().max(500).optional(),occasion:z.enum(['daily','special','both']).optional(),intensity:z.enum(['light','balanced','strong']).optional()}).nullable().optional()
 const base=z.object({variants:z.array(variant).max(100).optional(),perfume,title:z.string().trim().min(2).max(300),brand:z.string().trim().max(120).nullable(),gender:z.enum(['female','male','unisex']),price,compareAtPrice:price.nullable(),stock:z.number().int().min(0).max(99999).nullable(),descriptionHtml:z.string().max(20000),hidden:z.boolean(),categoryIds:z.array(z.string().uuid()).max(20),images:z.array(image).max(12)})
 const patch=base.extend({id:z.string().uuid(),updatedAt:z.string().min(1).max(60),variants:z.array(variant).max(200)})
@@ -28,7 +28,7 @@ export async function PATCH(request:Request){
  try{const saved=await sql.begin(async tx=>{
   const [current]=await tx<{updated_at:string;slug:string}[]>`select updated_at::text,slug from store.products where id=${p.id} for update`
   if(!current)throw new Error('NOT_FOUND');if(current.updated_at!==p.updatedAt)throw new Error('CONFLICT')
-  const variants=await tx<{id:string;imagePath:string|null}[]>`select id,image_path as "imagePath" from store.variants where product_id=${p.id} for update`
+  const variants=await tx<{id:string;imagePath:string|null;stock:number|null}[]>`select id,stock,image_path as "imagePath" from store.variants where product_id=${p.id} for update`
   if(new Set(p.variants.map(v=>v.id)).size!==p.variants.length||variants.some(v=>!p.variants.some(i=>i.id===v.id)))throw new Error('CONFLICT')
   const newVariants=p.variants.filter(v=>!variants.some(existing=>existing.id===v.id))
   if(newVariants.length){
@@ -42,7 +42,17 @@ export async function PATCH(request:Request){
   }
   const [row]=await tx<{updatedAt:string;slug:string}[]>`select updated_at::text as "updatedAt",slug from store.admin_save_product(${tx.json({...p,descriptionHtml:clean(p.descriptionHtml)})})`
   if(p.perfume !== undefined){const [check]=await tx<{matches:boolean}[]>`select coalesce(perfume, 'null'::jsonb) = coalesce(${tx.json(p.perfume)}::jsonb, 'null'::jsonb) as matches from store.products where id=${p.id}`;if(!check?.matches)throw new Error('PERFUME_NOT_SAVED')}
-  for(const v of p.variants.filter(v=>variants.some(existing=>existing.id===v.id)))await tx`update store.variants set name=${v.name},price=${v.price},compare_at_price=${v.compareAtPrice} where id=${v.id} and product_id=${p.id}`
+  for(const v of p.variants.filter(v=>variants.some(existing=>existing.id===v.id))){
+   const original=variants.find(existing=>existing.id===v.id)!
+   // An unchanged stock input must not undo purchases made while the editor was open.
+   // Older clients without a stock snapshot keep their existing metadata-only behaviour.
+   const stockChanged=v.expectedStock!==undefined&&v.stock!==v.expectedStock
+   if(stockChanged){
+    if(v.stock===undefined||original.stock!==v.expectedStock)throw new Error('STOCK_CHANGED')
+    await tx`select * from store.update_inventory(${v.id},'variant',${v.stock})`
+   }
+   await tx`update store.variants set name=${v.name},price=${v.price},compare_at_price=${v.compareAtPrice} where id=${v.id} and product_id=${p.id}`
+  }
   const imageChanges=p.variants.filter(v=>v.imagePath!==undefined&&(v.imagePath??null)!==(variants.find(old=>old.id===v.id)?.imagePath??null))
   if(imageChanges.length){
    const [capability]=await tx<{available:boolean}[]>`select to_regprocedure('store.admin_set_variant_images(uuid,jsonb)') is not null as available`
@@ -50,5 +60,5 @@ export async function PATCH(request:Request){
    await tx`select store.admin_set_variant_images(${p.id},${tx.json(imageChanges)})`
   }
   return {updatedAt:row.updatedAt,slug:current.slug}
- });revalidatePath('/', 'layout');revalidatePath('/store/'+saved.slug);revalidatePath('/store');return NextResponse.json(saved)}catch(e){const message=e instanceof Error?e.message:'';if(message==='VARIANT_IMAGES_MIGRATION_REQUIRED')return NextResponse.json({error:'За снимки на видовете е нужна актуализация на базата. Промените не са записани.'},{status:500});if(message==='DUPLICATE_VARIANT')return NextResponse.json({error:'Видовете трябва да имат различни имена.'},{status:400});if(message==='VARIANTS_MIGRATION_REQUIRED')return NextResponse.json({error:'За добавяне към вече съществуващи видове е нужна актуализация на базата. Промените не са записани.'},{status:500});if(message==='CONFLICT')return NextResponse.json({error:'Продуктът е променен от друг прозорец. Презареди страницата.'},{status:409});if(message==='PERFUME_NOT_SAVED')return NextResponse.json({error:'Нотките не бяха записани. Необходима е актуализация на базата; промените са запазени във формата.'},{status:500});if(message==='NOT_FOUND')return NextResponse.json({error:'Продуктът не е намерен.'},{status:404});console.error('Product update failed',e);return NextResponse.json({error:'Промяната не беше записана.'},{status:500})}
+ });revalidatePath('/', 'layout');revalidatePath('/store/'+saved.slug);revalidatePath('/store');return NextResponse.json(saved)}catch(e){const message=e instanceof Error?e.message:'';if(message==='VARIANT_IMAGES_MIGRATION_REQUIRED')return NextResponse.json({error:'За снимки на видовете е нужна актуализация на базата. Промените не са записани.'},{status:500});if(message==='DUPLICATE_VARIANT')return NextResponse.json({error:'Видовете трябва да имат различни имена.'},{status:400});if(message==='VARIANTS_MIGRATION_REQUIRED')return NextResponse.json({error:'За добавяне към вече съществуващи видове е нужна актуализация на базата. Промените не са записани.'},{status:500});if(message==='STOCK_CHANGED')return NextResponse.json({error:'Наличността на вид е променена от поръчка или друг администратор. Презареди продукта и въведи количеството отново. Промените не са записани.'},{status:409});if(message==='CONFLICT')return NextResponse.json({error:'Продуктът е променен от друг прозорец. Презареди страницата.'},{status:409});if(message==='PERFUME_NOT_SAVED')return NextResponse.json({error:'Нотките не бяха записани. Необходима е актуализация на базата; промените са запазени във формата.'},{status:500});if(message==='NOT_FOUND')return NextResponse.json({error:'Продуктът не е намерен.'},{status:404});console.error('Product update failed',e);return NextResponse.json({error:'Промяната не беше записана.'},{status:500})}
 }
